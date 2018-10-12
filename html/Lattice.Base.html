@@ -1,0 +1,72 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Lattice.Base</title><link rel="stylesheet" href="Agda.css"></head><body><pre><a id="1" class="Comment">-- The following Definition of security lattice includes both the</a>
+<a id="67" class="Comment">-- standard definition based on partially-ordered sets</a>
+<a id="122" class="Comment">-- (Relation.Binary.Lattice) and the standard algebraic definition</a>
+<a id="189" class="Comment">-- (Algebra.Structures). It should be possible to relax</a>
+<a id="245" class="Comment">-- SecurityLattice to require only one of them (those definitions are</a>
+<a id="315" class="Comment">-- equivalent), but this result is not part of the standard library</a>
+<a id="383" class="Comment">-- and beyond our scope.  Additionally the security lattice requires</a>
+<a id="452" class="Comment">-- decidable equality and ordering.</a>
+
+<a id="489" class="Keyword">module</a> <a id="496" href="Lattice.Base.html" class="Module">Lattice.Base</a> <a id="509" class="Keyword">where</a>
+
+<a id="516" class="Keyword">open</a> <a id="521" class="Keyword">import</a> <a id="528" href="Relation.Binary.html" class="Module">Relation.Binary</a>
+<a id="544" class="Keyword">open</a> <a id="549" class="Keyword">import</a> <a id="556" href="Relation.Binary.Lattice.html" class="Module">Relation.Binary.Lattice</a>
+<a id="580" class="Keyword">open</a> <a id="585" class="Keyword">import</a> <a id="592" href="Relation.Binary.PropositionalEquality.html" class="Module">Relation.Binary.PropositionalEquality</a>
+<a id="630" class="Keyword">open</a> <a id="635" class="Keyword">import</a> <a id="642" href="Algebra.FunctionProperties.html" class="Module">Algebra.FunctionProperties</a>
+<a id="669" class="Keyword">import</a> <a id="676" href="Algebra.Structures.html" class="Module">Algebra.Structures</a> <a id="695" class="Symbol">as</a> <a id="698" class="Module">S</a>
+<a id="700" class="Keyword">open</a> <a id="705" class="Keyword">import</a> <a id="712" href="Level.html" class="Module">Level</a>
+
+<a id="719" class="Comment">-- Lattice interface.</a>
+<a id="741" class="Keyword">record</a> <a id="IsSecurityLattice" href="Lattice.Base.html#IsSecurityLattice" class="Record">IsSecurityLattice</a> <a id="766" class="Symbol">{</a><a id="767" href="Lattice.Base.html#767" class="Bound">a</a> <a id="769" href="Lattice.Base.html#769" class="Bound">ℓ₁</a> <a id="772" href="Lattice.Base.html#772" class="Bound">ℓ₂</a><a id="774" class="Symbol">}</a> <a id="776" class="Symbol">{</a><a id="777" href="Lattice.Base.html#777" class="Bound">A</a> <a id="779" class="Symbol">:</a> <a id="781" class="PrimitiveType">Set</a> <a id="785" href="Lattice.Base.html#767" class="Bound">a</a><a id="786" class="Symbol">}</a>
+                 <a id="805" class="Symbol">(</a><a id="806" href="Lattice.Base.html#806" class="Bound Operator">_≈_</a> <a id="810" class="Symbol">:</a> <a id="812" href="Relation.Binary.Core.html#Rel" class="Function">Rel</a> <a id="816" href="Lattice.Base.html#777" class="Bound">A</a> <a id="818" href="Lattice.Base.html#769" class="Bound">ℓ₁</a><a id="820" class="Symbol">)</a> <a id="822" class="Comment">-- The underlying equality.</a>
+                 <a id="867" class="Symbol">(</a><a id="868" href="Lattice.Base.html#868" class="Bound Operator">_≤_</a> <a id="872" class="Symbol">:</a> <a id="874" href="Relation.Binary.Core.html#Rel" class="Function">Rel</a> <a id="878" href="Lattice.Base.html#777" class="Bound">A</a> <a id="880" href="Lattice.Base.html#772" class="Bound">ℓ₂</a><a id="882" class="Symbol">)</a> <a id="884" class="Comment">-- The partial order.</a>
+                 <a id="923" class="Symbol">(</a><a id="924" href="Lattice.Base.html#924" class="Bound Operator">_∨_</a> <a id="928" class="Symbol">:</a> <a id="930" href="Algebra.FunctionProperties.Core.html#Op%E2%82%82" class="Function">Op₂</a> <a id="934" href="Lattice.Base.html#777" class="Bound">A</a><a id="935" class="Symbol">)</a>    <a id="940" class="Comment">-- The join operation.</a>
+                 <a id="980" class="Symbol">(</a><a id="981" href="Lattice.Base.html#981" class="Bound Operator">_∧_</a> <a id="985" class="Symbol">:</a> <a id="987" href="Algebra.FunctionProperties.Core.html#Op%E2%82%82" class="Function">Op₂</a> <a id="991" href="Lattice.Base.html#777" class="Bound">A</a><a id="992" class="Symbol">)</a>    <a id="997" class="Comment">-- The meet operation.</a>
+                 <a id="1037" class="Symbol">:</a> <a id="1039" class="PrimitiveType">Set</a> <a id="1043" class="Symbol">(</a><a id="1044" href="Lattice.Base.html#767" class="Bound">a</a> <a id="1046" href="Agda.Primitive.html#_%E2%8A%94_" class="Primitive Operator">⊔</a> <a id="1048" href="Lattice.Base.html#769" class="Bound">ℓ₁</a> <a id="1051" href="Agda.Primitive.html#_%E2%8A%94_" class="Primitive Operator">⊔</a> <a id="1053" href="Lattice.Base.html#772" class="Bound">ℓ₂</a><a id="1055" class="Symbol">)</a> <a id="1057" class="Keyword">where</a>
+
+  <a id="1066" class="Keyword">field</a>
+    <a id="IsSecurityLattice.supremum" href="Lattice.Base.html#IsSecurityLattice.supremum" class="Field">supremum</a>       <a id="1091" class="Symbol">:</a> <a id="1093" href="Relation.Binary.Lattice.html#Supremum" class="Function">Supremum</a> <a id="1102" href="Lattice.Base.html#868" class="Bound Operator">_≤_</a> <a id="1106" href="Lattice.Base.html#924" class="Bound Operator">_∨_</a>              <a id="1123" class="Comment">-- Order properties (join)</a>
+    <a id="IsSecurityLattice.infimum" href="Lattice.Base.html#IsSecurityLattice.infimum" class="Field">infimum</a>        <a id="1169" class="Symbol">:</a> <a id="1171" href="Relation.Binary.Lattice.html#Infimum" class="Function">Infimum</a> <a id="1179" href="Lattice.Base.html#868" class="Bound Operator">_≤_</a> <a id="1183" href="Lattice.Base.html#981" class="Bound Operator">_∧_</a>               <a id="1201" class="Comment">-- Order properties (meet)</a>
+    <a id="IsSecurityLattice.isDecPartialOrder" href="Lattice.Base.html#IsSecurityLattice.isDecPartialOrder" class="Field">isDecPartialOrder</a> <a id="1250" class="Symbol">:</a> <a id="1252" href="Relation.Binary.html#IsDecPartialOrder" class="Record">IsDecPartialOrder</a> <a id="1270" href="Lattice.Base.html#806" class="Bound Operator">_≈_</a> <a id="1274" href="Lattice.Base.html#868" class="Bound Operator">_≤_</a>  <a id="1279" class="Comment">-- Decidable partial order</a>
+    <a id="IsSecurityLattice.isLattice" href="Lattice.Base.html#IsSecurityLattice.isLattice" class="Field">isLattice</a> <a id="1320" class="Symbol">:</a> <a id="1322" href="Algebra.Structures.html#IsLattice" class="Record">S.IsLattice</a> <a id="1334" href="Lattice.Base.html#806" class="Bound Operator">_≈_</a> <a id="1338" href="Lattice.Base.html#924" class="Bound Operator">_∨_</a> <a id="1342" href="Lattice.Base.html#981" class="Bound Operator">_∧_</a>            <a id="1357" class="Comment">-- Algebraic properties</a>
+
+  <a id="1384" class="Keyword">open</a> <a id="1389" href="Relation.Binary.html#IsDecPartialOrder" class="Module">IsDecPartialOrder</a> <a id="1407" href="Lattice.Base.html#IsSecurityLattice.isDecPartialOrder" class="Field">isDecPartialOrder</a> <a id="1425" class="Keyword">public</a>
+
+  <a id="IsSecurityLattice.isJoinSemilattice" href="Lattice.Base.html#IsSecurityLattice.isJoinSemilattice" class="Function">isJoinSemilattice</a> <a id="1453" class="Symbol">:</a> <a id="1455" href="Relation.Binary.Lattice.html#IsJoinSemilattice" class="Record">IsJoinSemilattice</a> <a id="1473" href="Lattice.Base.html#806" class="Bound Operator">_≈_</a> <a id="1477" href="Lattice.Base.html#868" class="Bound Operator">_≤_</a> <a id="1481" href="Lattice.Base.html#924" class="Bound Operator">_∨_</a>
+  <a id="1487" href="Lattice.Base.html#IsSecurityLattice.isJoinSemilattice" class="Function">isJoinSemilattice</a> <a id="1505" class="Symbol">=</a> <a id="1507" class="Keyword">record</a>
+    <a id="1518" class="Symbol">{</a> <a id="1520" class="Field">isPartialOrder</a> <a id="1535" class="Symbol">=</a> <a id="1537" href="Relation.Binary.html#4359" class="Function">isPartialOrder</a>
+    <a id="1556" class="Symbol">;</a> <a id="1558" class="Field">supremum</a>       <a id="1573" class="Symbol">=</a> <a id="1575" href="Lattice.Base.html#IsSecurityLattice.supremum" class="Field">supremum</a>
+    <a id="1588" class="Symbol">}</a>
+
+  <a id="IsSecurityLattice.isMeetSemilattice" href="Lattice.Base.html#IsSecurityLattice.isMeetSemilattice" class="Function">isMeetSemilattice</a> <a id="1611" class="Symbol">:</a> <a id="1613" href="Relation.Binary.Lattice.html#IsMeetSemilattice" class="Record">IsMeetSemilattice</a> <a id="1631" href="Lattice.Base.html#806" class="Bound Operator">_≈_</a> <a id="1635" href="Lattice.Base.html#868" class="Bound Operator">_≤_</a> <a id="1639" href="Lattice.Base.html#981" class="Bound Operator">_∧_</a>
+  <a id="1645" href="Lattice.Base.html#IsSecurityLattice.isMeetSemilattice" class="Function">isMeetSemilattice</a> <a id="1663" class="Symbol">=</a> <a id="1665" class="Keyword">record</a>
+    <a id="1676" class="Symbol">{</a> <a id="1678" class="Field">isPartialOrder</a> <a id="1693" class="Symbol">=</a> <a id="1695" href="Relation.Binary.html#4359" class="Function">isPartialOrder</a>
+    <a id="1714" class="Symbol">;</a> <a id="1716" class="Field">infimum</a>        <a id="1731" class="Symbol">=</a> <a id="1733" href="Lattice.Base.html#IsSecurityLattice.infimum" class="Field">infimum</a>
+    <a id="1745" class="Symbol">}</a>
+
+  <a id="1750" class="Keyword">open</a> <a id="1755" href="Algebra.Structures.html#IsLattice" class="Module">S.IsLattice</a> <a id="1767" href="Lattice.Base.html#IsSecurityLattice.isLattice" class="Field">isLattice</a>
+    <a id="1781" class="Keyword">using</a> <a id="1787" class="Symbol">(</a> ∨-comm
+          <a id="1806" class="Symbol">;</a> ∨-assoc
+          <a id="1826" class="Symbol">;</a> ∨-cong
+          <a id="1845" class="Symbol">;</a> ∧-comm
+          <a id="1864" class="Symbol">;</a> ∧-assoc
+          <a id="1884" class="Symbol">;</a> ∧-cong
+          <a id="1903" class="Symbol">;</a> absorptive <a id="1916" class="Symbol">)</a> <a id="1918" class="Keyword">public</a>
+
+<a id="1926" class="Comment">-- Generic security lattice.</a>
+<a id="1955" class="Keyword">record</a> <a id="SecurityLattice" href="Lattice.Base.html#SecurityLattice" class="Record">SecurityLattice</a> <a id="1978" href="Lattice.Base.html#1978" class="Bound">c</a> <a id="1980" href="Lattice.Base.html#1980" class="Bound">ℓ</a> <a id="1982" class="Symbol">:</a> <a id="1984" class="PrimitiveType">Set</a> <a id="1988" class="Symbol">(</a><a id="1989" href="Agda.Primitive.html#suc" class="Primitive">suc</a> <a id="1993" class="Symbol">(</a><a id="1994" href="Lattice.Base.html#1978" class="Bound">c</a> <a id="1996" href="Agda.Primitive.html#_%E2%8A%94_" class="Primitive Operator">⊔</a> <a id="1998" href="Lattice.Base.html#1980" class="Bound">ℓ</a><a id="1999" class="Symbol">))</a> <a id="2002" class="Keyword">where</a>
+  <a id="2010" class="Keyword">infix</a>  <a id="2017" class="Number">4</a> <a id="2019" href="Lattice.Base.html#SecurityLattice._%E2%89%A4_" class="Field Operator">_≤_</a>
+  <a id="2025" class="Keyword">infixr</a> <a id="2032" class="Number">6</a> <a id="2034" href="Lattice.Base.html#SecurityLattice._%E2%88%A8_" class="Field Operator">_∨_</a>
+  <a id="2040" class="Keyword">infixr</a> <a id="2047" class="Number">7</a> <a id="2049" href="Lattice.Base.html#SecurityLattice._%E2%88%A7_" class="Field Operator">_∧_</a>
+  <a id="2055" class="Keyword">field</a>
+    <a id="SecurityLattice.Carrier" href="Lattice.Base.html#SecurityLattice.Carrier" class="Field">Carrier</a>   <a id="2075" class="Symbol">:</a> <a id="2077" class="PrimitiveType">Set</a> <a id="2081" href="Lattice.Base.html#1978" class="Bound">c</a>
+    <a id="SecurityLattice._≤_" href="Lattice.Base.html#SecurityLattice._%E2%89%A4_" class="Field Operator">_≤_</a>       <a id="2097" class="Symbol">:</a> <a id="2099" href="Relation.Binary.Core.html#Rel" class="Function">Rel</a> <a id="2103" href="Lattice.Base.html#SecurityLattice.Carrier" class="Field">Carrier</a> <a id="2111" href="Lattice.Base.html#1980" class="Bound">ℓ</a>  <a id="2114" class="Comment">-- The partial order.</a>
+    <a id="SecurityLattice._∨_" href="Lattice.Base.html#SecurityLattice._%E2%88%A8_" class="Field Operator">_∨_</a>       <a id="2150" class="Symbol">:</a> <a id="2152" href="Algebra.FunctionProperties.Core.html#Op%E2%82%82" class="Function">Op₂</a> <a id="2156" href="Lattice.Base.html#SecurityLattice.Carrier" class="Field">Carrier</a>     <a id="2168" class="Comment">-- The join operation.</a>
+    <a id="SecurityLattice._∧_" href="Lattice.Base.html#SecurityLattice._%E2%88%A7_" class="Field Operator">_∧_</a>       <a id="2205" class="Symbol">:</a> <a id="2207" href="Algebra.FunctionProperties.Core.html#Op%E2%82%82" class="Function">Op₂</a> <a id="2211" href="Lattice.Base.html#SecurityLattice.Carrier" class="Field">Carrier</a>     <a id="2223" class="Comment">-- The meet operation.</a>
+    <a id="2250" class="Comment">-- Here we restrict ourselves to propositional equality.</a>
+    <a id="2311" class="Comment">-- This is just for convenience.</a>
+    <a id="SecurityLattice.isSecurityLattice" href="Lattice.Base.html#SecurityLattice.isSecurityLattice" class="Field">isSecurityLattice</a> <a id="2366" class="Symbol">:</a> <a id="2368" href="Lattice.Base.html#IsSecurityLattice" class="Record">IsSecurityLattice</a> <a id="2386" href="Agda.Builtin.Equality.html#_%E2%89%A1_" class="Datatype Operator">_≡_</a> <a id="2390" href="Lattice.Base.html#SecurityLattice._%E2%89%A4_" class="Field Operator">_≤_</a> <a id="2394" href="Lattice.Base.html#SecurityLattice._%E2%88%A8_" class="Field Operator">_∨_</a> <a id="2398" href="Lattice.Base.html#SecurityLattice._%E2%88%A7_" class="Field Operator">_∧_</a>
+
+  <a id="2405" class="Keyword">open</a> <a id="2410" href="Lattice.Base.html#IsSecurityLattice" class="Module">IsSecurityLattice</a> <a id="2428" href="Lattice.Base.html#SecurityLattice.isSecurityLattice" class="Field">isSecurityLattice</a> <a id="2446" class="Keyword">hiding</a> <a id="2453" class="Symbol">(</a>refl  <a id="2460" class="Symbol">;</a> trans<a id="2467" class="Symbol">)</a> <a id="2469" class="Keyword">public</a>
+</pre></body></html>
