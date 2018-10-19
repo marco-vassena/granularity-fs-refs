@@ -19,6 +19,9 @@ mutual
   data MkTy (τ : FG.Ty) : CG.Ty → Set where
     Labeled : ∀ {τ'} → MkTy′ τ τ' → MkTy τ (Labeled τ')
 
+Bool′ : MkTy′ FG.Bool ⟪ FG.Bool ⟫ᵗ′
+Bool′ = Sum (Labeled Unit) (Labeled Unit)
+
 mutual
   mkTy′ : ∀ τ → MkTy′ τ ⟪ τ ⟫ᵗ′
   mkTy′ unit = Unit

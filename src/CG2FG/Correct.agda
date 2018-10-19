@@ -31,6 +31,14 @@ cg2fgᴾ Σ pc ≈θ Unit = （） ∧ （） ∧ Unit
 
 cg2fgᴾ Σ pc ≈θ (Lbl ℓ) = ⌞ ℓ ⌟ ∧ ⌞ ℓ ⌟ ∧ (Lbl ℓ)
 
+cg2fgᴾ Σ pc ≈θ (Test₁ x₁ x₂ ℓ₁⊑ℓ₂) with cg2fgᴾ Σ pc ≈θ x₁ | cg2fgᴾ Σ pc ≈θ x₂
+... | _ ∧ ⌞ ℓ₁ ⌟ ∧ x₁' | _ ∧ ⌞ ℓ₂ ⌟ ∧ x₂'
+  = _ ∧ trueᴿ ∧ Test₁ x₁' x₂' ℓ₁⊑ℓ₂ (idem-⊔' pc)
+
+cg2fgᴾ Σ pc ≈θ (Test₂ x₁ x₂ ℓ₁⋤ℓ₂)  with cg2fgᴾ Σ pc ≈θ x₁ | cg2fgᴾ Σ pc ≈θ x₂
+... | _ ∧ ⌞ ℓ₁ ⌟ ∧ x₁' | _ ∧ ⌞ ℓ₂ ⌟ ∧ x₂'
+  = _ ∧ falseᴿ ∧ Test₂ x₁' x₂' ℓ₁⋤ℓ₂ (idem-⊔' pc)
+
 cg2fgᴾ Σ pc ≈θ (Wken p x) with cg2fgᴾ Σ pc (slice-↓≈ p ≈θ) x
 ... | v ∧ ≈v ∧ x' = v ∧ ≈v ∧ (Wken ⟦ p ⟧⊆ x')
 

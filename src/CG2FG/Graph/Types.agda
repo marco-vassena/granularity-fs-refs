@@ -17,6 +17,9 @@ data MkTy : CG.Ty → FG.Ty → Set where
     Fun : ∀ {τ₁ τ₂ τ₁' τ₂'} → MkTy τ₁ τ₁' → MkTy τ₂ τ₂' → MkTy (τ₁ CG.➔ τ₂) (τ₁' FG.➔ τ₂')
 
 
+Bool′ : MkTy CG.Bool FG.Bool
+Bool′ = Sum Unit Unit
+
 instance
   mkTy : ∀ τ → MkTy τ ⟦ τ ⟧ᵗ
   mkTy unit = Unit

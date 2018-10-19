@@ -38,6 +38,8 @@ mutual
                e₁ ≡ e₂
   inj-⟦·⟧ᴱ Unit Unit = refl
   inj-⟦·⟧ᴱ (Lbl ℓ) (Lbl .ℓ) = refl
+  inj-⟦·⟧ᴱ (Test x₁ x₂) (Test y₁ y₂)
+    rewrite inj-⟦·⟧ᴱ x₁ y₁ | inj-⟦·⟧ᴱ x₂ y₂ = refl
   inj-⟦·⟧ᴱ (Var x) (Var y) rewrite inj-Cg2Fg-∈ x y = refl
   inj-⟦·⟧ᴱ (Fun x) (Fun y) rewrite inj-⟦·⟧ᴱ x y = refl
   inj-⟦·⟧ᴱ (App {p₁ = p₁} x₁ x₂) (App {p₁ = p₂} y₁ y₂) with inj-⟦·⟧ᵗ′ p₁ p₂

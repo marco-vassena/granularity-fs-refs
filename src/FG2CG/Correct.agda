@@ -53,6 +53,26 @@ mutual
 
   fg2cg (Lbl ℓ)  = ToLabeled ⌞ (Return (Lbl ℓ)) ⌟ᶠ
 
+  fg2cg (Test₁ x₁ x₂ ℓ₁⊑ℓ₂ refl) =
+    ToLabeled
+      (Bindᶠ (fg2cgᶠ x₁)
+      (Bindᶠ (↑¹-⇓ᶠ (fg2cgᶠ x₂))
+      (Bindᶠ (ToLabeledᶠ ⌞ Return Unit ⌟ᶠ)
+      (Bindᶠ ⌞ Unlabel (Var (there (there here))) (sym (ub (step-⊑ x₁))) ⌟ᶠ
+      (Bindᶠ ⌞ Unlabel (Var (there (there here))) refl ⌟ᶠ
+      ⌞ Return (If₁ (Test₁ (Var (there here)) (Var here) ℓ₁⊑ℓ₂)
+               (Inl (Var (there (there here))))) ⌟ᶠ)))))
+
+  fg2cg (Test₂ x₁ x₂ ℓ₁⋤ℓ₂ refl)=
+    ToLabeled
+      (Bindᶠ (fg2cgᶠ x₁)
+      (Bindᶠ (↑¹-⇓ᶠ (fg2cgᶠ x₂))
+      (Bindᶠ (ToLabeledᶠ ⌞ Return Unit ⌟ᶠ)
+      (Bindᶠ ⌞ Unlabel (Var (there (there here))) (sym (ub (step-⊑ x₁))) ⌟ᶠ
+      (Bindᶠ ⌞ Unlabel (Var (there (there here))) refl ⌟ᶠ
+      ⌞ Return (If₂ (Test₂ (Var (there here)) (Var here) ℓ₁⋤ℓ₂)
+               (Inr (Var (there (there here))))) ⌟ᶠ)))))
+
   fg2cg Fun = ToLabeled ⌞ (Return Fun) ⌟ᶠ
 
   fg2cg {θ = θ} (App {v = v} x x₁ eq x₂)

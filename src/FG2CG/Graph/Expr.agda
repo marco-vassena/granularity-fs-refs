@@ -112,6 +112,20 @@ mutual
 
     Lbl : ∀ ℓ → Fg2Cgᵀ c 𝓛 ⌞ ℓ ⌟  (toLabeled ⌞ return ⌞ ℓ ⌟ ⌟ᵀ)
 
+    Test : ∀ {e₁ e₂ : FG.Expr Γ 𝓛} {e₁' e₂' : CG.Expr Γ' _} →
+             Fg2Cgᴱ c 𝓛 e₁ e₁' →
+             Fg2Cgᴱ c 𝓛 e₂ e₂' →
+             Fg2Cgᵀ c Bool′ (e₁ ⊑-? e₂)
+               (toLabeled
+                 ⌞ bind e₁'
+                 ⌞ bind (wken e₂' (CG.drop CG.refl-⊆ ))
+                 ⌞ bind ⌞ toLabeled ⌞ return （） ⌟ᵀ ⌟ᵀ
+                 ⌞ bind ⌞ unlabel (var (there (there here))) ⌟ᵀ
+                 ⌞ bind ⌞ unlabel (var (there (there here))) ⌟ᵀ
+                 ⌞ return (CG.if (var (there here) ⊑-? var here)
+                            then inl (var (there (there here)))
+                            else inr (var (there (there here)))) ⌟ᵀ ⌟ᵀ ⌟ᵀ ⌟ᵀ ⌟ᵀ ⌟ᵀ)
+
     GetLabel : Fg2Cgᵀ c 𝓛 getLabel (toLabeled ⌞ getLabel ⌟ᵀ)
 
     LabelOf : ∀ {τ τ'} {e : FG.Expr Γ τ} {e' : CG.Expr Γ' (LIO (Labeled τ'))} {p : MkTy′ τ τ'} →
@@ -210,6 +224,7 @@ mutual
   mkFg2Cgᵀ (inr e) = Inr (mkFg2Cgᴱ e)
   mkFg2Cgᵀ (case e e₁ e₂) = Case (mkFg2Cgᴱ e) (mkFg2Cgᴱ e₁) (mkFg2Cgᴱ e₂)
   mkFg2Cgᵀ ⌞ ℓ ⌟ = Lbl ℓ
+  mkFg2Cgᵀ (e₁ ⊑-? e₂) = Test (mkFg2Cgᴱ e₁) (mkFg2Cgᴱ e₂)
   mkFg2Cgᵀ getLabel = GetLabel
   mkFg2Cgᵀ (labelOf e) = LabelOf (mkFg2Cgᴱ e)
   mkFg2Cgᵀ (taint e e₁) = Taint (mkFg2Cgᴱ e) (mkFg2Cgᴱ e₁)
@@ -240,6 +255,7 @@ mutual
   ≡-Fg2Cgᵀ (Case {p₁ = p₁} {p₂ = p₂} x x₁ x₂) with ≡-MkTy′ p₁ | ≡-MkTy′ p₂
   ... | refl | refl rewrite ≡-Fg2Cgᴱ x | ≡-Fg2Cgᴱ x₁ | ≡-Fg2Cgᴱ x₂ = refl
   ≡-Fg2Cgᵀ (Lbl ℓ) = refl
+  ≡-Fg2Cgᵀ (Test x₁ x₂) rewrite ≡-Fg2Cgᴱ x₁ | ≡-Fg2Cgᴱ x₂ = refl
   ≡-Fg2Cgᵀ GetLabel = refl
   ≡-Fg2Cgᵀ (LabelOf {p = p} x) with ≡-MkTy′ p
   ... | refl rewrite ≡-Fg2Cgᴱ x = refl

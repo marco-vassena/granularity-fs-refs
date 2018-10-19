@@ -22,6 +22,11 @@ mutual
 
       Lbl : ∀ ℓ → Cg2Fgᴱ c 𝓛 ⌞ ℓ ⌟ ⌞ ℓ ⌟
 
+      Test : ∀ {e₁ e₂ : CG.Expr Γ 𝓛} {e₁' e₂'} →
+               Cg2Fgᴱ c 𝓛 e₁ e₁' →
+               Cg2Fgᴱ c 𝓛 e₂ e₂' →
+               Cg2Fgᴱ c Bool′ (e₁ ⊑-? e₂) (e₁' ⊑-? e₂')
+
       Var : ∀ {τ τ' p} {τ∈Γ : τ CG.∈ Γ} {τ∈Γ' : τ' FG.∈ Γ'} →
               Cg2Fg-∈ p c τ∈Γ τ∈Γ' →
               Cg2Fgᴱ  c p (var τ∈Γ) (var τ∈Γ')
@@ -142,6 +147,7 @@ mutual
     mkCg2Fgᴱ (wken e x) = Wken (mkCg2Fgᴱ e) (mkCg2Fg-⊆ x)
     mkCg2Fgᴱ （） = Unit
     mkCg2Fgᴱ ⌞ ℓ ⌟ = Lbl ℓ
+    mkCg2Fgᴱ (e₁ ⊑-? e₂) = Test (mkCg2Fgᴱ e₁) (mkCg2Fgᴱ e₂)
 
     mkCg2Fgᵀ : ∀ {Γ τ} (t : CG.Thunk Γ (LIO τ)) → Cg2Fgᵀ (mkCtx _) (mkTy _) t ⟦ t ⟧ᵀ
     mkCg2Fgᵀ (return e) = Return (mkCg2Fgᴱ e )
@@ -161,6 +167,8 @@ mutual
   ≡-Cg2Fgᴱ : ∀ {Γ τ c p e'} {e : CG.Expr Γ τ} → Cg2Fgᴱ c p e e' → e' ≡ ⟦ e ⟧ᴱ
   ≡-Cg2Fgᴱ Unit = refl
   ≡-Cg2Fgᴱ (Lbl ℓ) = refl
+  ≡-Cg2Fgᴱ (Test x₁ x₂)
+    rewrite ≡-Cg2Fgᴱ x₁ | ≡-Cg2Fgᴱ x₂ = refl
   ≡-Cg2Fgᴱ (Var x) rewrite ≡-Cg2Fg-∈ x = refl
   ≡-Cg2Fgᴱ (Fun x) rewrite ≡-Cg2Fgᴱ x = refl
   ≡-Cg2Fgᴱ (App {p₁ = p₁} x x₁) with ≡-MkTy p₁

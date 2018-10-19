@@ -48,6 +48,17 @@ mutual
       ⌞ bind (case (var here) (wken ⟪ e₁ ⟫ᴱ (cons (drop (drop refl-⊆)))) (wken ⟪ e₂ ⟫ᴱ (cons (drop (drop refl-⊆)))))
       ⌞ unlabel (var here) ⌟ᵀ ⌟ᵀ ⌟ᵀ ⌟ᵀ
   ⟪ ⌞ ℓ ⌟ ⟫ᵀ = toLabeled ⌞ return ⌞ ℓ ⌟ ⌟ᵀ
+  ⟪ e₁ ⊑-? e₂ ⟫ᵀ =
+    toLabeled
+      ⌞ bind ⟪ e₁ ⟫ᴱ
+      ⌞ bind (⟪ e₂ ⟫ᴱ ↑¹)
+      ⌞ bind ⌞ toLabeled ⌞ return （） ⌟ᵀ ⌟ᵀ
+      ⌞ bind ⌞ unlabel (var (there (there here))) ⌟ᵀ
+      ⌞ bind ⌞ unlabel (var (there (there here))) ⌟ᵀ
+      ⌞ return (CG.if (var (there here) ⊑-? var here)
+                 then inl (var (there (there here)))
+                 else inr (var (there (there here)))) ⌟ᵀ ⌟ᵀ ⌟ᵀ ⌟ᵀ ⌟ᵀ ⌟ᵀ
+
   ⟪ getLabel ⟫ᵀ = toLabeled ⌞ getLabel ⌟ᵀ
 
   ⟪ labelOf e ⟫ᵀ =

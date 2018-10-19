@@ -46,6 +46,7 @@ mutual
   ⟦ wken e x ⟧ᴱ = wken ⟦ e ⟧ᴱ ⟦ x ⟧⊆
   ⟦ （） ⟧ᴱ = （）
   ⟦ ⌞ ℓ ⌟ ⟧ᴱ = ⌞ ℓ ⌟
+  ⟦ e₁ ⊑-? e₂ ⟧ᴱ = ⟦ e₁ ⟧ᴱ ⊑-? ⟦ e₂ ⟧ᴱ
 
   -- Thunks.
   ⟦_⟧ᵀ : ∀ {τ Γ} → CG.Thunk Γ (LIO τ) → FG.Expr ⟦ Γ ⟧ᶜ ⟦ τ ⟧ᵗ

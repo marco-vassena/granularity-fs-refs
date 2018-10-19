@@ -92,6 +92,8 @@ mutual
     with inj-MkTy′ p₁ q₁ |  inj-MkTy′ p₂ q₂
   ... | refl | refl rewrite inj-⟪·⟫ᴱ x₁ y₁ | inj-⟪·⟫ᴱ x₂ y₂ | inj-⟪·⟫ᴱ x₃ y₃ = refl
   inj-⟪·⟫ᵀ (Lbl ℓ) (Lbl .ℓ) = refl
+  inj-⟪·⟫ᵀ (Test x₁ x₂) (Test y₁ y₂)
+    rewrite inj-⟪·⟫ᴱ x₁ y₁ | inj-⟪·⟫ᴱ x₂ y₂ = refl
   inj-⟪·⟫ᵀ GetLabel GetLabel = refl
   inj-⟪·⟫ᵀ (LabelOf {p = p} x) (LabelOf {p = q} y) with inj-MkTy′ p q
   ... | refl rewrite inj-⟪·⟫ᴱ x y = refl

@@ -64,6 +64,13 @@ mutual
             CEqᵉ pc c θ θ' →
             CEqᵉ pc (p ∷ c) (v ∷ θ ) (v' ∷ θ')
 
+trueᴿ : ∀ {pc} → CEqᴿ pc (Sum Unit Unit) C.true (F.true pc)
+trueᴿ = Inl (refl-⊑ ↓ （）)
+
+falseᴿ : ∀ {pc} → CEqᴿ pc (Sum Unit Unit) C.false (F.false pc)
+falseᴿ = Inr (refl-⊑ ↓ （）)
+
+
 --------------------------------------------------------------------------------
 -- Pretty syntax.
 
