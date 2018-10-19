@@ -22,8 +22,22 @@ mutual
 
     Lbl : (ℓ : Label) → PStep θ  ⌞ ℓ ⌟  ⌞ ℓ ⌟
 
+    Test₁ : ∀ {e₁ e₂ ℓ₁ ℓ₂} →
+              e₁ ⇓ᴾ⟨ θ ⟩ ⌞ ℓ₁ ⌟ →
+              e₂ ⇓ᴾ⟨ θ ⟩ ⌞ ℓ₂ ⌟ →
+              ℓ₁ ⊑ ℓ₂ →
+              PStep θ (e₁ ⊑-? e₂) true
+
+    Test₂ : ∀ {e₁ e₂ ℓ₁ ℓ₂} →
+              e₁ ⇓ᴾ⟨ θ ⟩ ⌞ ℓ₁ ⌟ →
+              e₂ ⇓ᴾ⟨ θ ⟩ ⌞ ℓ₂ ⌟ →
+              ℓ₁ ⋤ ℓ₂ →
+              PStep θ (e₁ ⊑-? e₂) false
+
     Wken : ∀ {τ Γ'} {e : Expr Γ' τ} {v : Value τ} →
-           (p : Γ' ⊆ Γ) → e ⇓ᴾ⟨ slice θ p ⟩ v → PStep θ (wken e p) v
+           (p : Γ' ⊆ Γ) →
+           e ⇓ᴾ⟨ slice θ p ⟩ v →
+           PStep θ (wken e p) v
 
     Var : ∀ {τ} (τ∈Γ : τ ∈ Γ) → PStep θ (var τ∈Γ) (θ !! τ∈Γ)
 
@@ -192,6 +206,18 @@ Wkenᶠ {Γ' = Γ'} θ'' (Force x x₁) = Force (Wken (drop-⊆₂ _ Γ') x) x�
      → e ⇓ᴾ⟨ θ ⟩ v
      → e ↑² ⇓ᴾ⟨ v₁ ∷ v₂ ∷ θ ⟩ v
 ⇓² x = Wken (drop (drop refl-⊆)) x
+
+If₁ : ∀ {τ Γ θ v} {e₁ : Expr Γ Bool} {e₂ e₃ : Expr Γ τ} →
+        e₁ ⇓ᴾ⟨ θ ⟩ (inl （）) →
+        e₂ ⇓ᴾ⟨ θ ⟩ v →
+        if e₁ then e₂ else e₃ ⇓ᴾ⟨ θ ⟩ v
+If₁ x₁ x₂ = Case₁ x₁ (⇓¹ x₂)
+
+If₂ : ∀ {τ Γ θ v} {e₁ : Expr Γ Bool} {e₂ e₃ : Expr Γ τ} →
+        e₁ ⇓ᴾ⟨ θ ⟩ (inr （）) →
+        e₃ ⇓ᴾ⟨ θ ⟩ v →
+        if e₁ then e₂ else e₃ ⇓ᴾ⟨ θ ⟩ v
+If₂ x₁ x₂ = Case₂ x₁ (⇓¹ x₂)
 
 ↑¹-⇓ᶠ  :  ∀ {Γ  Σ Σ' pc pc' τ τ' v θ} {e : Expr Γ (LIO τ)} {v₁ : Value τ'}
         → ⟨ Σ , pc , e ⟩ ⇓ᶠ⟨ θ ⟩ ⟨ Σ' , pc' , v ⟩

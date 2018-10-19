@@ -76,6 +76,12 @@ tiniᴾ : ∀ {τ Γ θ₁ θ₂ v₁ v₂} {e : Expr Γ τ} →
          v₁ ≈ⱽ v₂
 tiniᴾ Unit Unit θ₁≈θ₂ = Unit
 tiniᴾ (Lbl ℓ) (Lbl .ℓ) θ₁≈θ₂ = Lbl ℓ
+tiniᴾ (Test₁ _ _ ℓ₁⊑ℓ₂) (Test₁ _ _ _) _ = Inl Unit
+tiniᴾ (Test₂ x₁ x₂ ℓ₁⋤ℓ₂) (Test₁ x₃ x₄  ℓ₁⊑ℓ₂) θ₁≈θ₂ with tiniᴾ x₁ x₃ θ₁≈θ₂ | tiniᴾ x₂ x₄ θ₁≈θ₂
+... | Lbl ℓ₁ | Lbl ℓ₂ = ⊥-elim (ℓ₁⋤ℓ₂ ℓ₁⊑ℓ₂)
+tiniᴾ (Test₁ x₁ x₂ ℓ₁⊑ℓ₂) (Test₂ x₃ x₄ ℓ₁⋤ℓ₂) θ₁≈θ₂ with tiniᴾ x₁ x₃ θ₁≈θ₂ | tiniᴾ x₂ x₄ θ₁≈θ₂
+... | Lbl ℓ₁ | Lbl ℓ₂ = ⊥-elim (ℓ₁⋤ℓ₂ ℓ₁⊑ℓ₂)
+tiniᴾ (Test₂ _ _ _) (Test₂ _ _ _) _ = Inr Unit
 tiniᴾ (Wken p x) (Wken .p x₁) θ₁≈θ₂ = tiniᴾ x x₁ (slice-≈ᴱ θ₁≈θ₂ p)
 tiniᴾ (Var τ∈Γ) (Var .τ∈Γ) θ₁≈θ₂ = lookup-≈ⱽ τ∈Γ θ₁≈θ₂
 tiniᴾ SThunk SThunk θ₁≈θ₂ = Thunk′ θ₁≈θ₂

@@ -57,6 +57,9 @@ data Expr (Γ : Ctx) : Ty → Set where
 
   ⌞_⌟ : (ℓ : Label)  → Expr Γ 𝓛
 
+  -- ℓ₁ ⊑-? ℓ₂ tests if ℓ₁ can flow to ℓ₂
+  _⊑-?_ : Expr Γ 𝓛 → Expr Γ 𝓛 → Expr Γ Bool
+
   -- Retrieve the label of the context (program counter).
   getLabel : Expr Γ 𝓛
 
@@ -128,6 +131,15 @@ mutual
     _∷_  : ∀ {Γ τ} → (v : Value τ) (θ : Env Γ) → Env (τ ∷ Γ)
 
 open Value public
+
+true : ∀ ℓ → Raw Bool
+true ℓ = inl (（） ^ ℓ) -- TODO: Not sure if I should use bottom here?
+
+false : ∀ ℓ → Raw Bool
+false ℓ = inr ((（） ^ ℓ))
+
+if_then_else_ : ∀ {Γ τ} → Expr Γ Bool → Expr Γ τ → Expr Γ τ → Expr Γ τ
+if_then_else_ c t e = case c (wken t (drop refl-⊆)) (wken e (drop refl-⊆))
 
 --------------------------------------------------------------------------------
 -- Configurations

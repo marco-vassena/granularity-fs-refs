@@ -52,6 +52,12 @@ mutual
 Refᴸ′ : ∀ {τ ℓ n₁ n₂} → ℓ ⊑ A → n₁ ≡ n₂ → Ref {τ = τ} ℓ n₁ ≈ᴿ Ref ℓ n₂
 Refᴸ′ ℓ⊑A refl = Refᴸ ℓ⊑A _
 
+Trueᴸ : ∀ {ℓ} → ℓ ⊑ A → true ℓ ≈ᴿ true ℓ
+Trueᴸ ℓ⊑A = Inl (Valueᴸ ℓ⊑A Unit)
+
+Falseᴸ : ∀ {ℓ} → ℓ ⊑ A → false ℓ ≈ᴿ false ℓ
+Falseᴸ ℓ⊑A = Inr (Valueᴸ ℓ⊑A Unit)
+
 -- Lemma
 ≈ⱽ-⊑ : ∀ {τ} {v₁ v₂ : Value τ} (pc : Label) →
          let r₁ ^ ℓ₁ = v₁

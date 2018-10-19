@@ -20,6 +20,9 @@ mutual
     -- First class labels.
     ⌞_⌟ : (ℓ : Label) → Expr Γ 𝓛
 
+    -- ℓ₁ ⊑-? ℓ₂ tests if ℓ₁ can flow to ℓ₂
+    _⊑-?_ : Expr Γ 𝓛 → Expr Γ 𝓛 → Expr Γ Bool
+
     --------------------------------------------------------------------------------
     -- Basic λ-calculus
 
@@ -138,6 +141,17 @@ mutual
 
 
 infixr 5 _∷_
+
+-- Shorthands for Booleans
+
+true : Value Bool
+true = inl （）
+
+false : Value Bool
+false = inr （）
+
+if_then_else_ : ∀ {Γ τ} → Expr Γ Bool → Expr Γ τ → Expr Γ τ → Expr Γ τ
+if_then_else_ c t e = case c (wken t (drop refl-⊆)) (wken e (drop refl-⊆))
 
 --------------------------------------------------------------------------------
 -- Configurations
