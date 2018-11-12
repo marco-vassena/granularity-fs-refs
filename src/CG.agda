@@ -31,6 +31,14 @@ _≈ᶜ⟨_⟩_ : ∀ {τ} → FConf τ → Label → FConf τ → Set
 c₁ ≈ᶜ⟨ A ⟩ c₂ = c₁ ≈ᶜ c₂
   where open import CG.LowEq A
 
+_≈ᴹ⟨_⟩_ : ∀ {ℓ} → Memory ℓ → Label → Memory ℓ → Set
+M₁ ≈ᴹ⟨ A ⟩ M₂ = M₁ ≈⟨ _ ⊑? A  ⟩ᴹ M₂
+  where open import CG.LowEq A
+
+_≈ˢ⟨_⟩_ : Store → Label → Store → Set
+Σ₁ ≈ˢ⟨ A ⟩ Σ₂ = Σ₁ ≈ˢ Σ₂
+  where open import CG.LowEq A
+
 --------------------------------------------------------------------------------
 -- Calculus record
 

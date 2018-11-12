@@ -5,7 +5,8 @@
 -- Coarse-Grained Dynamic Information Flow Control and Back" by
 -- Vassena, Russo, Vineet, Deepak, Stefan.
 --
--- In emacs agda-mode, command "M-.' jumps to definition of the
+-- In emacs agda-mode, use command `C-c C-l` to load and compile the
+-- proof script and command `M-.' to jump to definition of the
 -- identifier under the cursor.  In the html generated files, simply
 -- click on a term to jump to its definition.
 
@@ -113,8 +114,8 @@ module §3 where
   property₂′ = stepᶠ-⊑
 
   -- L-equivalence
-  figure₅ : Set
-  figure₅ = ∀ {τ} {v₁ v₂ : Value τ} → v₁ ≈ⱽ v₂
+  figure₉ : Set
+  figure₉  = ∀ {τ} {v₁ v₂ : Value τ} → v₁ ≈ⱽ v₂
     where open import CG.LowEq L
 
   open import Generic.Calculus
@@ -136,14 +137,14 @@ module §4 where
   open import FG2CG.Correct
 
   -- Type translation
-  figure₁₀ : FG.Ty → CG.Ty
-  figure₁₀ = ⟪_⟫ᵗ
+  figure·10ᵃ : FG.Ty → CG.Ty
+  figure·10ᵃ = ⟪_⟫ᵗ
 
   -- Value translation.
-  figure₁₁ : ∀ {τ} → FG.Value τ → CG.Value ⟪ τ ⟫ᵗ
-  figure₁₁ = ⟪_⟫ⱽ
+  figure·10ᵇ : ∀ {τ} → FG.Value τ → CG.Value ⟪ τ ⟫ᵗ
+  figure·10ᵇ = ⟪_⟫ⱽ
 
-  -- Expression translation (Figure 12 and 13) and type preservation.
+  -- Expression translation (Figure 11 and 13) and type preservation.
   lemma-4·1 : ∀ {Γ τ} → FG.Expr Γ τ → CG.Thunk ⟪ Γ ⟫ᶜ (LIO ⟪ τ ⟫ᵗ)
   lemma-4·1 = ⟪_⟫ᵀ
 
@@ -156,27 +157,21 @@ module §4 where
   open import Function.Equivalence
   open import FG2CG.Recovery L
 
-  -- Lifting and unlifting L-equivalence.
-  lemma-4·2 : ∀ {τ} {v₁ v₂ : FG.Value τ} → v₁ FG.≈ⱽ⟨ L ⟩ v₂ ⇔ ⟪ v₁ ⟫ⱽ CG.≈ⱽ⟨ L ⟩ ⟪ v₂ ⟫ⱽ
-  lemma-4·2 = equivalence lift-≈ⱽ unlift-≈ⱽ
+  -- Lifting and unlifting L-equivalence of initial configurations and
+  -- all syntactic categories.
+  lemma-4·2 : ∀ {Γ τ} {c₁ c₂ : FG.IConf Γ τ} pc → c₁ FG.≈ᴵ⟨ L ⟩ c₂ ⇔ (⟪ c₁ ⟫ᴵ pc) CG.≈ᴵ⟨ L ⟩ (⟪ c₂ ⟫ᴵ pc)
+  lemma-4·2 pc = equivalence (lift-≈ᴵ pc) (unlift-≈ᴵ pc)
 
-  lemma-4·2′ : ∀ {τ} {r₁ r₂ : FG.Raw τ} → r₁ FG.≈ᴿ⟨ L ⟩ r₂ ⇔ ⟪ r₁ ⟫ᴿ CG.≈ⱽ⟨ L ⟩ ⟪ r₂ ⟫ᴿ
-  lemma-4·2′ = equivalence lift-≈ᴿ unlift-≈ᴿ
-
-  lemma-4·2′′ : ∀ {Γ} {θ₁ θ₂ : FG.Env Γ} → θ₁ FG.≈ᴱ⟨ L ⟩ θ₂ ⇔ ⟪ θ₁ ⟫ᵉ CG.≈ᴱ⟨ L ⟩ ⟪ θ₂ ⟫ᵉ
-  lemma-4·2′′ = equivalence lift-≈ᴱ unlift-≈ᴱ
-
-  lemma-4·2′′′ : ∀ {Γ τ} {c₁ c₂ : FG.IConf Γ τ} pc → c₁ FG.≈ᴵ⟨ L ⟩ c₂ ⇔ (⟪ c₁ ⟫ᴵ pc) CG.≈ᴵ⟨ L ⟩ (⟪ c₂ ⟫ᴵ pc)
-  lemma-4·2′′′ pc = equivalence (lift-≈ᴵ pc) (unlift-≈ᴵ pc)
-
-  lemma-4·2′′′′ : ∀ {τ pc} {c₁ c₂ : FG.FConf τ} →
+  -- Back-translation of L-equivalence from target to source for final
+  -- configurations with public program counter.
+  lemma-4·3 : ∀ {τ pc} {c₁ c₂ : FG.FConf τ} →
                      let ⟨ Σ₁ , r₁ ^ ℓ₁ ⟩ = c₁
                          ⟨ Σ₂ , r₂ ^ ℓ₂ ⟩ = c₂ in
                      pc ⊑ ℓ₁ →
                      pc ⊑ ℓ₂ →
                      (⟪ c₁ ⟫ pc) CG.≈ᶜ⟨ L ⟩ (⟪ c₂ ⟫ pc) →
                      c₁ FG.≈ᶜ⟨ L ⟩ c₂
-  lemma-4·2′′′′ = unlift-≈ᶜ
+  lemma-4·3 = unlift-≈ᶜ
 
   open import Generic.Calculus
   open import Relation.Binary.PropositionalEquality
@@ -196,30 +191,30 @@ module §5 where
   open import FG as FG hiding (_×_)
   open import CG as CG hiding (_×_)
   open import CG2FG.Syntax
-  open import FG2CG.Correct
+  open import CG2FG.Correct
   open import Data.Product as P using (_×_ ; ∃ ; uncurry) renaming (_,_ to _∧_)
 
   -- Type translation
-  figure₁₄ : CG.Ty → FG.Ty
-  figure₁₄ = ⟦_⟧ᵗ
+  figure·14ᵃ : CG.Ty → FG.Ty
+  figure·14ᵃ = ⟦_⟧ᵗ
 
   -- Value translation.
-  figure₁₅ : ∀ {τ} → CG.Value τ → Label → FG.Value ⟦ τ ⟧ᵗ
-  figure₁₅ = ⟦_⟧ⱽ
+  figure·14ᵇ : ∀ {τ} → CG.Value τ → Label → FG.Value ⟦ τ ⟧ᵗ
+  figure·14ᵇ = ⟦_⟧ⱽ
 
-  -- Expression translation (Figure 16) and type preservation.
+  -- Expression translation (Figure 15a) and type preservation.
   lemma-5·1 : ∀ {Γ τ} (e : CG.Expr Γ τ) → FG.Expr ⟦ Γ ⟧ᶜ ⟦ τ ⟧ᵗ
   lemma-5·1 = ⟦_⟧ᴱ
 
-  -- Thunk translation (also Figure 18).
-  figure₁₇ : ∀ {Γ τ} (t : CG.Thunk Γ (LIO τ)) → FG.Expr ⟦ Γ ⟧ᶜ ⟦ τ ⟧ᵗ
-  figure₁₇ = ⟦_⟧ᵀ
+  -- Thunk translation (also Figure 16).
+  figure·15ᵇ : ∀ {Γ τ} (t : CG.Thunk Γ (LIO τ)) → FG.Expr ⟦ Γ ⟧ᶜ ⟦ τ ⟧ᵗ
+  figure·15ᵇ = ⟦_⟧ᵀ
 
   open import CG2FG.CrossEq
 
   -- Cross-language semantics equivalence up to extra annotations.
-  figure₁₉ : ∀ {τ} → FG.Value ⟦ τ ⟧ᵗ → Label → CG.Value τ → Set
-  figure₁₉ v₁ pc v₂ = v₁ ↓≈⟨ pc ⟩ⱽ v₂
+  figure·17 : ∀ {τ} → FG.Value ⟦ τ ⟧ᵗ → Label → CG.Value τ → Set
+  figure·17 v₁ pc v₂ = v₁ ↓≈⟨ pc ⟩ⱽ v₂
     where open import CG2FG.Graph
 
   open import Function.Equivalence
@@ -238,20 +233,17 @@ module §5 where
   definition₁′′ = equivalence ( λ { ⟨ Σ₁≈Σ₂ , r≈v ⟩ → Σ₁≈Σ₂ ∧ ⌞ r≈v ⌟ᴿ }) (uncurry ⟨_,_⟩)
 
   -- Reflexivity of ↓≈
-  property₃ : ∀ {Γ} pc (θ : CG.Env Γ) → ⟦ θ ⟧ᵉ pc ↓≈⟨ pc ⟩ᵉ θ
-  property₃ pc θ = refl-≈⟨ pc ⟩ᵉ θ
-
-  property₃′ : ∀ {Γ τ} (c : CG.EConf Γ (LIO τ)) → ⟦ c ⟧ᴵ ↓≈ᴵ c
-  property₃′ c = refl-≈ᴵ c
+  property₃ : ∀ {Γ τ} (c : CG.EConf Γ (LIO τ)) → ⟦ c ⟧ᴵ ↓≈ᴵ c
+  property₃ c = refl-≈ᴵ c
 
   open import Function
 
   -- Weakening of ↓≈
-  property₄ :  ∀ {Γ pc pc'} {θ₁ : FG.Env ⟦ Γ ⟧ᶜ} {θ₂ : CG.Env Γ} →
+  property₄ :  ∀ {τ pc pc'} {r₁ : FG.Raw ⟦ τ ⟧ᵗ} {v₂ : CG.Value τ} →
                   pc ⊑ pc' →
-                  θ₁ ↓≈⟨ pc ⟩ᵉ θ₂ →
-                  θ₁ ↓≈⟨ pc' ⟩ᵉ θ₂
-  property₄ = flip ≈ᵉ-⊑
+                  r₁ ↓≈⟨ pc ⟩ᴿ v₂ →
+                  r₁ ↓≈⟨ pc' ⟩ᴿ v₂
+  property₄ = flip ≈ᴿ-⊑
 
   property₄′ :  ∀ {τ pc pc'} {v₁ : FG.Value ⟦ τ ⟧ᵗ} {v₂ : CG.Value τ} →
                   pc ⊑ pc' →
@@ -259,7 +251,11 @@ module §5 where
                   v₁ ↓≈⟨ pc' ⟩ⱽ v₂
   property₄′ = flip ≈ⱽ-⊑
 
-  open import CG2FG.Correct
+  property₄′′ :  ∀ {Γ pc pc'} {θ₁ : FG.Env ⟦ Γ ⟧ᶜ} {θ₂ : CG.Env Γ} →
+                  pc ⊑ pc' →
+                  θ₁ ↓≈⟨ pc ⟩ᵉ θ₂ →
+                  θ₁ ↓≈⟨ pc' ⟩ᵉ θ₂
+  property₄′′ = flip ≈ᵉ-⊑
 
   -- ⟦·⟧ preserves pure semantics.
   lemma-5·2 : ∀ {Γ τ Σ pc} {θ : CG.Env Γ} {θ' : FG.Env ⟦ Γ ⟧ᶜ} {e : CG.Expr Γ τ} {v : CG.Value τ} →
@@ -269,48 +265,38 @@ module §5 where
   lemma-5·2 = cg2fgᴾ _ _
 
   -- ⟦·⟧ preserves forcing semantics.
-  theorem₅ : ∀ {Γ τ θ₂ c₁' c₂} {θ₁ : CG.Env Γ} {c₁ : EConf Γ (LIO τ)} →
-                let ⟨ _ , pc , _ ⟩ = c₁ in
-                    θ₂ ↓≈⟨ pc ⟩ᵉ θ₁ →
-                    c₂ ↓≈ᴵ c₁ →
-                    c₁ ⇓ᶠ⟨ θ₁ ⟩ c₁' →
-                    ∃ (λ c₂' → c₂' ↓≈ᶜ c₁' × c₂ ⇓⟨ θ₂ , pc ⟩ c₂' )
+  theorem₅ : ∀ {Γ τ θ₁ c₂' c₁} {θ₂ : CG.Env Γ} {c₂ : EConf Γ (LIO τ)} →
+                let ⟨ Σ , pc , t ⟩ = c₂ in
+                    θ₁ ↓≈⟨ pc ⟩ᵉ θ₂ →
+                    c₁ ↓≈ᴵ c₂ →
+                    c₂ ⇓ᶠ⟨ θ₂ ⟩ c₂' →
+                    ∃ (λ c₁' → c₁' ↓≈ᶜ c₂' × c₁ ⇓⟨ θ₁ , pc ⟩ c₁' )
   theorem₅ = cg2fgᶠ
 
   -- ⟦·⟧ preserves thunk semantics.
-  theorem₅′ : ∀ {Γ τ θ₂ c₂ c₁'} {θ₁ : CG.Env Γ} {c₁ : CG.TConf Γ (LIO τ)} →
-               let ⟨ Σ₁ , pc , e₁ ⟩ = c₁ in
-                   θ₂ ↓≈⟨ pc ⟩ᵉ θ₁ →
-                   c₂ ↓≈ᵀ c₁ →
-                   c₁ ⇓⟨ θ₁ ⟩ c₁' →
-                   ∃ (λ c₂' → c₂' ↓≈ᶜ c₁' × c₂ ⇓⟨ θ₂ , pc ⟩ c₂' )
+  theorem₅′ : ∀ {Γ τ θ₁ c₂' c₁} {θ₂ : CG.Env Γ} {c₂ : CG.TConf Γ (LIO τ)} →
+               let ⟨ Σ , pc , e ⟩ = c₂ in
+                   θ₁ ↓≈⟨ pc ⟩ᵉ θ₂ →
+                   c₁ ↓≈ᵀ c₂ →
+                   c₂ ⇓⟨ θ₂ ⟩ c₂' →
+                   ∃ (λ c₁' → c₁' ↓≈ᶜ c₂' × c₁ ⇓⟨ θ₁ , pc ⟩ c₁' )
   theorem₅′ = cg2fg
 
 
   -- Correctness ⟦·⟧
-  corollary₁ : ∀ {τ Γ c₁'} {θ : CG.Env Γ} {c₁ : CG.EConf Γ (LIO τ)} →
-                let ⟨ Σ₁ , pc , t₁ ⟩ = c₁ in
-                c₁ ⇓ᶠ⟨ θ ⟩ c₁' →
-                ∃ (λ c₂' → c₂' ↓≈ᶜ c₁' × ⟦ c₁ ⟧ᴵ ⇓⟨ ⟦ θ ⟧ᵉ pc  , pc ⟩ c₂' )
+  corollary₁ : ∀ {τ Γ c₂'} {θ : CG.Env Γ} {c₂ : CG.EConf Γ (LIO τ)} →
+                let ⟨ Σ , pc , e ⟩ = c₂ in
+                c₂ ⇓ᶠ⟨ θ ⟩ c₂' →
+                ∃ (λ c₁' → c₁' ↓≈ᶜ c₂' × ⟦ c₂ ⟧ᴵ ⇓⟨ ⟦ θ ⟧ᵉ pc  , pc ⟩ c₁' )
   corollary₁ = ⟦·⟧-correct
 
   open import CG2FG.Recovery L
 
   -- Lifting L-equivalence from source to target.
-  lemma-5·3 : ∀ {τ pc} {v₁ v₂ : CG.Value τ} →
-                v₁ CG.≈ⱽ⟨ L ⟩ v₂ →
-                (⟦ v₁ ⟧ⱽ pc) FG.≈ⱽ⟨ L ⟩ (⟦ v₂ ⟧ⱽ pc)
-  lemma-5·3 = lift-≈ⱽ
-
-  lemma-5·3′ : ∀ {Γ pc} {θ₁ θ₂ : CG.Env Γ} →
-                θ₁ CG.≈ᴱ⟨ L ⟩ θ₂ →
-                (⟦ θ₁ ⟧ᵉ pc) FG.≈ᴱ⟨ L ⟩ (⟦ θ₂ ⟧ᵉ pc)
-  lemma-5·3′ = lift-≈ᴱ
-
-  lemma-5·3′′ : ∀ {Γ τ} {c₁ c₂ : CG.EConf Γ (LIO τ)} →
+  lemma-5·3 : ∀ {Γ τ} {c₁ c₂ : CG.EConf Γ (LIO τ)} →
                   c₁ CG.≈ᴵ⟨ L ⟩ c₂ →
                   ⟦ c₁ ⟧ᴵ FG.≈ᴵ⟨ L ⟩ ⟦ c₂ ⟧ᴵ
-  lemma-5·3′′ = lift-≈ᴵ
+  lemma-5·3 = lift-≈ᴵ
 
   -- Unlifting L-equivalence from target to source
   lemma-5·4 : ∀ {pc τ} {v₁ v₂ : FG.Value ⟦ τ ⟧ᵗ} {v₁' v₂' : CG.Value τ} →
@@ -336,6 +322,27 @@ module §5 where
                   θ₂ ↓≈⟨ pc ⟩ᵉ θ₂'  →
                   θ₁' CG.≈ᴱ⟨ L ⟩ θ₂'
   lemma-5·4′′ = unlift-≈ᴱ
+
+  lemma-5·4′′′ : ∀ {ℓ} {M₁' M₂'} {M₁ M₂ : FG.Memory ℓ} →
+                 M₁ FG.≈ᴹ⟨ L ⟩ M₂ →
+                 M₁ ↓≈ᴹ M₁' →
+                 M₂ ↓≈ᴹ M₂' →
+                 M₁' CG.≈ᴹ⟨ L ⟩ M₂'
+  lemma-5·4′′′ = unlift-≈⟨ _ ⟩ᴹ
+
+  lemma-5·4′′′′  : ∀ {Σ₁ Σ₂ Σ₁' Σ₂'} →
+                      Σ₁ FG.≈ˢ⟨ L ⟩ Σ₂ →
+                      Σ₁ ↓≈ˢ Σ₁' →
+                      Σ₂ ↓≈ˢ Σ₂' →
+                      Σ₁' CG.≈ˢ⟨ L ⟩ Σ₂'
+  lemma-5·4′′′′ = unlift-≈ˢ
+
+  lemma-5·5 : ∀ {τ τ'} {c₁' c₂' : CG.FConf τ} {c₁ c₂ : FG.FConf τ'} →
+              c₁ FG.≈ᶜ⟨ L ⟩ c₂ →
+              c₁ ↓≈ᶜ c₁' →
+              c₂ ↓≈ᶜ c₂' →
+              c₁' CG.≈ᶜ⟨ L ⟩ c₂'
+  lemma-5·5 = unlift-≈ᶜ
 
   open import Generic.Calculus
 

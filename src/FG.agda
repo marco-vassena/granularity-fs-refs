@@ -35,6 +35,14 @@ _≈ᴱ⟨_⟩_ : ∀ {Γ} → Env Γ → Label → Env Γ → Set
 r₁ ≈ᴱ⟨ A ⟩ r₂ = r₁ ≈ᴱ r₂
   where open import FG.LowEq A
 
+_≈ᴹ⟨_⟩_ : ∀ {ℓ} → Memory ℓ → Label → Memory ℓ → Set
+M₁ ≈ᴹ⟨ A ⟩ M₂ = M₁ ≈⟨ _ ⊑? A  ⟩ᴹ M₂
+  where open import FG.LowEq A
+
+_≈ˢ⟨_⟩_ : Store → Label → Store → Set
+Σ₁ ≈ˢ⟨ A ⟩ Σ₂ = Σ₁ ≈ˢ Σ₂
+  where open import FG.LowEq A
+
 --------------------------------------------------------------------------------
 -- Calculus record
 

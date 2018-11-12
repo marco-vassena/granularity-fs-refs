@@ -32,4 +32,4 @@ tini-via-fg : ∀ {τ Γ θ₁ θ₂} {c₁ c₂ : EConf Γ (LIO τ)} {c₁' c�
                  c₁' C.≈ᶜ c₂'
 tini-via-fg x₁ x₂ c₁≈c₂ θ₁≈θ₂ with ⟦·⟧-correct x₁ | ⟦·⟧-correct x₂
 ... | c₁' , c₁≈′ , x₁' | c₂' , c₂≈′ , x₂' rewrite pc-≡ c₁≈c₂ with tini x₁' x₂' (lift-≈ᴵ c₁≈c₂) (lift-≈ᴱ θ₁≈θ₂)
-... | c₁'≈c₂' = unlift-≈ᶜ c₁≈′ c₂≈′ c₁'≈c₂'
+... | c₁'≈c₂' = unlift-≈ᶜ c₁'≈c₂' c₁≈′ c₂≈′

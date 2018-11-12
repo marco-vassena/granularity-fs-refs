@@ -178,7 +178,7 @@ mutual
   ≈ᴿ-⊑ (Pair x₁ x₂) p = Pair (≈ⱽ-⊑ x₁ p) (≈ⱽ-⊑ x₂ p)
   ≈ᴿ-⊑ (Inl v≈) p = Inl (≈ⱽ-⊑ v≈ p)
   ≈ᴿ-⊑ (Inr v≈) p = Inr (≈ⱽ-⊑ v≈ p)
-  ≈ᴿ-⊑ (Labeled pc⊑ℓ' v≈) p = Labeled (trans-⊑ pc⊑ℓ' p) (≈ⱽ-⊑ v≈ refl-⊑)
+  ≈ᴿ-⊑ (Labeled pc⊑ℓ' v≈) p = Labeled (trans-⊑ pc⊑ℓ' p) v≈
 
   ≈ᵉ-⊑  : ∀ {Γ Γ' pc₁ pc₂} {θ : C.Env Γ} {θ' : F.Env Γ'} {{c : MkCtx Γ Γ'}} → θ' ↓≈⟨ pc₁ ⟩ᵉ θ → pc₁ ⊑ pc₂ → θ' ↓≈⟨ pc₂ ⟩ᵉ θ
   ≈ᵉ-⊑ [] p = []

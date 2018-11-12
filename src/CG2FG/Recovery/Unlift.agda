@@ -90,12 +90,12 @@ unlift-≈ˢ Σ₁≈Σ₂ Σ₁↓ Σ₂↓ = λ ℓ → unlift-≈⟨ ℓ ⊑?
 
 -- Final configurations.
 unlift-≈ᶜ : ∀ {τ τ'} {c₁' c₂' : CG.FConf τ} {c₁ c₂ : FG.FConf τ'} →
+              c₁ F.≈ᶜ c₂ →
               c₁ ↓≈ᶜ c₁' →
               c₂ ↓≈ᶜ c₂' →
-              c₁ F.≈ᶜ c₂ →
               c₁' C.≈ᶜ c₂'
-unlift-≈ᶜ ⟨ Σ₁↓Σ₁' , v₁↓v₁' ⟩ ⟨ Σ₂↓Σ₂' , v₂↓v₂' ⟩ F.⟨ Σ₁≈Σ₂ , F.Valueᴸ ℓ⊑A r≈ ⟩ = pcᴸ Σ₁'≈Σ₂' ℓ⊑A v₁'≈v₂'
+unlift-≈ᶜ F.⟨ Σ₁≈Σ₂ , F.Valueᴸ ℓ⊑A r≈ ⟩ ⟨ Σ₁↓Σ₁' , v₁↓v₁' ⟩ ⟨ Σ₂↓Σ₂' , v₂↓v₂' ⟩ = pcᴸ Σ₁'≈Σ₂' ℓ⊑A v₁'≈v₂'
   where Σ₁'≈Σ₂' = unlift-≈ˢ Σ₁≈Σ₂ Σ₁↓Σ₁' Σ₂↓Σ₂'
         v₁'≈v₂' = unlift-≈ⱽ ℓ⊑A (F.Valueᴸ ℓ⊑A r≈) (refl-⊑ ↓ v₁↓v₁') (refl-⊑ ↓ v₂↓v₂')
-unlift-≈ᶜ ⟨ Σ₁↓Σ₁' , v₁↓v₁' ⟩ ⟨ Σ₂↓Σ₂' , v₂↓v₂' ⟩ F.⟨ Σ₁≈Σ₂ , F.Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = pcᴴ Σ₁'≈Σ₂' ℓ₁⋤A ℓ₂⋤A
+unlift-≈ᶜ F.⟨ Σ₁≈Σ₂ , F.Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ ⟨ Σ₁↓Σ₁' , v₁↓v₁' ⟩ ⟨ Σ₂↓Σ₂' , v₂↓v₂' ⟩ = pcᴴ Σ₁'≈Σ₂' ℓ₁⋤A ℓ₂⋤A
   where Σ₁'≈Σ₂' = unlift-≈ˢ Σ₁≈Σ₂ Σ₁↓Σ₁' Σ₂↓Σ₂'
