@@ -1,7 +1,6 @@
 # From Fine- to Coarse-Grained Dynamic Information Flow Control and Back - Mechanized Proofs
 
-This repository contains Agda mechanized proofs of the paper [https://doi.org/10.1145/3290389]("From Fine- to
-Coarse-Grained Dynamic Information Flow Control and Back") by Vassena, Russo,
+This repository contains Agda mechanized proofs of the paper [From Fine- to Coarse-Grained Dynamic Information Flow Control and Back](https://doi.org/10.1145/3290389) by Vassena, Russo,
 Vineet, Deepak, Stefan.
 
 ## Checking the proofs
@@ -37,20 +36,18 @@ injectivity of the translation requires to use the _graph of the function_, an
 inductive relation that represents the translation function and enables
 from-target-to-source inductive reasoning.
 
-## Additional Axiom
-The fine to coarse semantics-preservation proof of the transformation requires
-the (often used) axiom of function extensionality, which is assumed as a
-postulate in `Generic/Store/Base.agda`.
-
-## Difference from the paper
+## Differences from the Paper
 The translation from the paper and its mechanization differ in the following:
 1. _Syntactic sugar_. In the paper, `x <- e1 ; e2` desugars to `bind(e1, x.e2)`
-   in the proof scripts (footnote 12) and `let x = e1 in e2` to `(\x.e2) e1`
-(footnote 19).
+   in the proof scripts and `let x = e1 in e2` to `(\x.e2) e1`.
 2. Term `wken` is omitted in the paper and explicit used in the proof scripts
-   where needed (paragraph _Note on Environments_ on pag. 17).
+   where needed.
 3. Variables are _named_ in the paper and _unnamed_ De Bruijn in the proof
-   scripts (footnote 7)
-4. The `Id` type is omitted in the paper and used in the proof scripts to
-   ensure injectivity (footnote 21).
+   scripts.
+4. The type `Id` is omitted in the paper and used in the proof scripts to
+   ensure injectivity.
 
+## Additional Axiom
+The proof of semantics preservation of the fine to coarse transformation requires
+the (often used) axiom of function extensionality, which is assumed as a
+postulate in `Generic.Store.Base` and used in `FG2CG.Correct`.
