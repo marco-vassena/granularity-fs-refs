@@ -6,6 +6,11 @@ open import Relation.Binary
 open import Level
 open import Lattice
 
+-- A simple flag to distinguish flow-insensitive (I) and
+-- flow-sensitive (S) references
+data Flow : Set where
+  I S : Flow
+
 -- A generic record for security calculi with well-typed syntax and
 -- big-step semantics.
 record Calculus {{𝑳 : Lattice}} : Set₁ where
@@ -13,8 +18,8 @@ record Calculus {{𝑳 : Lattice}} : Set₁ where
         Input : Ctx Ty → Set
         IConf : Ctx Ty → Ty → Set
         FConf : Ty → Set
-        I : Ty → Ty -- Generic type preservation in the semantics
-        _⇓⟨_⟩_ : ∀ {Γ τ} → IConf Γ (I τ) → Input Γ → FConf τ → Set
+        I⟨_⟩ : Ty → Ty -- Generic type preservation in the semantics
+        _⇓⟨_⟩_ : ∀ {Γ τ} → IConf Γ I⟨ τ ⟩ → Input Γ → FConf τ → Set
 
         -- Low-equivalence
         _≈ᴱ⟨_⟩_ : ∀ {Γ} → Input Γ → Label → Input Γ → Set
@@ -23,7 +28,7 @@ record Calculus {{𝑳 : Lattice}} : Set₁ where
 
 -- Generic Termination-Insensitive Non-Interferencee property (TINI).
 TINI : ∀ {{𝑳 : Lattice}} → Calculus → Set
-TINI 𝑪 = ∀ {τ Γ θ₁ θ₂ A} {c₁ c₂ : IConf Γ (I τ)} {c₁' c₂' : FConf τ} →
+TINI 𝑪 = ∀ {τ Γ θ₁ θ₂ A} {c₁ c₂ : IConf Γ I⟨ τ ⟩} {c₁' c₂' : FConf τ} →
               c₁ ⇓⟨ θ₁ ⟩ c₁' →
               c₂ ⇓⟨ θ₂ ⟩ c₂' →
               c₁ ≈ᴵ⟨ A ⟩ c₂ →
