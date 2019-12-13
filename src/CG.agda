@@ -50,7 +50,7 @@ open import Generic.Calculus
          ; Input = Env
          ; IConf = EConf
          ; FConf = FConf
-         ; I = LIO
+         ; I⟨_⟩ = LIO
          ; _⇓⟨_⟩_ = _⇓ᶠ⟨_⟩_
          ; _≈ᴱ⟨_⟩_ = _≈ᴱ⟨_⟩_
          ; _≈ᴵ⟨_⟩_ = _≈ᴵ⟨_⟩_
