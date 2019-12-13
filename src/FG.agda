@@ -57,7 +57,7 @@ open import Relation.Binary.PropositionalEquality
          ; Input = λ Γ → (Env Γ) ∧ Label
          ; IConf = IConf
          ; FConf = FConf
-         ; I = id
+         ; I⟨_⟩ = id
          ; _⇓⟨_⟩_ = λ { c (θ , pc) c' → c ⇓⟨ θ , pc ⟩ c' }
          ; _≈ᴱ⟨_⟩_ = λ { (θ₁ , pc₁) A (θ₂ , pc₂) → θ₁ ≈ᴱ⟨ A ⟩ θ₂ ∧ pc₁ ≡ pc₂}
          ; _≈ᴵ⟨_⟩_ = _≈ᴵ⟨_⟩_
