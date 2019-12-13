@@ -1,5 +1,7 @@
 module FG.Types where
 
+open import Generic.Calculus using (Flow; S; I) public
+
 -- Types τ
 data Ty : Set where
   unit : Ty                      -- Unit type
@@ -7,7 +9,7 @@ data Ty : Set where
   _+_ : Ty → Ty → Ty             -- Sum
   _➔_ : (τ₁ t₂ : Ty) → Ty        -- Function
   𝓛 : Ty                        -- Label
-  Ref : Ty → Ty                  -- Labeled mutable reference
+  Ref : Flow → Ty → Ty           -- Labeled mutable reference
   Id : Ty → Ty                   -- Identity type (needed for injectivity)
 
 infixr 3 _➔_

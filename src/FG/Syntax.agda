@@ -76,16 +76,16 @@ data Expr (Γ : Ctx) : Ty → Set where
   -- Memory
 
   -- Retrieve the label of a labeled reference
-  labelOfRef : ∀ {τ} → Expr Γ (Ref τ) → Expr Γ 𝓛
+  labelOfRef : ∀ {τ s} → Expr Γ (Ref s τ) → Expr Γ 𝓛
 
   -- Creates a new mutable reference
-  new : ∀ {τ} → Expr Γ τ → Expr Γ (Ref τ)
+  new : ∀ {τ s} → Expr Γ τ → Expr Γ (Ref s τ)
 
   -- Reads the content of a mutable reference
-  !_ : ∀ {τ} → Expr Γ (Ref τ) → Expr Γ τ
+  !_ : ∀ {τ s} → Expr Γ (Ref s τ) → Expr Γ τ
 
   -- Overvwrites the content of a mutable reference
-  _≔_ : ∀ {τ} → Expr Γ (Ref τ) → Expr Γ τ → Expr Γ unit
+  _≔_ : ∀ {τ s} → Expr Γ (Ref s τ) → Expr Γ τ → Expr Γ unit
 
   --------------------------------------------------------------------------------
   -- Identity type
@@ -112,7 +112,7 @@ mutual
 
     ⟨_,_⟩ : ∀ {τ₁ τ₂} → Value τ₁ → Value τ₂ → Raw (τ₁ × τ₂)
 
-    Ref : ∀ {τ} → Label → ℕ → Raw (Ref τ)
+    Ref : ∀ {τ s} → Label → ℕ → Raw (Ref s τ)
 
     ⌞_⌟ : Label → Raw 𝓛
 

@@ -241,26 +241,26 @@ mutual
   ... | ⟨ Σ₁'≈Σ₂' , (Valueᴴ ℓ₁⋤A ℓ₂⋤A) ⟩ = tiniᴴ Σ₁'≈Σ₂' x₂ x₄ (trans-⋤ pc'⊑pc'' ℓ₁⋤A) (trans-⋤ pc'⊑pc''' ℓ₂⋤A)
 
   tiniᴸ (LabelOfRef x₁ refl) (LabelOfRef x₂ refl) Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₂ Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A
-  ... | E.⟨ Σ≈ , E.Valueᴸ ℓ⊑A (E.Refᴸ ℓ⊑A₁ n) ⟩ = E.⟨ Σ≈ , (Valueᴸ (join-⊑' ℓ⊑A₁ ℓ⊑A) (Lbl _)) ⟩
-  ... | E.⟨ Σ≈ , E.Valueᴸ ℓ⊑A (E.Refᴴ ℓ₁⋤A ℓ₂⋤A) ⟩ = E.⟨ Σ≈ , (Valueᴴ (trans-⋤ (join-⊑₁ _ _) ℓ₁⋤A) (trans-⋤ (join-⊑₁ _ _) ℓ₂⋤A)) ⟩
+  ... | E.⟨ Σ≈ , E.Valueᴸ ℓ⊑A (E.Ref-Iᴸ ℓ⊑A₁ n) ⟩ = E.⟨ Σ≈ , (Valueᴸ (join-⊑' ℓ⊑A₁ ℓ⊑A) (Lbl _)) ⟩
+  ... | E.⟨ Σ≈ , E.Valueᴸ ℓ⊑A (E.Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) ⟩ = E.⟨ Σ≈ , (Valueᴴ (trans-⋤ (join-⊑₁ _ _) ℓ₁⋤A) (trans-⋤ (join-⊑₁ _ _) ℓ₂⋤A)) ⟩
   ... | E.⟨ Σ≈ , E.Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = E.⟨ Σ≈ , Valueᴴ (trans-⋤ (join-⊑₂ _ _) ℓ₁⋤A) (trans-⋤ (join-⊑₂ _ _) ℓ₂⋤A) ⟩
 
   tiniᴸ (New x) (New x₁) Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A with tiniᴸ x x₁ Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A
   ... | E.⟨ Σ≈ , E.Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = E.⟨ Σ≈′ , r≈′ ⟩
       where Σ≈′ = square-≈ˢ Σ≈ (updateᴴ-≈ˢ _ _ ℓ₁⋤A) (updateᴴ-≈ˢ _ _ ℓ₂⋤A)
-            r≈′ = Valueᴸ pc⊑A (Refᴴ ℓ₁⋤A ℓ₂⋤A)
+            r≈′ = Valueᴸ pc⊑A (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A)
 
   ... | E.⟨ Σ≈ , E.Valueᴸ ℓ⊑A r≈ ⟩ = E.⟨ Σ≈′ , r≈′ ⟩
       where M≈ = getᴸ Σ≈ ℓ⊑A
             Σ≈′ = updateᴸ-≈ˢ Σ≈ (new-≈ᴹ M≈  r≈)
-            r≈′ = Valueᴸ pc⊑A (Refᴸ′ ℓ⊑A ∥ M≈  ∥-≡)
+            r≈′ = Valueᴸ pc⊑A (Ref-Iᴸ′ ℓ⊑A ∥ M≈  ∥-≡)
 
   tiniᴸ (Read x₁ n∈M₁ refl) (Read x₂ n∈M₂ refl) Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₂ Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A
-  ... | E.⟨ Σ≈ , E.Valueᴸ ℓ⊑A (Refᴸ ℓ'⊑A n) ⟩ = E.⟨ Σ≈ , v≈ ⟩
+  ... | E.⟨ Σ≈ , E.Valueᴸ ℓ⊑A (Ref-Iᴸ ℓ'⊑A n) ⟩ = E.⟨ Σ≈ , v≈ ⟩
     where M≈ = getᴸ Σ≈ ℓ'⊑A
           v≈ = Valueᴸ (join-⊑' ℓ'⊑A ℓ⊑A) (read-≈ᴹ M≈ n∈M₁ n∈M₂)
 
-  ... | E.⟨ Σ≈ , E.Valueᴸ ℓ⊑A (Refᴴ ℓ₁⋤A ℓ₂⋤A) ⟩ = E.⟨ Σ≈ , v≈ ⟩
+  ... | E.⟨ Σ≈ , E.Valueᴸ ℓ⊑A (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) ⟩ = E.⟨ Σ≈ , v≈ ⟩
     where v≈ = Valueᴴ (trans-⋤ (join-⊑₁ _ _) ℓ₁⋤A) (trans-⋤ (join-⊑₁ _ _) ℓ₂⋤A)
 
   ... | E.⟨ Σ≈ , E.Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = E.⟨ Σ≈ , v≈ ⟩
@@ -275,17 +275,17 @@ mutual
 
   -- Write low data to low-reference
   tiniᴸ (Write x₁ ℓ'⊑pc x₃ ℓ₂⊑ℓ M≔₁) (Write x₂ ℓ'⊑pc' x₄ ℓ₂⊑ℓ' M≔₂) Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A
-    | E.⟨ Σ≈ , E.Valueᴸ ℓ⊑A (E.Refᴸ ℓ⊑A₁ n) ⟩ | E.⟨ Σ≈′ , E.Valueᴸ ℓ⊑A₂ r≈ ⟩ = ⟨ Σ≈′′ , Valueᴸ pc⊑A Unit ⟩
+    | E.⟨ Σ≈ , E.Valueᴸ ℓ⊑A (E.Ref-Iᴸ ℓ⊑A₁ n) ⟩ | E.⟨ Σ≈′ , E.Valueᴸ ℓ⊑A₂ r≈ ⟩ = ⟨ Σ≈′′ , Valueᴸ pc⊑A Unit ⟩
       where M≈ = getᴸ Σ≈′ ℓ⊑A₁
             Σ≈′′ = updateᴸ-≈ˢ Σ≈′ (update-≈ᴹ M≈  r≈ M≔₁ M≔₂)
 
   -- Write high data to low-reference (impossible)
   tiniᴸ (Write x₁ ℓ'⊑pc x₃ ℓ₂⊑ℓ M≔₁) (Write x₂ ℓ'⊑pc' x₄ ℓ₂⊑ℓ' M≔₂) Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A
-    | E.⟨ Σ≈ , E.Valueᴸ ℓ⊑A (E.Refᴸ ℓ⊑A₁ n) ⟩ | E.⟨ Σ≈′ , E.Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = ⊥-elim (ℓ₂⋤A (trans-⊑ ℓ₂⊑ℓ' ℓ⊑A₁))
+    | E.⟨ Σ≈ , E.Valueᴸ ℓ⊑A (E.Ref-Iᴸ ℓ⊑A₁ n) ⟩ | E.⟨ Σ≈′ , E.Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = ⊥-elim (ℓ₂⋤A (trans-⊑ ℓ₂⊑ℓ' ℓ⊑A₁))
 
   -- Write low data to high reference
   tiniᴸ (Write x₁ ℓ'⊑pc x₃ ℓ₂⊑ℓ M≔₁) (Write x₂ ℓ'⊑pc' x₄ ℓ₂⊑ℓ' M≔₂) Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A
-    | E.⟨ Σ≈ , E.Valueᴸ ℓ⊑A (E.Refᴴ ℓ₁⋤A ℓ₂⋤A) ⟩ | E.⟨ Σ≈′ , v≈ ⟩ = ⟨ Σ≈′′ , Valueᴸ pc⊑A Unit ⟩
+    | E.⟨ Σ≈ , E.Valueᴸ ℓ⊑A (E.Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) ⟩ | E.⟨ Σ≈′ , v≈ ⟩ = ⟨ Σ≈′′ , Valueᴸ pc⊑A Unit ⟩
       where Σ≈′′ = square-≈ˢ Σ≈′ (updateᴴ-≈ˢ _ _ ℓ₁⋤A) (updateᴴ-≈ˢ _ _ ℓ₂⋤A)
 
   tiniᴸ (Id x₁) (Id x₂) Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₂ Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A

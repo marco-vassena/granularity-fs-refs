@@ -108,7 +108,7 @@ mutual
               (pc'⊑pc'' : pc' ⊑ pc'') →
               Step θ pc ⟨ Σ , taint e₁ e₂ ⟩ ⟨ Σ'' , v ⟩
 
-    LabelOfRef : ∀ {Σ Σ' ℓ ℓ' ℓ'' n τ} {e : Expr Γ (Ref τ)} →
+    LabelOfRef : ∀ {Σ Σ' ℓ ℓ' ℓ'' n τ} {e : Expr Γ (Ref I τ)} →
                  ⟨ Σ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , Ref ℓ n ^ ℓ' ⟩ →
                  (eq : ℓ'' ≡ ℓ ⊔ ℓ') →
                  Step θ pc ⟨ Σ , labelOfRef e ⟩ ⟨ Σ' , ⌞ ℓ ⌟ ^ ℓ'' ⟩
@@ -116,18 +116,18 @@ mutual
     New : ∀ {ℓ τ Σ Σ' } {e : Expr Γ _} {r : Raw τ} →
           ⟨ Σ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , r ^ ℓ ⟩ →
           let M = Σ' ℓ in
-          Step θ pc ⟨ Σ , new e ⟩  ⟨  Σ' [ ℓ ↦ M ∷ᴿ r ]ˢ , (Ref ℓ ∥ M ∥) ^ pc ⟩
+          Step θ pc ⟨ Σ , new {s = I} e ⟩  ⟨  Σ' [ ℓ ↦ M ∷ᴿ r ]ˢ , (Ref ℓ ∥ M ∥) ^ pc ⟩
 
     -- This is better than asking ℓ' ⊑ ℓ and returning the value at pc
     -- ⊔ ℓ. The combination pc ⊑ ℓ' (step-⊑) and ℓ' ⊑ ℓ implies pc ⊑
     -- ℓ, thus the rule would not allow to read lower references.
-    Read : ∀ {Σ Σ' ℓ ℓ' ℓ'' n τ} {e : Expr _ (Ref τ)} {r : Raw τ } →
+    Read : ∀ {Σ Σ' ℓ ℓ' ℓ'' n τ} {e : Expr _ (Ref I τ)} {r : Raw τ } →
            ⟨ Σ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , (Ref  ℓ n) ^ ℓ' ⟩ →
            n ↦ r ∈ᴹ (Σ' ℓ) →
            (eq : ℓ'' ≡ (ℓ ⊔ ℓ')) →
            Step θ pc ⟨ Σ , ! e ⟩  ⟨ Σ' ,  r ^ ℓ'' ⟩
 
-    Write : ∀ {Σ₁ Σ₂ Σ₃ ℓ ℓ₂ ℓ' n τ} {M' : Memory ℓ} {e₁ : Expr _ (Ref τ)}
+    Write : ∀ {Σ₁ Σ₂ Σ₃ ℓ ℓ₂ ℓ' n τ} {M' : Memory ℓ} {e₁ : Expr _ (Ref I τ)}
               {e₂ : Expr _ τ} {r₂ : Raw τ} →
              ⟨ Σ₁ , e₁ ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ₂ , (Ref ℓ n) ^ ℓ' ⟩ →
               ℓ' ⊑ pc →

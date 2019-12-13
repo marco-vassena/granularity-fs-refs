@@ -1,3 +1,5 @@
+{-# OPTIONS --allow-unsolved-metas #-}
+
 -- This module defines a L-equivalence relation for all the categoris
 -- of the calculus.  L-equivalence relates terms that are
 -- indistinguishabile to an attacker at security level L.
@@ -38,8 +40,9 @@ mutual
     Fun : ∀ {τ' τ Γ} {e : Expr (τ' ∷ Γ) τ} {θ₁ : Env Γ} {θ₂ : Env Γ} →
                 θ₁ ≈ᴱ θ₂ →
                 ⟨ e , θ₁ ⟩ᶜ ≈ᴿ ⟨ e , θ₂ ⟩ᶜ
-    Refᴸ : ∀ {ℓ τ} → (ℓ⊑A : ℓ ⊑ A) (n : ℕ) → Ref {τ = τ} ℓ n ≈ᴿ Ref ℓ n
-    Refᴴ : ∀ {ℓ₁ ℓ₂ n₁ n₂ τ} → (ℓ₁⋤A : ℓ₁ ⋤ A) (ℓ₂⋤A : ℓ₂ ⋤ A) → Ref {τ = τ} ℓ₁ n₁ ≈ᴿ Ref ℓ₂ n₂
+    -- TODO: for flow-sensitive refs we need the bijection
+    Ref-Iᴸ : ∀ {ℓ τ} → (ℓ⊑A : ℓ ⊑ A) (n : ℕ) → Ref {τ = τ} {s = I} ℓ n ≈ᴿ Ref ℓ n
+    Ref-Iᴴ : ∀ {ℓ₁ ℓ₂ n₁ n₂ τ} → (ℓ₁⋤A : ℓ₁ ⋤ A) (ℓ₂⋤A : ℓ₂ ⋤ A) → Ref {τ = τ} {s = I} ℓ₁ n₁ ≈ᴿ Ref ℓ₂ n₂
     Id : ∀ {τ} {v₁ v₂ : Value τ} → v₁ ≈ⱽ v₂ → Id v₁ ≈ᴿ Id v₂
 
   -- Environments.
@@ -49,8 +52,8 @@ mutual
              v₁ ≈ⱽ v₂ → θ₁ ≈ᴱ θ₂ → (v₁ ∷ θ₁) ≈ᴱ (v₂ ∷ θ₂)
 
 -- Shorthand
-Refᴸ′ : ∀ {τ ℓ n₁ n₂} → ℓ ⊑ A → n₁ ≡ n₂ → Ref {τ = τ} ℓ n₁ ≈ᴿ Ref ℓ n₂
-Refᴸ′ ℓ⊑A refl = Refᴸ ℓ⊑A _
+Ref-Iᴸ′ : ∀ {τ ℓ n₁ n₂} → ℓ ⊑ A → n₁ ≡ n₂ → Ref {τ = τ} ℓ n₁ ≈ᴿ Ref ℓ n₂
+Ref-Iᴸ′ ℓ⊑A refl = Ref-Iᴸ ℓ⊑A _
 
 Trueᴸ : ∀ {ℓ} → ℓ ⊑ A → true ℓ ≈ᴿ true ℓ
 Trueᴸ ℓ⊑A = Inl (Valueᴸ ℓ⊑A Unit)
@@ -108,9 +111,10 @@ mutual
   refl-≈ᴿ {r = inl r} = Inl refl-≈ⱽ
   refl-≈ᴿ {r = inr r} = Inr refl-≈ⱽ
   refl-≈ᴿ {r = ⟨ r , r₁ ⟩} = Pair refl-≈ⱽ refl-≈ⱽ
-  refl-≈ᴿ {r = Ref ℓ n} with ℓ ⊑? A
-  ... | yes p = Refᴸ p n
-  ... | no ¬p = Refᴴ ¬p ¬p
+  refl-≈ᴿ {Ref I _} {r = Ref ℓ n} with ℓ ⊑? A
+  ... | yes p = Ref-Iᴸ p n
+  ... | no ¬p = Ref-Iᴴ ¬p ¬p
+  refl-≈ᴿ {Ref S _} {r = Ref ℓ n} = {!!} -- How does reflexivity work for flow-sensitive public references?
   refl-≈ᴿ {r = ⌞ ℓ ⌟} = Lbl ℓ
   refl-≈ᴿ {r = Id v} = Id refl-≈ⱽ
 
@@ -131,8 +135,8 @@ mutual
   sym-≈ᴿ (Inr v₁≈v₂) = Inr (sym-≈ⱽ v₁≈v₂)
   sym-≈ᴿ (Pair v₁≈v₂ v₁≈v₂') = Pair (sym-≈ⱽ v₁≈v₂) (sym-≈ⱽ v₁≈v₂')
   sym-≈ᴿ (Fun θ₁≈θ₂) = Fun (sym-≈ᴱ θ₁≈θ₂)
-  sym-≈ᴿ (Refᴸ ℓ⊑A n) = Refᴸ ℓ⊑A n
-  sym-≈ᴿ (Refᴴ ℓ₁⋤A ℓ₂⋤A) = Refᴴ ℓ₂⋤A ℓ₁⋤A
+  sym-≈ᴿ (Ref-Iᴸ ℓ⊑A n) = Ref-Iᴸ ℓ⊑A n
+  sym-≈ᴿ (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = Ref-Iᴴ ℓ₂⋤A ℓ₁⋤A
   sym-≈ᴿ (Id v₁≈v₂) = Id (sym-≈ⱽ v₁≈v₂)
 
   sym-≈ᴱ : ∀ {Γ} {θ₁ θ₂ : Env Γ} → θ₁ ≈ᴱ θ₂ → θ₂ ≈ᴱ θ₁
@@ -147,10 +151,10 @@ mutual
   trans-≈ᴿ (Inr v₁≈v₂) (Inr v₂≈v₃) = Inr (trans-≈ⱽ v₁≈v₂ v₂≈v₃)
   trans-≈ᴿ (Pair v₁≈v₂ v₁≈v₃) (Pair v₂≈v₃ v₂≈v₄) = Pair (trans-≈ⱽ v₁≈v₂ v₂≈v₃) (trans-≈ⱽ v₁≈v₃ v₂≈v₄)
   trans-≈ᴿ (Fun θ₁≈θ₂) (Fun θ₂≈θ₃) = Fun (trans-≈ᴱ θ₁≈θ₂ θ₂≈θ₃)
-  trans-≈ᴿ (Refᴸ ℓ⊑A n) (Refᴸ ℓ⊑A₁ .n) = Refᴸ ℓ⊑A₁ n
-  trans-≈ᴿ (Refᴸ ℓ⊑A n) (Refᴴ ℓ₁⋤A ℓ₂⋤A) = ⊥-elim (ℓ₁⋤A ℓ⊑A)
-  trans-≈ᴿ (Refᴴ ℓ₁⋤A ℓ₂⋤A) (Refᴸ ℓ⊑A n) = ⊥-elim (ℓ₂⋤A ℓ⊑A)
-  trans-≈ᴿ (Refᴴ ℓ₁⋤A ℓ₂⋤A) (Refᴴ ℓ₁⋤A₁ ℓ₂⋤A₁) = Refᴴ ℓ₁⋤A ℓ₂⋤A₁
+  trans-≈ᴿ (Ref-Iᴸ ℓ⊑A n) (Ref-Iᴸ ℓ⊑A₁ .n) = Ref-Iᴸ ℓ⊑A₁ n
+  trans-≈ᴿ (Ref-Iᴸ ℓ⊑A n) (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = ⊥-elim (ℓ₁⋤A ℓ⊑A)
+  trans-≈ᴿ (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) (Ref-Iᴸ ℓ⊑A n) = ⊥-elim (ℓ₂⋤A ℓ⊑A)
+  trans-≈ᴿ (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) (Ref-Iᴴ ℓ₁⋤A₁ ℓ₂⋤A₁) = Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A₁
   trans-≈ᴿ (Id v₁≈v₂) (Id v₂≈v₃) = Id (trans-≈ⱽ v₁≈v₂ v₂≈v₃)
 
   trans-≈ⱽ : ∀ {τ} {v₁ v₂ v₃ : Value τ} → v₁ ≈ⱽ v₂ → v₂ ≈ⱽ v₃ → v₁ ≈ⱽ v₃
