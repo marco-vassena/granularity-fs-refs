@@ -117,7 +117,7 @@ mutual
     New : ∀ {ℓ τ Σ Σ' μ μ'} {e : Expr Γ _} {r : Raw τ} →
           ⟨ Σ , μ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , μ' , r ^ ℓ ⟩ →
           let M = Σ' ℓ in
-          Step θ pc ⟨ Σ , μ , new {s = I} e ⟩ ⟨  Σ' [ ℓ ↦ M ∷ᴿ r ] , μ' , (Refᴵ ℓ ∥ M ∥) ^ pc ⟩
+          Step θ pc ⟨ Σ , μ , new {s = I} e ⟩ ⟨  Σ' [ ℓ ↦ M ∷ᴿ r ]ˢ , μ' , (Refᴵ ℓ ∥ M ∥) ^ pc ⟩
 
     -- This is better than asking ℓ' ⊑ ℓ and returning the value at pc
     -- ⊔ ℓ. The combination pc ⊑ ℓ' (step-⊑) and ℓ' ⊑ ℓ implies pc ⊑
@@ -135,25 +135,25 @@ mutual
              ⟨ Σ₂ , μ₂ , e₂ ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ₃ , μ₃ , r₂ ^ ℓ₂ ⟩ →
              (ℓ₂⊑ℓ : ℓ₂ ⊑ ℓ) →
                M' ≔ (Σ₃ ℓ) [ n ↦ r₂ ]ᴹ →
-             Step θ pc ⟨ Σ₁ , μ₁ , e₁ ≔ e₂ ⟩ ⟨ Σ₃ [ ℓ ↦ M' ] , μ₃ , （） ^ pc ⟩
+             Step θ pc ⟨ Σ₁ , μ₁ , e₁ ≔ e₂ ⟩ ⟨ Σ₃ [ ℓ ↦ M' ]ˢ , μ₃ , （） ^ pc ⟩
 
     -- Flow Sensitive ops
     LabelOfRef-FS : ∀ {Σ Σ' μ μ' ℓ₁ ℓ₂ ℓ₃ n τ} {e : Expr Γ (Ref S τ)} {r : Raw τ} →
                   ⟨ Σ , μ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , μ' , Refˢ n ^ ℓ₁ ⟩ →
-                  n ↦ r ^ ℓ₂ ∈ˢ μ' →
+                  n ↦ r ^ ℓ₂ ∈ᴴ μ' →
                   (eq : ℓ₃ ≡ ℓ₁ ⊔ ℓ₂) →
                   Step θ pc ⟨ Σ , μ , labelOfRef e ⟩ ⟨ Σ' , μ' , ⌞ ℓ₂ ⌟ ^ ℓ₃ ⟩
 
     New-FS : ∀ {τ Σ Σ' μ μ' v} {e : Expr Γ (Ref S τ)} →
           ⟨ Σ , μ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , μ' , v ⟩ →
-          Step θ pc ⟨ Σ , μ , new {s = S} e ⟩  ⟨  Σ' , snocˢ μ' v , Refˢ ∥ μ' ∥ˢ ^ pc ⟩
+          Step θ pc ⟨ Σ , μ , new {s = S} e ⟩  ⟨  Σ' , snocᴴ μ' v , Refˢ ∥ μ' ∥ᴴ ^ pc ⟩
 
     -- -- This is better than asking ℓ' ⊑ ℓ and returning the value at pc
     -- -- ⊔ ℓ. The combination pc ⊑ ℓ' (step-⊑) and ℓ' ⊑ ℓ implies pc ⊑
     -- -- ℓ, thus the rule would not allow to read lower references.
     Read-FS : ∀ {Σ Σ' μ μ' ℓ ℓ' ℓ'' n τ r} {e : Expr _ (Ref S τ)}  →
            ⟨ Σ , μ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , μ' , (Refˢ n) ^ ℓ ⟩ →
-           n ↦ r ^ ℓ' ∈ˢ μ' →
+           n ↦ r ^ ℓ' ∈ᴴ μ' →
            (eq : ℓ'' ≡ ℓ ⊔ ℓ') →
            Step θ pc ⟨ Σ , μ , ! e ⟩  ⟨ Σ' , μ' ,  r ^ ℓ'' ⟩
 
@@ -161,10 +161,10 @@ mutual
                {e₁ : Expr _ (Ref S τ)} {e₂ : Expr _ τ} {r₁ r₂ : Raw τ} →
              ⟨ Σ₁ , μ₁ , e₁ ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ₂ , μ₂ , (Refˢ n) ^ ℓ ⟩ →
              ⟨ Σ₂ , μ₂ , e₂ ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ₃ , μ₃ , r₂ ^ ℓ₂ ⟩ →
-             n ↦ r₁ ^ ℓ₁ ∈ˢ μ₂ →
+             n ↦ r₁ ^ ℓ₁ ∈ᴴ μ₂ →
              ℓ ⊑ ℓ₁ →
              (eq : ℓ₂' ≡ ℓ ⊔ ℓ₂) →
-             μ₃' ≔ μ₃ [ n ↦ r₂ ^ ℓ₂' ]ˢ →
+             μ₃' ≔ μ₃ [ n ↦ r₂ ^ ℓ₂' ]ᴴ →
              Step θ pc ⟨ Σ₁ , μ₁ , e₁ ≔ e₂ ⟩ ⟨ Σ₃ , μ₃' , （） ^ pc ⟩
 
     Id : ∀ {Σ₁ Σ₂ μ₁ μ₂ τ} {e : Expr Γ τ} {v : Value τ} →
