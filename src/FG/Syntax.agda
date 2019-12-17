@@ -146,13 +146,16 @@ if_then_else_ c t e = case c (wken t (drop refl-⊆)) (wken e (drop refl-⊆))
 --------------------------------------------------------------------------------
 -- Configurations
 
--- Generic store
+-- Generic store and flow-sensitive store
 open import Generic.Store.Base Ty Raw public
+open import Generic.Memory Ty Raw public
+open import Generic.FS-Store Ty Value public
 
 -- Generic configuration container.
 record Conf (A : Set) : Set where
-  constructor ⟨_,_⟩
+  constructor ⟨_,_,_⟩
   field store : Store
+        fs-store : FS-Store
         term : A
 
 -- Initial configuration.
