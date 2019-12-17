@@ -37,11 +37,11 @@ slice-≈ᴱ (v₁≈v₂ ∷ θ₁≈θ₂) (cons p) = v₁≈v₂ ∷ slice-�
 slice-≈ᴱ (v₁≈v₂ ∷ θ₁≈θ₂) (drop p) = slice-≈ᴱ θ₁≈θ₂ p
 
 --------------------------------------------------------------------------------
-
+-- TODO: add FS-Store to this lemma
 -- High steps preserve low-equivalence of stores
 step-≈ˢ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
-             let ⟨ Σ , _ ⟩ = c
-                 ⟨ Σ' , _ ⟩ = c' in
+             let ⟨ Σ , _ , _ ⟩ = c
+                 ⟨ Σ' , _ , _ ⟩ = c' in
                c ⇓⟨ θ , pc ⟩ c' →
                pc ⋤ A →
                Σ ≈ˢ Σ'
@@ -98,9 +98,9 @@ open _≈⟨_⟩ᴬ_
 mutual
 
   -- TINI for low steps
-  tiniᴸ : ∀ {pc τ Γ Σ₁ Σ₂ e} {θ₁ θ₂ : Env Γ} {c₁' c₂' : FConf τ} →
-           let c₁ = ⟨ Σ₁ , e ⟩
-               c₂ = ⟨ Σ₂ , e ⟩ in
+  tiniᴸ : ∀ {pc τ Γ Σ₁ Σ₂ μ₁ μ₂ e} {θ₁ θ₂ : Env Γ} {c₁' c₂' : FConf τ} →
+           let c₁ = ⟨ Σ₁ , μ₁ , e ⟩
+               c₂ = ⟨ Σ₂ , μ₂ , e ⟩ in
            c₁ ⇓⟨ θ₁ , pc ⟩ c₁' →
            c₂ ⇓⟨ θ₂ , pc ⟩ c₂' →
            Σ₁ ≈ˢ Σ₂ →
@@ -308,9 +308,10 @@ mutual
   -- Σ₂ ≈ˢ Σ₂'
   --
   -- using transitivity and symmetry of ≈ˢ
+  -- TODO: do the same for FS-Store
   tiniᴴ : ∀ {τ Γ₁ Γ₂ θ₁ θ₂ pc₁ pc₂} {c₁ : IConf Γ₁ τ} {c₂ : IConf Γ₂ τ} {c₁' c₂' : FConf τ} →
-           let ⟨ Σ₁ , _ ⟩ = c₁
-               ⟨ Σ₂ , _ ⟩ = c₂ in
+           let ⟨ Σ₁ , _ , _ ⟩ = c₁
+               ⟨ Σ₂ , _ , _ ⟩ = c₂ in
            Σ₁ ≈ˢ Σ₂ →
            c₁ ⇓⟨ θ₁ , pc₁ ⟩ c₁' →
            c₂ ⇓⟨ θ₂ , pc₂ ⟩ c₂' →

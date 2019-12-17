@@ -148,7 +148,6 @@ if_then_else_ c t e = case c (wken t (drop refl-⊆)) (wken e (drop refl-⊆))
 
 -- Generic store and flow-sensitive store
 open import Generic.Store.Base Ty Raw public
-open import Generic.Memory Ty Raw public
 open import Generic.FS-Store Ty Value public
 
 -- Generic configuration container.

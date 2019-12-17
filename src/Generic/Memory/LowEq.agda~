@@ -1,0 +1,9 @@
+open import Lattice
+open import Relation.Binary
+
+module Generic.Memory.LowEq
+  {Ty : Set}
+  {Value : Ty → Set}
+  {{𝑳 : Lattice}}
+  (_≈ⱽ_ :  ∀ {τ} → Value τ → Value τ → Set)
+  (A : Label) where

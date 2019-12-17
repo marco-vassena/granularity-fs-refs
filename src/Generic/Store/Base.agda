@@ -7,7 +7,7 @@ open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality
 import Level as L
 
-open import Generic.Memory Ty Value
+open import Generic.Memory Ty Value public
 
 -- A store is a mapping from labels to labeled memories.
 Store : Set
