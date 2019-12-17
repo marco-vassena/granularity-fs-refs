@@ -41,8 +41,8 @@ mutual
                 θ₁ ≈ᴱ θ₂ →
                 ⟨ e , θ₁ ⟩ᶜ ≈ᴿ ⟨ e , θ₂ ⟩ᶜ
     -- TODO: for flow-sensitive refs we need the bijection
-    Ref-Iᴸ : ∀ {ℓ τ} → (ℓ⊑A : ℓ ⊑ A) (n : ℕ) → Ref {τ = τ} {s = I} ℓ n ≈ᴿ Ref ℓ n
-    Ref-Iᴴ : ∀ {ℓ₁ ℓ₂ n₁ n₂ τ} → (ℓ₁⋤A : ℓ₁ ⋤ A) (ℓ₂⋤A : ℓ₂ ⋤ A) → Ref {τ = τ} {s = I} ℓ₁ n₁ ≈ᴿ Ref ℓ₂ n₂
+    Ref-Iᴸ : ∀ {ℓ τ} → (ℓ⊑A : ℓ ⊑ A) (n : ℕ) → Refᴵ {τ = τ} ℓ n ≈ᴿ Refᴵ ℓ n
+    Ref-Iᴴ : ∀ {ℓ₁ ℓ₂ n₁ n₂ τ} → (ℓ₁⋤A : ℓ₁ ⋤ A) (ℓ₂⋤A : ℓ₂ ⋤ A) → Refᴵ {τ = τ} ℓ₁ n₁ ≈ᴿ Refᴵ ℓ₂ n₂
     Id : ∀ {τ} {v₁ v₂ : Value τ} → v₁ ≈ⱽ v₂ → Id v₁ ≈ᴿ Id v₂
 
   -- Environments.
@@ -52,7 +52,7 @@ mutual
              v₁ ≈ⱽ v₂ → θ₁ ≈ᴱ θ₂ → (v₁ ∷ θ₁) ≈ᴱ (v₂ ∷ θ₂)
 
 -- Shorthand
-Ref-Iᴸ′ : ∀ {τ ℓ n₁ n₂} → ℓ ⊑ A → n₁ ≡ n₂ → Ref {τ = τ} ℓ n₁ ≈ᴿ Ref ℓ n₂
+Ref-Iᴸ′ : ∀ {τ ℓ n₁ n₂} → ℓ ⊑ A → n₁ ≡ n₂ → Refᴵ {τ = τ} ℓ n₁ ≈ᴿ Refᴵ ℓ n₂
 Ref-Iᴸ′ ℓ⊑A refl = Ref-Iᴸ ℓ⊑A _
 
 Trueᴸ : ∀ {ℓ} → ℓ ⊑ A → true ℓ ≈ᴿ true ℓ
@@ -111,10 +111,10 @@ mutual
   refl-≈ᴿ {r = inl r} = Inl refl-≈ⱽ
   refl-≈ᴿ {r = inr r} = Inr refl-≈ⱽ
   refl-≈ᴿ {r = ⟨ r , r₁ ⟩} = Pair refl-≈ⱽ refl-≈ⱽ
-  refl-≈ᴿ {Ref I _} {r = Ref ℓ n} with ℓ ⊑? A
+  refl-≈ᴿ {r = Refᴵ ℓ n} with ℓ ⊑? A
   ... | yes p = Ref-Iᴸ p n
   ... | no ¬p = Ref-Iᴴ ¬p ¬p
-  refl-≈ᴿ {Ref S _} {r = Ref ℓ n} = {!!} -- How does reflexivity work for flow-sensitive public references?
+  refl-≈ᴿ {r = Refˢ n} = {!!} -- Reflexivity creates the identity bijection?
   refl-≈ᴿ {r = ⌞ ℓ ⌟} = Lbl ℓ
   refl-≈ᴿ {r = Id v} = Id refl-≈ⱽ
 
