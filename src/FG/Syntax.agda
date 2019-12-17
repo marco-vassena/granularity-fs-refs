@@ -114,7 +114,7 @@ mutual
 
     Refᴵ : ∀ {τ} → Label → ℕ → Raw (Ref I τ)
 
-    Refˢ : ∀ {τ} → ℕ → Raw (Ref I τ)
+    Refˢ : ∀ {τ} → ℕ → Raw (Ref S τ)
 
     ⌞_⌟ : Label → Raw 𝓛
 
