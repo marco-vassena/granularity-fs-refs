@@ -45,3 +45,14 @@ _∷ᴿ_ : ∀ {ℓ τ} → Container ℓ → Value τ → Container ℓ
 ∥ _ ∷ C ∥ = suc ∥ C ∥
 
 infix 1 ∥_∥
+
+--------------------------------------------------------------------------------
+-- Some lemmas.
+
+open import Relation.Binary.PropositionalEquality
+
+-- TODO: haven't we proved this already somewhere?
+inj-∈ : ∀ {ℓ n τ} {C : Container ℓ} {v₁ v₂ : Value τ} →
+        n ↦ v₁ ∈ C → n ↦ v₂ ∈ C → v₁ ≡ v₂
+inj-∈ Here Here = refl
+inj-∈ (There x) (There y) = inj-∈ x y

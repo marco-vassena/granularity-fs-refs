@@ -65,13 +65,13 @@ module Props (𝑽 : ∀ {τ} → IsEquivalence (_≈ⱽ_ {τ})) where
   -- Store properties
 
   -- Updating the store with low-equivalent memories preserves low-equivalence
-  updateᴸ-≈ˢ : ∀ {ℓ Σ₁ Σ₂} {M₁ M₂ : Memory ℓ} → Σ₁ ≈ˢ Σ₂ → M₁ ≈ᴹ M₂ → (Σ₁ [ ℓ ↦ M₁ ]) ≈ˢ (Σ₂ [ ℓ ↦ M₂ ])
+  updateᴸ-≈ˢ : ∀ {ℓ Σ₁ Σ₂} {M₁ M₂ : Memory ℓ} → Σ₁ ≈ˢ Σ₂ → M₁ ≈ᴹ M₂ → (Σ₁ [ ℓ ↦ M₁ ]ˢ) ≈ˢ (Σ₂ [ ℓ ↦ M₂ ]ˢ)
   updateᴸ-≈ˢ {ℓ} Σ₁≈Σ₂ M₁≈M₂ ℓ' with ℓ ≟ ℓ'
   ... | yes refl = ⌞ M₁≈M₂ ⌟ᴹ
   ... | no ℓ≠ℓ' = Σ₁≈Σ₂ ℓ'
 
   -- Modifying a high memory preserves low-equivalence of the store
-  updateᴴ-≈ˢ : ∀ {ℓ} Σ (M : Memory ℓ) → ℓ ⋤ A → Σ ≈ˢ (Σ [ ℓ ↦ M ])
+  updateᴴ-≈ˢ : ∀ {ℓ} Σ (M : Memory ℓ) → ℓ ⋤ A → Σ ≈ˢ (Σ [ ℓ ↦ M ]ˢ)
   updateᴴ-≈ˢ {ℓ} Σ M ℓ⋤A ℓ' with ℓ' ⊑? A
   updateᴴ-≈ˢ {ℓ} Σ M ℓ⋤A ℓ' | yes ℓ'⊑A with ℓ ≟ ℓ'
   updateᴴ-≈ˢ {.ℓ} Σ M ℓ⋤A ℓ | yes ℓ⊑A | yes refl = ⊥-elim (ℓ⋤A ℓ⊑A)
