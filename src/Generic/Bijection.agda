@@ -27,24 +27,18 @@ IsB f g = ∀ {a b} → f a ≡ just b ⇔ g b ≡ just a
 
 -- A bijection is a pair of partial maps between two sets, where these
 -- maps are each other inverse.
---
---TODO: this could actually be stronger, but maybe is enough for now.
 record Bij (A B : Set) : Set where
   field  to : A ⇀ B
          back : B ⇀ A
-         bij : IsB to back  -- todo rename to isB for consistency?
--- ∀ {a b} → (to a ≡ just b) ⇔ (back b ≡ just a)
+         isB : IsB to back
 
 sym-isB : ∀ {A B : Set} {f : A ⇀ B} {g : B ⇀ A} →
             IsB f g → IsB g f
 sym-isB x = swap x
 
-
 symᴮ : ∀ {A B} → Bij A B → Bij B A
-symᴮ β = record { to = B.back ; back = B.to ; bij = sym-isB B.bij }
+symᴮ β = record { to = B.back ; back = B.to ; isB = sym-isB B.isB }
   where module B = Bij β
-
--- might have to add the proof about bijection here
 
 -- Homogeneous Bijection
 Bijᴴ : (A : Set) → Set
@@ -63,11 +57,11 @@ _∈_ : ∀ {A B} → A × B → Bij A B → Set
 ∅ : ∀ {A B} → Bij A B
 ∅ = record { to = λ _ → nothing ;
              back = λ _ → nothing ;
-             bij = (λ ()) , λ () }
+             isB = (λ ()) , λ () }
 
 -- Reverse bijection
 flip : ∀ {A B} → Bij A B → Bij B A
-flip β = record { to = back ; back = to ; bij = swap bij}
+flip β = record { to = back ; back = to ; isB = swap isB}
   where open Bij β
 
 flip↔ : ∀ {A B β} {a : A} {b : B} → a ↔ b ∈ β → b ↔ a ∈ (flip β)
@@ -117,8 +111,8 @@ IsB-∘ β₁ β₂ = IsB (λ x → B₁.to x ∣ B₂.to x) (λ x → B₁.back
 -- bijection.
 isB-∘ : ∀ {A} (β₁ β₂ : Bijᴴ A) → β₁ ▻ β₂ → IsB-∘ β₁ β₂
 isB-∘ {A} β₁ β₂ (to-▻ , back-▻)
-  = isB-∣ {A} {B₁.to} {B₁.back} {B₂.to} {B₂.back} B₁.bij B₂.bij to-▻ back-▻ ,
-    isB-∣ {_} {B₁.back} {B₁.to} {B₂.back} {B₂.to} B₁′.bij B₂′.bij back-▻ to-▻
+  = isB-∣ {A} {B₁.to} {B₁.back} {B₂.to} {B₂.back} B₁.isB B₂.isB to-▻ back-▻ ,
+    isB-∣ {_} {B₁.back} {B₁.to} {B₂.back} {B₂.to} B₁′.isB B₂′.isB back-▻ to-▻
   where module B₁ = Bij β₁
         module B₂ = Bij β₂
         module B₁′ = Bij (symᴮ β₁)
@@ -129,7 +123,7 @@ _∘_ : ∀ {A} → (β₁ β₂ : Bijᴴ A) {{β₁▻β₂ : β₁ ▻ β₂}}
 _∘_ {A} β₁ β₂ {{ to-▻ , back-▻ }} =
   record { to   = λ x → B₁.to x ∣ B₂.to x ;
            back = λ x → B₁.back x ∣ B₂.back x ;
-           bij = isB-∘ β₁ β₂ (to-▻ , back-▻) }
+           isB = isB-∘ β₁ β₂ (to-▻ , back-▻) }
   where module B₁ = Bij β₁
         module B₂ = Bij β₂
 
@@ -151,7 +145,7 @@ module Ops {A B : Set}
   _⋃_ : A × B → Bij A B → Bij A B
   (a , b) ⋃ β = record { to = to AB.[ a ↦ b ]ᴾ ;
                          back = back BA.[ b ↦ a ]ᴾ ;
-                         bij = {!!} }
+                         isB = {!!} }
     where open Bij β
 
 module AddressBij where
@@ -170,4 +164,4 @@ module AddressBij where
 
   -- Identity bijection
   ι : Bijᴬ
-  ι = record { to = just ; back = just ; bij = sym , sym}
+  ι = record { to = just ; back = just ; isB = sym , sym}
