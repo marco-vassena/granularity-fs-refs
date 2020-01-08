@@ -83,15 +83,13 @@ _▻_ : ∀ {A} → (β₁ β₂ : Bijᴴ A) → Set
 _▻_ {A} β₁ β₂ = B₁.to ▻ᴾ B₂.to × B₁.back ▻ᴾ B₂.back
   where module B₁ = Bij β₁
         module B₂ = Bij β₂
-        disjoint : (f g : A → Maybe A) → Set
-        disjoint f g = ∀ a → Is-just (f a) → Is-nothing (g a)
 
 ⊥-is-nothing-just : ∀ {A : Set} {x : A} → ¬ Is-nothing (just x)
 ⊥-is-nothing-just (just ())
 
-foo : ∀ {A : Set} {y : A} (x : Maybe A) → (Is-just x → Is-nothing (just y)) → x ≡ nothing
-foo {y = y} (just x) f = ⊥-elim (⊥-is-nothing-just (f (just tt)))
-foo nothing f = refl
+is-just-nothing : ∀ {A : Set} {y : A} (x : Maybe A) → (Is-just x → Is-nothing (just y)) → x ≡ nothing
+is-just-nothing {y = y} (just x) f = ⊥-elim (⊥-is-nothing-just (f (just tt)))
+is-just-nothing nothing f = refl
 
 -- Partial maps remain related under composition
 IsB-∣ : ∀ {A : Set} (f₁ g₁ f₂ g₂ : A ⇀ A) → Set
@@ -103,11 +101,10 @@ isB-∣ : ∀ {A : Set} {f₁ g₁ f₂ g₂ : A ⇀ A} →
           IsB-∣ f₁ g₁ f₂ g₂
 isB-∣ {_} {f₁} {g₁} {f₂} {g₂} isB₁ isB₂ ▻₁ ▻₂ {a} {b} eq
   with f₁ a | f₂ a | g₁ b | g₂ b | isB₁ {a} {b} | isB₂ {a} {b} | ▻₁ a | ▻₂ b
-... | just x | just x₁ | mb₁ | mb₂ | peq₁ | peq₂ | p₁ | p₂ = ⊥-elim (⊥-is-nothing-just (p₁ (just _)))
-... | just x | nothing | mb₁ | mb₂ | peq₁ | peq₂ | p₁ | p₂
+... | just x | ma₂ | mb₁ | mb₂ | peq₁ | peq₂ | p₁ | p₂
   rewrite proj₁ peq₁ eq = refl
 ... | nothing | ma₂ | mb₁ | mb₂ | peq₁ | peq₂ | p₁ | p₂
-  rewrite proj₁ peq₂ eq | foo mb₁ p₂ = refl
+  rewrite proj₁ peq₂ eq | is-just-nothing mb₁ p₂ = refl
 
 -- Property that denotes that the composition of two bijections is a
 -- bijection.
