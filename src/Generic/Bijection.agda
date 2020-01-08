@@ -1,8 +1,12 @@
 {-# OPTIONS --allow-unsolved-metas #-}
 
+-- TODO: split generic bij from homogeneous in two modules
+-- Generic bij requires decidability (to create singleton bijs)
+
+
 module Generic.Bijection where
 
-open import Generic.PMap
+open import Generic.PMap hiding (∅)
 open import Data.Empty
 open import Data.Unit hiding (_≟_)
 open import Data.Product as P
@@ -59,6 +63,10 @@ _∈_ : ∀ {A B} → A × B → Bij A B → Set
              back = λ _ → nothing ;
              isB = (λ ()) , λ () }
 
+-- Singleton bijection
+⟨_↔_⟩ : ∀ {A B} → A → B → Bij A B
+⟨ a ↔ b ⟩ = record { to = {!_[_↦_]ᴾ!} ; back = {!!} ; isB = {!!} }
+
 -- Reverse bijection
 flip : ∀ {A B} → Bij A B → Bij B A
 flip β = record { to = back ; back = to ; isB = swap isB}
@@ -107,6 +115,16 @@ isB-∘ {A} β₁ β₂ (to-▻ , back-▻)
         module B₁′ = Bij (symᴮ β₁)
         module B₂′ = Bij (symᴮ β₂)
 
+_∘′_ : ∀ {A B} → (β₁ β₂ : Bij A B) → Bij A  B
+β₁ ∘′ β₂ = record { to = λ x → B₁.to x ∣ B₂.to x ;
+                    back = λ x → B₁.back x ∣ B₂.back x ;
+                    isB = {!!} }
+  where module B₁ = Bij β₁
+        module B₂ = Bij β₂
+
+
+-- TODO we can compose non-homogeneous bijection right?
+-- Are bijections defined over two or one type?
 -- Composition of homogeneous bijections
 _∘_ : ∀ {A} → (β₁ β₂ : Bijᴴ A) {{β₁▻β₂ : β₁ ▻ β₂}} → Bijᴴ A
 _∘_ {A} β₁ β₂ {{ to-▻ , back-▻ }} =
@@ -116,6 +134,10 @@ _∘_ {A} β₁ β₂ {{ to-▻ , back-▻ }} =
   where module B₁ = Bij β₁
         module B₂ = Bij β₂
 
+-- Adding one entry to the bijection is a special case of composition.
+-- TODO: better symbol?
+_#_ : ∀ {A} → Bijᴴ A → A × A → Bijᴴ A
+β # x = {!β ∘ ?!}
 
 
 -- TODO: remove
@@ -152,7 +174,7 @@ module AddressBij where
     _≟ᴺ_ : (n₁ n₂ : ℕ) → Dec (n₁ ≡ n₂)
     _≟ᴺ_ = _≟_
 
-  -- TODO: remove
+  -- TODO remove
   -- open Ops {ℕ} {ℕ} {{_≟ᴺ_}} public
 
   -- Identity bijection

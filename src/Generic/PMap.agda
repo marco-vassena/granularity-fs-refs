@@ -14,6 +14,11 @@ A ⇀ B = A → Maybe B
 
 infix 1 _⇀_
 
+-- Empty Map
+
+∅ : ∀ {A B} → A ⇀ B
+∅ _ = nothing
+
 -- Disjoint partial maps
 _▻ᴾ_ : ∀ {A B} → A ⇀ B → A ⇀ B → Set
 f ▻ᴾ g = ∀ a → Is-just (f a) → Is-nothing (g a)
@@ -32,7 +37,7 @@ a ↦ b ∈ᴾ p = p a ≡ just b
 
 infix 1 _↦_∈ᴾ_
 
--- TODO: remove
+-- TODO: make decidability top level? maybe just open this module
 module PMapUtil (A B : Set) {{ _≟ᴬ_ : Decidable (_≡_ {A = A}) }}  where
 
   -- Update partial map
@@ -40,3 +45,7 @@ module PMapUtil (A B : Set) {{ _≟ᴬ_ : Decidable (_≡_ {A = A}) }}  where
   _[_↦_]ᴾ f a b a' with a ≟ᴬ a'
   _[_↦_]ᴾ f a b .a | yes refl = just b
   _[_↦_]ᴾ f a b a' | no ¬p = f a
+
+  -- Singleton pmap
+  _↦_ : A → B →  A ⇀ B
+  a ↦ b = ∅ [ a ↦ b ]ᴾ
