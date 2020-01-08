@@ -32,12 +32,12 @@ record Bij (A B : Set) : Set where
          back : B ⇀ A
          isB : IsB to back
 
-sym-isB : ∀ {A B : Set} {f : A ⇀ B} {g : B ⇀ A} →
+sym-IsB : ∀ {A B : Set} {f : A ⇀ B} {g : B ⇀ A} →
             IsB f g → IsB g f
-sym-isB x = swap x
+sym-IsB x = swap x
 
 symᴮ : ∀ {A B} → Bij A B → Bij B A
-symᴮ β = record { to = B.back ; back = B.to ; isB = sym-isB B.isB }
+symᴮ β = record { to = B.back ; back = B.to ; isB = sym-IsB B.isB }
   where module B = Bij β
 
 -- Homogeneous Bijection
@@ -67,23 +67,12 @@ flip β = record { to = back ; back = to ; isB = swap isB}
 flip↔ : ∀ {A B β} {a : A} {b : B} → a ↔ b ∈ β → b ↔ a ∈ (flip β)
 flip↔ ( eq₁ , eq₂ ) = eq₂ , eq₁
 
--- Disjoint partial maps
-_▻ᴾ_ : ∀ {A B} → A ⇀ B → A ⇀ B → Set
-f ▻ᴾ g = ∀ a → Is-just (f a) → Is-nothing (g a)
-
 -- β₁ ▻ β₂ denotes that β₂ is disjoint from β₁, i.e., β₂ doesn't
 -- relate elements already related in β₁.
 _▻_ : ∀ {A} → (β₁ β₂ : Bijᴴ A) → Set
 _▻_ {A} β₁ β₂ = B₁.to ▻ᴾ B₂.to × B₁.back ▻ᴾ B₂.back
   where module B₁ = Bij β₁
         module B₂ = Bij β₂
-
-⊥-is-nothing-just : ∀ {A : Set} {x : A} → ¬ Is-nothing (just x)
-⊥-is-nothing-just (just ())
-
-is-just-nothing : ∀ {A : Set} {y : A} (x : Maybe A) → (Is-just x → Is-nothing (just y)) → x ≡ nothing
-is-just-nothing {y = y} (just x) f = ⊥-elim (⊥-is-nothing-just (f (just tt)))
-is-just-nothing nothing f = refl
 
 -- Partial maps remain related under composition
 IsB-∣ : ∀ {A : Set} (f₁ g₁ f₂ g₂ : A ⇀ A) → Set
@@ -127,26 +116,29 @@ _∘_ {A} β₁ β₂ {{ to-▻ , back-▻ }} =
   where module B₁ = Bij β₁
         module B₂ = Bij β₂
 
-module Ops {A B : Set}
-  {{ _≟ᴬ_ : Decidable (_≡_ {A = A}) }}
-  {{ _≟ᴮ_ : Decidable (_≡_ {A = B}) }} where
 
-  module AB = PMapUtil A B {{_≟ᴬ_}}
-  module BA = PMapUtil B A {{_≟ᴮ_}}
 
-  -- TODO: it doesn't seem this op for now. We will need it to add
-  -- single entries.
+-- TODO: remove
+-- module Ops {A B : Set}
+--   {{ _≟ᴬ_ : Decidable (_≡_ {A = A}) }}
+--   {{ _≟ᴮ_ : Decidable (_≡_ {A = B}) }} where
 
-  -- Actually, we can define this in terms of Bijection composition (see above)
+--   module AB = PMapUtil A B {{_≟ᴬ_}}
+--   module BA = PMapUtil B A {{_≟ᴮ_}}
 
-  -- Add a new mapping to the bijection.
-  -- TODO: should we assume/require that they are not in the mapping already?
-  -- I won't add it until it comes out in the proof
-  _⋃_ : A × B → Bij A B → Bij A B
-  (a , b) ⋃ β = record { to = to AB.[ a ↦ b ]ᴾ ;
-                         back = back BA.[ b ↦ a ]ᴾ ;
-                         isB = {!!} }
-    where open Bij β
+--   -- TODO: it doesn't seem this op for now. We will need it to add
+--   -- single entries.
+
+--   -- Actually, we can define this in terms of Bijection composition (see above)
+
+--   -- Add a new mapping to the bijection.
+--   -- TODO: should we assume/require that they are not in the mapping already?
+--   -- I won't add it until it comes out in the proof
+--   _⋃_ : A × B → Bij A B → Bij A B
+--   (a , b) ⋃ β = record { to = to AB.[ a ↦ b ]ᴾ ;
+--                          back = back BA.[ b ↦ a ]ᴾ ;
+--                          isB = {!!} }
+--     where open Bij β
 
 module AddressBij where
 
@@ -160,7 +152,8 @@ module AddressBij where
     _≟ᴺ_ : (n₁ n₂ : ℕ) → Dec (n₁ ≡ n₂)
     _≟ᴺ_ = _≟_
 
-  open Ops {ℕ} {ℕ} {{_≟ᴺ_}} public
+  -- TODO: remove
+  -- open Ops {ℕ} {ℕ} {{_≟ᴺ_}} public
 
   -- Identity bijection
   ι : Bijᴬ
