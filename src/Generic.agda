@@ -1,6 +1,6 @@
 -- The following modules define generic container data-types,
--- interfaces and proofs reused in both FG and CG calculi.
 
+-- interfaces and proofs reused in both FG and CG calculi.
 module Generic where
 
 -- Typing context and De Brujin indexes.

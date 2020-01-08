@@ -10,12 +10,20 @@ open import Data.Maybe
 open import Relation.Nullary
 open import Relation.Binary
 open import Relation.Binary.PropositionalEquality
+open import Category.Monad
+open import Level
+open RawMonadPlus {zero} {M = Maybe} monadPlus hiding (∅)
 
 -- If and only if
 _⇔_ : ∀ (A B : Set) → Set
 A ⇔ B = (A → B) × (B → A)
 
 infixl 1 _⇔_
+
+-- Bijection property
+IsB : ∀ {A B} (f : A ⇀ B) (g : B ⇀ A) → Set
+IsB f g = ∀ {a b} → f a ≡ just b ⇔ g b ≡ just a
+
 
 -- A bijection is a pair of partial maps between two sets, where these
 -- maps are each other inverse.
@@ -24,7 +32,17 @@ infixl 1 _⇔_
 record Bij (A B : Set) : Set where
   field  to : A ⇀ B
          back : B ⇀ A
-         bij : ∀ {a b} → (to a ≡ just b) ⇔ (back b ≡ just a)
+         bij : IsB to back  -- todo rename to isB for consistency?
+-- ∀ {a b} → (to a ≡ just b) ⇔ (back b ≡ just a)
+
+sym-isB : ∀ {A B : Set} {f : A ⇀ B} {g : B ⇀ A} →
+            IsB f g → IsB g f
+sym-isB x = swap x
+
+
+symᴮ : ∀ {A B} → Bij A B → Bij B A
+symᴮ β = record { to = B.back ; back = B.to ; bij = sym-isB B.bij }
+  where module B = Bij β
 
 -- might have to add the proof about bijection here
 
@@ -55,45 +73,68 @@ flip β = record { to = back ; back = to ; bij = swap bij}
 flip↔ : ∀ {A B β} {a : A} {b : B} → a ↔ b ∈ β → b ↔ a ∈ (flip β)
 flip↔ ( eq₁ , eq₂ ) = eq₂ , eq₁
 
+-- Disjoint partial maps
+_▻ᴾ_ : ∀ {A B} → A ⇀ B → A ⇀ B → Set
+f ▻ᴾ g = ∀ a → Is-just (f a) → Is-nothing (g a)
+
 -- β₁ ▻ β₂ denotes that β₂ is disjoint from β₁, i.e., β₂ doesn't
 -- relate elements already related in β₁.
 _▻_ : ∀ {A} → (β₁ β₂ : Bijᴴ A) → Set
-_▻_ {A} β₁ β₂ = disjoint B₁.to B₂.to × disjoint B₁.back B₂.back
+_▻_ {A} β₁ β₂ = B₁.to ▻ᴾ B₂.to × B₁.back ▻ᴾ B₂.back
   where module B₁ = Bij β₁
         module B₂ = Bij β₂
         disjoint : (f g : A → Maybe A) → Set
         disjoint f g = ∀ a → Is-just (f a) → Is-nothing (g a)
 
-⊥-just-is-nothing : ∀ {A : Set} {x : A} → ¬ Is-nothing (just x)
-⊥-just-is-nothing (just ())
+⊥-is-nothing-just : ∀ {A : Set} {x : A} → ¬ Is-nothing (just x)
+⊥-is-nothing-just (just ())
 
 foo : ∀ {A : Set} {y : A} (x : Maybe A) → (Is-just x → Is-nothing (just y)) → x ≡ nothing
-foo {y = y} (just x) f = ⊥-elim (⊥-just-is-nothing (f (just tt)))
+foo {y = y} (just x) f = ⊥-elim (⊥-is-nothing-just (f (just tt)))
 foo nothing f = refl
+
+-- Partial maps remain related under composition
+IsB-∣ : ∀ {A : Set} (f₁ g₁ f₂ g₂ : A ⇀ A) → Set
+IsB-∣ f₁ g₁ f₂ g₂ = ∀ {a b} → (f₁ a ∣ f₂ a) ≡ just b → (g₁ b ∣ g₂ b) ≡ just a
+
+isB-∣ : ∀ {A : Set} {f₁ g₁ f₂ g₂ : A ⇀ A} →
+          IsB f₁ g₁ → IsB f₂ g₂ →
+          f₁ ▻ᴾ f₂ → g₁ ▻ᴾ g₂ →
+          IsB-∣ f₁ g₁ f₂ g₂
+isB-∣ {_} {f₁} {g₁} {f₂} {g₂} isB₁ isB₂ ▻₁ ▻₂ {a} {b} eq
+  with f₁ a | f₂ a | g₁ b | g₂ b | isB₁ {a} {b} | isB₂ {a} {b} | ▻₁ a | ▻₂ b
+... | just x | just x₁ | mb₁ | mb₂ | peq₁ | peq₂ | p₁ | p₂ = ⊥-elim (⊥-is-nothing-just (p₁ (just _)))
+... | just x | nothing | mb₁ | mb₂ | peq₁ | peq₂ | p₁ | p₂
+  rewrite proj₁ peq₁ eq = refl
+... | nothing | ma₂ | mb₁ | mb₂ | peq₁ | peq₂ | p₁ | p₂
+  rewrite proj₁ peq₂ eq | foo mb₁ p₂ = refl
+
+-- Property that denotes that the composition of two bijections is a
+-- bijection.
+IsB-∘ : ∀ {A} (β₁ β₂ : Bijᴴ A) → Set
+IsB-∘ β₁ β₂ = IsB (λ x → B₁.to x ∣ B₂.to x) (λ x → B₁.back x ∣ B₂.back x)
+  where module B₁ = Bij β₁
+        module B₂ = Bij β₂
+
+-- If two bijections are disjoint, then their composition is a
+-- bijection.
+isB-∘ : ∀ {A} (β₁ β₂ : Bijᴴ A) → β₁ ▻ β₂ → IsB-∘ β₁ β₂
+isB-∘ {A} β₁ β₂ (to-▻ , back-▻)
+  = isB-∣ {A} {B₁.to} {B₁.back} {B₂.to} {B₂.back} B₁.bij B₂.bij to-▻ back-▻ ,
+    isB-∣ {_} {B₁.back} {B₁.to} {B₂.back} {B₂.to} B₁′.bij B₂′.bij back-▻ to-▻
+  where module B₁ = Bij β₁
+        module B₂ = Bij β₂
+        module B₁′ = Bij (symᴮ β₁)
+        module B₂′ = Bij (symᴮ β₂)
 
 -- Composition of homogeneous bijections
 _∘_ : ∀ {A} → (β₁ β₂ : Bijᴴ A) {{β₁▻β₂ : β₁ ▻ β₂}} → Bijᴴ A
 _∘_ {A} β₁ β₂ {{ to-▻ , back-▻ }} =
   record { to   = λ x → B₁.to x ∣ B₂.to x ;
            back = λ x → B₁.back x ∣ B₂.back x ;
-           bij = p₁ , {!!} }
+           bij = isB-∘ β₁ β₂ (to-▻ , back-▻) }
   where module B₁ = Bij β₁
         module B₂ = Bij β₂
-        open import Category.Monad
-        open RawMonadPlus monadPlus
-        p₁ : ∀ {a b} → (B₁.to a ∣ B₂.to a) ≡ just b → (B₁.back b ∣ B₂.back b) ≡ just a
-        p₁ {a} {b} eq₁
-          with B₁.to a | B₂.to a | B₁.back b | B₂.back b | B₁.bij {a} {b} | B₂.bij {a} {b} | to-▻ a | back-▻ b
-        p₁ {a} {b} eq₁ | just a₁ | just a₂ | _ | _ | _ | _ | f | g = ⊥-elim (⊥-just-is-nothing (f (just _)))
-        p₁ {a} {b} eq₁ | just a₁ | nothing | mb₁ | mb₂ | peq₁ | peq₂ | f | g
-          rewrite proj₁ peq₁ eq₁ = refl
-        p₁ {a} {b} eq₁ | nothing | ma₂ | mb₁ | mb₂ | peq₁ | peq₂ | f | g
-          rewrite proj₁ peq₂ eq₁ | foo mb₁ g = refl
-
--- with
--- B₁.back b | proj₁ (B₁.bij {a} {b})
---         p₁ {a} {b} x | just a' | y = {!proj₂ (B₁.bij {a} {b})!}
---         p₁ {a} {b} x | nothing | y = {!proj₁ (B₁.bij {a} {b})!}
 
 module Ops {A B : Set}
   {{ _≟ᴬ_ : Decidable (_≡_ {A = A}) }}
