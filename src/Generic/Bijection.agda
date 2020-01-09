@@ -6,7 +6,7 @@
 
 module Generic.Bijection where
 
-open import Generic.PMap hiding (∅)
+open import Generic.PMap renaming (∅ to ∅ᴾ ; _#_ to _#ᴾ_ ; _∈_ to _∈ᴾ_)
 open import Data.Empty
 open import Data.Unit hiding (_≟_)
 open import Data.Product as P
@@ -18,16 +18,13 @@ open import Category.Monad
 open import Level
 open RawMonadPlus {zero} {M = Maybe} monadPlus hiding (∅)
 
--- If and only if
-_⇔_ : ∀ (A B : Set) → Set
-A ⇔ B = (A → B) × (B → A)
-
-infixl 1 _⇔_
-
+-- TODO: rename isB to ↔
 -- Bijection property
 IsB : ∀ {A B} (f : A ⇀ B) (g : B ⇀ A) → Set
-IsB f g = ∀ {a b} → f a ≡ just b ⇔ g b ≡ just a
+IsB f g = ∀ {a b} → (a , b) ∈ᴾ f ⇔ (b , a) ∈ᴾ g
 
+_↔_ : ∀ {A B} (f : A ⇀ B) (g : B ⇀ A) → Set
+f ↔ g = IsB f g
 
 -- A bijection is a pair of partial maps between two sets, where these
 -- maps are each other inverse.
@@ -50,22 +47,19 @@ Bijᴴ A = Bij A A
 
 -- A pair of values from A and B are in the bijection iff they are
 -- mutually related under their respective mapping.
+-- TODO: could be pair here to
 _↔_∈_ : ∀ {A B} → A → B → Bij A B → Set
-a ↔ b ∈ β =  (a ↦ b ∈ᴾ to) × (b ↦ a ∈ᴾ back)
+a ↔ b ∈ β =  (a , b) ∈ᴾ to × (b , a) ∈ᴾ back
   where open Bij β
 
-_∈_ : ∀ {A B} → A × B → Bij A B → Set
-(a , b) ∈ β = a ↔ b ∈ β
+-- _∈_ : ∀ {A B} → A × B → Bij A B → Set
+-- (a , b) ∈ β = a ↔ b ∈ β
 
 -- Empty bijection
 ∅ : ∀ {A B} → Bij A B
 ∅ = record { to = λ _ → nothing ;
              back = λ _ → nothing ;
              isB = (λ ()) , λ () }
-
--- Singleton bijection
-⟨_↔_⟩ : ∀ {A B} → A → B → Bij A B
-⟨ a ↔ b ⟩ = record { to = {!_[_↦_]ᴾ!} ; back = {!!} ; isB = {!!} }
 
 -- Reverse bijection
 flip : ∀ {A B} → Bij A B → Bij B A
@@ -75,13 +69,15 @@ flip β = record { to = back ; back = to ; isB = swap isB}
 flip↔ : ∀ {A B β} {a : A} {b : B} → a ↔ b ∈ β → b ↔ a ∈ (flip β)
 flip↔ ( eq₁ , eq₂ ) = eq₂ , eq₁
 
+-- Rename to # (symmetric)
 -- β₁ ▻ β₂ denotes that β₂ is disjoint from β₁, i.e., β₂ doesn't
 -- relate elements already related in β₁.
-_▻_ : ∀ {A} → (β₁ β₂ : Bijᴴ A) → Set
+_▻_ : ∀ {A B} → (β₁ β₂ : Bij A B) → Set
 _▻_ {A} β₁ β₂ = B₁.to ▻ᴾ B₂.to × B₁.back ▻ᴾ B₂.back
   where module B₁ = Bij β₁
         module B₂ = Bij β₂
 
+-- TODO: use ↦_∈
 -- Partial maps remain related under composition
 IsB-∣ : ∀ {A : Set} (f₁ g₁ f₂ g₂ : A ⇀ A) → Set
 IsB-∣ f₁ g₁ f₂ g₂ = ∀ {a b} → (f₁ a ∣ f₂ a) ≡ just b → (g₁ b ∣ g₂ b) ≡ just a
@@ -115,7 +111,7 @@ isB-∘ {A} β₁ β₂ (to-▻ , back-▻)
         module B₁′ = Bij (symᴮ β₁)
         module B₂′ = Bij (symᴮ β₂)
 
-_∘′_ : ∀ {A B} → (β₁ β₂ : Bij A B) → Bij A  B
+_∘′_ : ∀ {A B} → (β₁ β₂ : Bij A B) {{β₁▻β₂ : β₁ ▻ β₂}} → Bij A  B
 β₁ ∘′ β₂ = record { to = λ x → B₁.to x ∣ B₂.to x ;
                     back = λ x → B₁.back x ∣ B₂.back x ;
                     isB = {!!} }
@@ -123,8 +119,8 @@ _∘′_ : ∀ {A B} → (β₁ β₂ : Bij A B) → Bij A  B
         module B₂ = Bij β₂
 
 
--- TODO we can compose non-homogeneous bijection right?
--- Are bijections defined over two or one type?
+-- TODO we can compose non-homogeneous bijection right? yes, see above
+-- Are bijections defined over two or one type? We can have the more general thing with 2 types.
 -- Composition of homogeneous bijections
 _∘_ : ∀ {A} → (β₁ β₂ : Bijᴴ A) {{β₁▻β₂ : β₁ ▻ β₂}} → Bijᴴ A
 _∘_ {A} β₁ β₂ {{ to-▻ , back-▻ }} =
@@ -135,32 +131,45 @@ _∘_ {A} β₁ β₂ {{ to-▻ , back-▻ }} =
         module B₂ = Bij β₂
 
 -- Adding one entry to the bijection is a special case of composition.
--- TODO: better symbol?
+-- TODO: better symbol? we use # for disjoint, let's use ▻ instead
+-- (this operation is *not* symmetric).
 _#_ : ∀ {A} → Bijᴴ A → A × A → Bijᴴ A
 β # x = {!β ∘ ?!}
 
 
--- TODO: remove
--- module Ops {A B : Set}
---   {{ _≟ᴬ_ : Decidable (_≡_ {A = A}) }}
---   {{ _≟ᴮ_ : Decidable (_≡_ {A = B}) }} where
+module Ops {A B : Set}
+  {{ _≟ᴬ_ : Decidable (_≡_ {A = A}) }}
+  {{ _≟ᴮ_ : Decidable (_≡_ {A = B}) }} where
 
---   module AB = PMapUtil A B {{_≟ᴬ_}}
---   module BA = PMapUtil B A {{_≟ᴮ_}}
+  instance _ = _≟ᴬ_
+  instance _ = _≟ᴮ_
 
---   -- TODO: it doesn't seem this op for now. We will need it to add
---   -- single entries.
+  module A = PMapUtil {A} {B} {{_≟ᴬ_}}
+  module B = PMapUtil {B} {A} {{_≟ᴮ_}}
 
---   -- Actually, we can define this in terms of Bijection composition (see above)
+  aux : ∀ {A B} {{_≟ᴬ_ : DecEq A}}  {{_≟ᴮ_ : DecEq B}} a b {a' b'} →
+           let f = a -⟨ _≟ᴬ_ ⟩→ b
+               g = b -⟨ _≟ᴮ_ ⟩→ a in (a' , b') ∈ᴾ f → (b' , a') ∈ᴾ g
+  aux {{_≟ᴬ_}} {{_≟ᴮ_}} a b {a'} {b'} x with a ≟ᴬ a' | b ≟ᴮ b'
+  aux {{_≟ᴬ_ = _≟ᴬ_}} {{_≟ᴮ_}} a b {.a} {.b} x | yes refl | yes refl = refl
+  aux {{_≟ᴬ_ = _≟ᴬ_}} {{_≟ᴮ_}} a b {.a} {.b} refl | yes refl | no ¬p = ⊥-elim (¬p refl)
+  aux {{_≟ᴬ_ = _≟ᴬ_}} {{_≟ᴮ_}} a b {a'} {b'} () | no ¬p | c
 
---   -- Add a new mapping to the bijection.
---   -- TODO: should we assume/require that they are not in the mapping already?
---   -- I won't add it until it comes out in the proof
---   _⋃_ : A × B → Bij A B → Bij A B
---   (a , b) ⋃ β = record { to = to AB.[ a ↦ b ]ᴾ ;
---                          back = back BA.[ b ↦ a ]ᴾ ;
---                          isB = {!!} }
---     where open Bij β
+  isB↔ : ∀ (a : A) (b : B) → IsB (a ↦ b) (b ↦ a)
+  isB↔ a b {a'} {b'} = aux a b , aux b a
+
+  -- Singleton bijection
+  ⟨_↔_⟩ : A → B → Bij A B
+  ⟨ a ↔ b ⟩ = record { to = a ↦ b ; back = b ↦ a ; isB = isB↔ a b }
+
+  -- Add a single pair to a bijection
+  _▻′_ : (β : Bij A B) (x : A × B) →
+         let (a , b) = x in
+           {{∉ᴬ : a ∉ Bij.to β}}
+           {{∉ᴮ : b ∉ Bij.back β}} → Bij A B
+  _▻′_ β (a , b) {{ ∉ᴬ }} {{ ∉ᴮ }} = β ∘′ ⟨ a ↔ b ⟩
+    where instance _ : β ▻ ⟨ a ↔ b ⟩
+                   _ = ∉-# (Bij.to β) ∉ᴬ , ∉-# (Bij.back β) ∉ᴮ
 
 module AddressBij where
 
