@@ -24,11 +24,10 @@ infix 1 _⇀_
 ∅ : ∀ {A B} → A ⇀ B
 ∅ _ = nothing
 
--- Disjoint partial maps
--- TODO: rename to # because it is symmetric
-_▻ᴾ_ : ∀ {A B} (f g : A ⇀ B) → Set
-f ▻ᴾ g = ∀ a → Is-just (f a) → Is-nothing (g a)
-
+-- Disjoint partial maps.  Maps f and g are disjoint, written f # g iff
+-- values that are defined in f are not defined in g and viceversa.
+-- Notice that only an implication in one direction is needed
+-- (later we show that _#_ is symmetric).
 _#_ : ∀ {A B} (f g : A ⇀ B) → Set
 f # g = ∀ a → Is-just (f a) → Is-nothing (g a)
 
@@ -42,6 +41,7 @@ is-just-nothing : ∀ {A : Set} {y : A} (x : Maybe A) → (Is-just x → Is-noth
 is-just-nothing {y = y} (just x) f = ⊥-elim (⊥-is-nothing-just (f (just tt)))
 is-just-nothing nothing f = refl
 
+-- Disjointness is symmetric.
 sym-# : ∀ {A B} {f g : A ⇀ B} → f # g → g # f
 sym-# {f = f} {g} p a with f a | g a | p a
 sym-# {f = f} {g} p a | just x | just x₁ | f#g = ⊥-elim (⊥-is-nothing-just (f#g (just tt)))
@@ -54,15 +54,17 @@ _∈_ : ∀ {A B} → A × B → A ⇀ B → Set
 
 infixr 4 _∈_
 
+-- Proof that a is undefined in the nap
 _∉_ : ∀ {A B} → A → A ⇀ B → Set
 a ∉ p = Is-nothing (p a)
+
+infixr 4 _∉_
 
 -- Shorthand
 DecEq : (A : Set) → Set
 DecEq A = Decidable (_≡_ {A = A})
 
--- TODO: make decidability top level? maybe just open this module
-module PMapUtil {A B : Set} {{ _≟ᴬ_ : DecEq A }}  where
+module Util {A B : Set} {{ _≟ᴬ_ : DecEq A }}  where
 
   -- Update partial map
   _[_↦_] : A ⇀ B → A → B → A ⇀ B
@@ -94,9 +96,34 @@ module PMapUtil {A B : Set} {{ _≟ᴬ_ : DecEq A }}  where
           aux eq (just px) y | .(just _) | b' = px
           aux () nothing (just px) | .nothing | .(just _)
 
-open PMapUtil public
+open Util public
 
 -- Syntactic sugar when the DecEq instance is not found automatically
 _-⟨_⟩→_ : ∀ {A B : Set} →  A → DecEq A → B → A ⇀ B
 _-⟨_⟩→_ {A} {B} a _≟_  b = a P.↦ b
-  where module P = PMapUtil {A} {B} {{_≟_}}
+  where module P = Util {A} {B} {{_≟_}}
+
+-------------------------------------------------------------------------------
+open import Level
+open import Category.Monad
+open RawMonadPlus {zero} {M = Maybe} monadPlus hiding (∅)
+
+-- Pointwise _∣_ for readability
+_∣′_ : ∀ {A B} → A ⇀ B → A ⇀ B → A ⇀ B
+f ∣′ g = λ a → f a ∣ g a
+
+-- Partial Inverse
+Inverse : ∀ {A B} (f : A ⇀ B) (g : B ⇀ A) → Set
+Inverse f g = ∀ {a b} → (a , b) ∈ f → (b , a) ∈ g
+
+-- Disjoint invert partial maps compose and remain inverse.
+inverse-compose  : ∀ {A B : Set} {f₁ f₂ : A ⇀ B} {g₁ g₂ : B ⇀ A} →
+          Inverse f₁ g₁ → Inverse f₂ g₂ →
+          f₁ # f₂ → g₁ # g₂ →
+          Inverse (f₁ ∣′ f₂) (g₁ ∣′ g₂)
+inverse-compose {_} {_} {f₁} {f₂} {g₁} {g₂} inv₁ inv₂ #₁ #₂ {a} {b} eq
+  with f₁ a | f₂ a | g₁ b | g₂ b | inv₁ {a} {b} | inv₂ {a} {b} | #₁ a | #₂ b
+... | just x | ma₂ | mb₁ | mb₂ | eq₁ | eq₂ | p₁ | p₂
+  rewrite eq₁ eq = refl
+... | nothing | ma₂ | mb₁ | mb₂ | eq₁ | eq₂ | p₁ | p₂
+  rewrite eq₂ eq | is-just-nothing mb₁ p₂ = refl
