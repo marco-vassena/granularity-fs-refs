@@ -1,8 +1,12 @@
+-- {-# OPTIONS --allow-unsolved-metas #-}
+
 module Generic.Bijection where
 
 open import Generic.PMap renaming (∅ to ∅ᴾ ; _#_ to _#ᴾ_ ; _∈_ to _∈ᴾ_)
+open import Generic.PMap using (_⇔_) public
 open import Data.Empty
 open import Data.Unit hiding (_≟_)
+open import Data.Sum
 open import Data.Product as P hiding (swap)
 open import Data.Maybe as MB
 open import Relation.Nullary
@@ -15,6 +19,10 @@ open RawMonadPlus {zero} {M = Maybe} monadPlus hiding (∅)
 -- The bijection property
 _↔_ : ∀ {A B} (f : A ⇀ B) (g : B ⇀ A) → Set
 f ↔ g = ∀ {a b} → (a , b) ∈ᴾ f ⇔ (b , a) ∈ᴾ g
+
+-- I don't think that we need it in both directions!  The bijection
+-- property should give us that there is only one pre-image for each
+-- image.
 
 id  : ∀ {A} → just {A = A} ↔ just
 id = E.sym , E.sym
@@ -62,6 +70,9 @@ a ↔ b ∈ β =  (a , b) ∈ᴾ to × (b , a) ∈ᴾ back
 flip : ∀ {A B} → Bij A B → Bij B A
 flip β = record { to = back ; back = to ; isB = sym isB}
   where open Bij β
+
+flip↔ : ∀ {A B} {β : Bij A B} {a b} → a ↔ b ∈ β → b ↔ a ∈ (flip β)
+flip↔ = P.swap
 
 -- Disjoint bijections.
 -- β₁ # β₂ denotes that β₂ is disjoint from β₁, i.e., the
@@ -126,7 +137,7 @@ module Ops {A B : Set}
   ⟨_↔_⟩ : A → B → Bij A B
   ⟨ a ↔ b ⟩ = record { to = a ↦ b ; back = b ↦ a ; isB = isB↔ a b }
 
-  -- Add a single pair to a bijection
+  -- Add a single pair to the right of a bijection
   _▻_ : (β : Bij A B) (x : A × B) →
          let (a , b) = x in
            {{∉ᴬ : a ∉ Bij.to β}}
@@ -135,17 +146,64 @@ module Ops {A B : Set}
     where instance _ : β # ⟨ a ↔ b ⟩
                    _ = ∉-# (Bij.to β) ∉ᴬ , ∉-# (Bij.back β) ∉ᴮ
 
+  -- Add a single pair to the left of a bijection
+  _◅_ : (x : A × B) (β : Bij A B) →
+         let (a , b) = x in
+           {{∉ᴬ : a ∉ Bij.to β}}
+           {{∉ᴮ : b ∉ Bij.back β}} → Bij A B
+  _◅_ (a , b) β {{ ∉ᴬ }} {{ ∉ᴮ }} = ⟨ a ↔ b ⟩ ∘ β
+    where instance _ : ⟨ a ↔ b ⟩ # β
+                   _ = sym-# (∉-# (Bij.to β) ∉ᴬ) , sym-# (∉-# (Bij.back β) ∉ᴮ)
+
+
+  split↔ : ∀ {β₁ β₂ : Bij A B} {{β₁#β₂ : β₁ # β₂}} {a b} → a ↔ b ∈ (β₁ ∘ β₂) → a ↔ b ∈ β₁ ⊎ a ↔ b ∈ β₂
+  split↔ = {!!}
+
 -- TODO: maybe no need to export aux.
 open Ops public
 
 module AddressBij where
 
   open import Data.Nat
+  open import Data.Fin
 
-  -- A bijection between addresses (natural numbers)
-  Bijᴬ : Set
-  Bijᴬ = Bij ℕ ℕ
+  -- A finite bijection between addresses (natural numbers) with ranges.
+  Bijᴬ : (n m : ℕ) → Set
+  Bijᴬ n m = Bij (Fin n) (Fin m)
+
+  ⌜_⌝¹ : ∀ {n m} → Bijᴬ n m → Bijᴬ (ℕ.suc n) (ℕ.suc m)
+  ⌜ β ⌝¹ = {!!}
 
   instance
-    _≟ᴺ_ : (n₁ n₂ : ℕ) → Dec (n₁ ≡ n₂)
-    _≟ᴺ_ = _≟_
+-- : (n₁ n₂ : ℕ) → Dec (n₁ ≡ n₂)
+--     _ = _≟_
+
+    -- We can always "strenghten" Fin values to have the same type.
+    _≟ᶠ_ : {n : ℕ} (x y : Fin n) → Dec (x ≡ y)
+    Fin.zero ≟ᶠ Fin.zero = yes refl
+    Fin.zero ≟ᶠ Fin.suc y = no (λ ())
+    Fin.suc x ≟ᶠ Fin.zero = no (λ ())
+    Fin.suc x ≟ᶠ Fin.suc y with x ≟ᶠ y
+    Fin.suc x ≟ᶠ Fin.suc .x | yes refl = yes refl
+    Fin.suc x ≟ᶠ Fin.suc y | no ¬p = no (λ { refl → ¬p refl })
+
+  -- Identity for n addresses
+  ιᴬ : (n : ℕ) → Bijᴬ n n
+
+  foo : ∀ {n} → fromℕ n ∉ (Bij.to ⌜ ιᴬ n ⌝¹)
+
+  ιᴬ ℕ.zero = ∅
+  ιᴬ (ℕ.suc n) = _◅_ (n' , n') β {{p₁}} {{p₂}}  -- ( (ℕ.suc n , ℕ.suc n)) ◅ {!ιᴬ n!}
+    where  n' = fromℕ n
+           β : Bij (Fin (ℕ.suc n)) (Fin (ℕ.suc n))
+           β = ⌜ ιᴬ n ⌝¹
+           instance
+             p₁ : n' ∉ (Bij.to β)
+             p₁ = foo
+
+             p₂ : n' ∉ (Bij.back β)
+             p₂ =  {!!} -- (fromℕ n) ∉ (Bij.back β)
+
+  foo {ℕ.zero} with Bij.to ⌜ ιᴬ ℕ.zero ⌝¹ (fromℕ ℕ.zero)
+  ... | r = {!!}
+  foo {ℕ.suc n} = {!!}
