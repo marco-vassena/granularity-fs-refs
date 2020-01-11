@@ -1,10 +1,9 @@
-{-# OPTIONS --allow-unsolved-metas #-}
-
 module Generic.Bijection where
 
 open import Function as F hiding (flip)
 open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality as P
+open import Function.Bijection renaming (_∘_ to _∘ᴮ_) public   -- rexport composition
 open import Function.Bijection as B
 open import Data.Empty
 open import Data.Nat
@@ -45,86 +44,20 @@ _⁻¹ : ∀ {f t} {A : Set f} {B : Set t} → A ⤖ B → B ⤖ A
 β ⁻¹ = Inverse.bijection (I.sym (fromBijection β))
   where open Bijection β
         open import Function.Inverse as I
-        open Inverse (fromBijection β)
 
 --------------------------------------------------------------------------------
 
 open import Data.Fin
 open import Data.Product
 
+-- Bijection for heap addresses.  It restricts the domain and codomain
+-- using the Fin type (Fin n contains addresses from 0 to n - 1).
+-- This is useful to avoid partial bijections (for which the agda
+-- library provides no support) and carrying extra assumptions about
+-- domain and codomain.
 Bij : ℕ → ℕ → Set
 Bij n m = Fin n ⤖ Fin m
 
--- Address is in domain
--- _∈ᴰ_ : ℕ → Bij → Set
--- n ∈ᴰ β = ∃ (λ n' → (to ⟨$⟩ n) ≡ just n')
---   where open Bijection β
-
--- -- Address is in range
--- _∈ᴿ_ : ℕ → Bij → Set
--- n ∈ᴿ β = ∃ (λ n' → (to ⟨$⟩ n') ≡ just n)
---   where open Bijection β
-
+-- Identity bijection.
 ι : ∀ {n} → Bij n n
 ι = B.id
-
--- Special case of identity, probably not needed.
-∅ : Bij 0 0
-∅ = bijection F.id F.id F.id (λ ())
-
-
--- ⊥-≤² : ∀ {n} → ¬ (suc (suc n) ≤ n)
--- ⊥-≤² {zero} ()
--- ⊥-≤² {suc n} (s≤s x) = ⊥-≤² x
-
--- -- Empty bijection
--- ∅ : Bij
--- ∅ = bijection (F.const nothing) (F.const 1) {!!} {!!}
---   where right-inverse : (x : Maybe ℕ) → F.const nothing (F.const 1 x) ≡ x
---         right-inverse (just x) = {!!}
---         right-inverse nothing = refl
-
--- -- Identity bijection for n addresses
--- ι : ℕ → Bij
--- ι n = bijection idⁿ id⁻¹ {!!} right-inv
---   where idⁿ : ℕ → Maybe ℕ
---         idⁿ m with suc m ≤? n  -- suc m because if n ≡ 0, the bijection should be empty
---         idⁿ m | yes p = just m
---         idⁿ m | no ¬p = nothing
-
---         id⁻¹ : Maybe ℕ → ℕ
---         id⁻¹ (just m) with suc m ≤? n
---         ... | yes p = m
---         ... | no ¬p = suc n
---         id⁻¹ nothing = suc n
-
---         right-inv : (x : Maybe ℕ) → idⁿ (id⁻¹ x) ≡ x
---         right-inv x with id⁻¹ x | inspect id⁻¹ x
---         right-inv (just x) | a | [ eq ] with suc a ≤? n | suc x ≤? n
---         right-inv (just x) | .x | [ refl ] | yes p | yes p₁ = refl
---         right-inv (just x) | .(suc _) | [ refl ] | yes p | no ¬p = ⊥-elim (⊥-≤² p)
---         right-inv (just x) | .x | [ refl ] | no ¬p | yes p = ⊥-elim (¬p p)
---         right-inv (just x) | .(suc _) | [ refl ] | no ¬p | no ¬p₁ = {!!}  -- don't understand what goes wrong here.
--- -- with suc a ≤? n | suc x ≤? n
--- --         right-inv (just x) | a | b | yes p | c = {!b!}
--- --         right-inv (just x) | a | b | no ¬p | c = {!!}
---         right-inv nothing | a | b with suc a ≤? n
---         right-inv nothing | .(suc _) | [ refl ] | yes p = ⊥-elim (⊥-≤² p)
---         right-inv nothing | a | b | no ¬p = refl
-
---  --        right-inv (just m) with suc m ≤? n
---  --        right-inv (just m) | yes p = {!!}
---  --        right-inv (just m) | no ¬p = {!!}
---  --  -- with suc m ≤? n
---  --  --       right-inv (just m) | yes p with suc m ≤? n
---  --  --       right-inv (just m) | yes p | yes p₁ = {!!} -- refl
---  --  --       right-inv (just m) | yes p | no ¬p = {!!} -- ⊥-elim (¬p p)
---  --  --       right-inv (just m) | no ¬p = {!!}
---  -- -- with suc (suc n) ≤? n | inspect idⁿ (suc n)
---  -- --        right-inv (just m) | no ¬p | yes p  | _ = ⊥-elim (⊥-≤² p)
---  -- --        right-inv (just m) | no ¬p | no ¬p₁ | [ eq ] = {!!}
-
-
---  --        right-inv nothing with suc (suc n) ≤? n
---  --        right-inv nothing | yes p = ⊥-elim (⊥-≤² p)
- --        right-inv nothing | no ¬p = refl

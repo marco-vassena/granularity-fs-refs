@@ -93,9 +93,6 @@ step-≈ˢ (UnId x₁ x₂) pc⋤A = step-≈ˢ x₁ pc⋤A
 
 --------------------------------------------------------------------------------
 
--- TODO: move this instantiation in FG.LowEq
-open import Generic.Heap.LowEq {Ty} {Value} _≈ⱽ_ A
-
 -- High steps preserve L-equivalence for heaps.
 step-≈ᴴ :  ∀ {τ Γ θ β pc} {c : IConf Γ τ} {c' : FConf τ} →
              let ⟨ _ , μ , _ ⟩ = c

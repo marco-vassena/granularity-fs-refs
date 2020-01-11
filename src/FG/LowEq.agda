@@ -73,15 +73,22 @@ Falseᴸ ℓ⊑A = Inr (Valueᴸ ℓ⊑A Unit)
 
 
 -- Derive L-equivalence for stores,
-open import Generic.Store.LowEq {Ty} {Raw} _≈ᴿ_ A as S public
+open import Generic.Store.LowEq {Ty} {Raw} _≈ᴿ_ A as S using (_≈ˢ_) public
+
+-- Derive L-equivalence for heaps
+open import Generic.Heap.LowEq {Ty} {Value} _≈ⱽ_ A as H using (_≈⟨_⟩ᴴ_) public
 
 -- Lift low-equivalence to configurations
 open Conf
 
+open import Generic.Bijection as B
+
 record _≈⟨_⟩ᴬ_ {A : Set} (c₁ : Conf A) (R : A → A → Set) (c₂ : Conf A) : Set where
-  constructor ⟨_,_⟩
+  constructor ⟨_,_,_,_⟩
   field
+    bij : Bij ∥ heap c₁ ∥ᴴ ∥ heap c₂ ∥ᴴ
     store-≈ˢ : store c₁ ≈ˢ store c₂
+    heap-≈ᴴ : heap c₁ ≈⟨ bij ⟩ᴴ heap c₂
     term-≈ : R (term c₁) (term c₂)
 
 open _≈⟨_⟩ᴬ_ {{ ... }}
@@ -114,7 +121,7 @@ mutual
   refl-≈ᴿ {r = Refᴵ ℓ n} with ℓ ⊑? A
   ... | yes p = Ref-Iᴸ p n
   ... | no ¬p = Ref-Iᴴ ¬p ¬p
-  refl-≈ᴿ {r = Refˢ n} = {!!} -- Reflexivity creates the identity bijection?
+  refl-≈ᴿ {r = Refˢ n} = {!!} -- Reflexivity creates the identity bijection? yes!
   refl-≈ᴿ {r = ⌞ ℓ ⌟} = Lbl ℓ
   refl-≈ᴿ {r = Id v} = Id refl-≈ⱽ
 
@@ -181,20 +188,22 @@ instance
   ≡-isEquivalence = record { refl = refl ; sym = sym ; trans = trans }
 
 open S.Props ≈ᴿ-isEquivalence public
+open H.Props ≈ⱽ-isEquivalence public
 
 refl-≈ᴬ : ∀ {A} {R : A → A → Set} {{𝑹 : IsEquivalence R}} {c} → c ≈⟨ R ⟩ᴬ c
-refl-≈ᴬ {{𝑹}}  = ⟨ refl-≈ˢ , IsEquivalence.refl 𝑹 ⟩
+refl-≈ᴬ {{𝑹}}  = ⟨ ι , refl-≈ˢ , refl-≈ᴴ , IsEquivalence.refl 𝑹 ⟩
 
 sym-≈ᴬ : ∀ {A} {R : A → A → Set} {{𝑹 : IsEquivalence R}} {c₁ c₂} →
            c₁ ≈⟨ R ⟩ᴬ c₂ →
            c₂ ≈⟨ R ⟩ᴬ c₁
-sym-≈ᴬ {{𝑹}} ⟨ Σ≈ , t≈ ⟩ = ⟨ sym-≈ˢ Σ≈ , IsEquivalence.sym 𝑹 t≈  ⟩
+sym-≈ᴬ {{𝑹}} ⟨ β , Σ≈ , μ≈ , t≈ ⟩ = ⟨ β ⁻¹ , sym-≈ˢ Σ≈ , sym-≈ᴴ {β = β} μ≈ , IsEquivalence.sym 𝑹 t≈  ⟩
 
 trans-≈ᴬ : ∀ {A} {R : A → A → Set} {{𝑹 : IsEquivalence R}} {c₁ c₂ c₃} →
              c₁ ≈⟨ R ⟩ᴬ c₂ →
              c₂ ≈⟨ R ⟩ᴬ c₃ →
              c₁ ≈⟨ R ⟩ᴬ c₃
-trans-≈ᴬ {{𝑹 = 𝑹}} ⟨ Σ≈₁ , t≈₁ ⟩ ⟨ Σ≈₂ , t≈₂ ⟩ = ⟨ trans-≈ˢ Σ≈₁ Σ≈₂ , IsEquivalence.trans 𝑹 t≈₁ t≈₂ ⟩
+trans-≈ᴬ {{𝑹 = 𝑹}} ⟨ β₁ , Σ≈₁ , μ≈₁ , t≈₁ ⟩ ⟨ β₂ , Σ≈₂ , μ≈₂ , t≈₂ ⟩
+  = ⟨ β₂ ∘ᴮ β₁ , trans-≈ˢ Σ≈₁ Σ≈₂ , trans-≈ᴴ {β₁ = β₁} {β₂ = β₂} μ≈₁ μ≈₂ , IsEquivalence.trans 𝑹 t≈₁ t≈₂ ⟩
 
 instance
   ≈ᴬ-IsEquivalence : ∀ {A} {R : A → A → Set} {{𝑹 : IsEquivalence R}}  → IsEquivalence _≈⟨ R ⟩ᴬ_
