@@ -30,7 +30,8 @@ M₁ ≈⟨ no ¬p ⟩ᴹ M₂ = ⊤
 
 module Props (𝑽 : ∀ {τ} → IsEquivalence (_≈ⱽ_ {τ})) where
 
-  open import Generic.Value.LowEq {Ty} {Value} _≈ⱽ_ 𝑽
+  open import Generic.Value.LowEq {Ty} {Value} _≈ⱽ_
+  open Props 𝑽
 
   module ≈ᴹ-Equivalence where
 

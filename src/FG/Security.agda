@@ -93,6 +93,24 @@ step-≈ˢ (UnId x₁ x₂) pc⋤A = step-≈ˢ x₁ pc⋤A
 
 --------------------------------------------------------------------------------
 
+-- TODO: move this instantiation in FG.LowEq
+open import Generic.Heap.LowEq {Ty} {Value} _≈ⱽ_ A
+
+-- High steps preserve L-equivalence for heaps.
+step-≈ᴴ :  ∀ {τ Γ θ β pc} {c : IConf Γ τ} {c' : FConf τ} →
+             let ⟨ _ , μ , _ ⟩ = c
+                 ⟨ _ , μ' , _ ⟩ = c' in
+               c ⇓⟨ θ , pc ⟩ c' →
+               pc ⋤ A →
+               μ ≈⟨ β ⟩ᴴ μ'
+step-≈ᴴ = {!!}
+
+-- When the heap doesn't change I should use some form of reflexivity.
+-- When the heap changes, I show that it is a secret reference and the
+-- bijection is untouched.
+
+--------------------------------------------------------------------------------
+
 open _≈⟨_⟩ᴬ_
 
 mutual

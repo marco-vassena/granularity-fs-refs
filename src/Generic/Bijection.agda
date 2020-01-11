@@ -1,7 +1,8 @@
--- {-# OPTIONS --allow-unsolved-metas #-}
+{-# OPTIONS --allow-unsolved-metas #-}
 
 module Generic.Bijection where
 
+open import Function as F
 open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality as P
 open import Function.Bijection public
@@ -55,6 +56,13 @@ n ∈ᴿ β = ∃ (λ n' → (to ⟨$⟩ n') ≡ just n)
 ⊥-≤² : ∀ {n} → ¬ (suc (suc n) ≤ n)
 ⊥-≤² {zero} ()
 ⊥-≤² {suc n} (s≤s x) = ⊥-≤² x
+
+-- Empty bijection
+∅ : Bij
+∅ = bijection (F.const nothing) (F.const 1) {!!} {!!}
+  where right-inverse : (x : Maybe ℕ) → F.const nothing (F.const 1 x) ≡ x
+        right-inverse (just x) = {!refl!}
+        right-inverse nothing = refl
 
 -- Identity bijection for n addresses
 ι : ℕ → Bij
