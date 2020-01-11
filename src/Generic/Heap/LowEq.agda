@@ -60,3 +60,6 @@ module Props (𝑽 : ∀ {τ} → IsEquivalence (_≈ⱽ_ {τ})) where
 
   -- Notice that this is not strictly an equivalence because we must be able to choose the
   -- identity bijection for refl.
+
+_≈ᴴ_ : Heap → Heap → Set
+μ₁ ≈ᴴ μ₂ = Σ Bij⟨ μ₁ , μ₂ ⟩ (λ β → μ₁ ≈⟨ β ⟩ᴴ μ₂)

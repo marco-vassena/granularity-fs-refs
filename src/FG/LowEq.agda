@@ -15,11 +15,69 @@ open import FG.Types
 open import FG.Syntax
 open import Data.Empty
 open import Data.Nat using (ℕ)
+open import Data.Fin
 open import Relation.Binary
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
+open import Generic.Bijection
 
 mutual
+
+-- Adding a bijection after the fact is a bit inconvenient.  Ideally,
+-- we would parametrize values, expressions and all the other
+-- categories with a number n to keep track of the minimum size of the
+-- domain of the heap. Since this change would involve virtually
+-- the whole formalization, I will add extra assumptions only
+-- where needed.
+
+  data Value-≈ {n m τ} (β : Bij n m) : Value τ → Value τ → Set where
+    Valueᴸ : ∀ {r₁ r₂ ℓ} → (ℓ⊑A : ℓ ⊑ A) (r≈ : r₁ ≈⟨ β ⟩ᴿ r₂) → Value-≈ β (r₁ ^ ℓ) (r₂ ^ ℓ)
+    Valueᴴ : ∀ {r₁ r₂ ℓ₁ ℓ₂} → (ℓ₁⋤A : ℓ₁ ⋤ A) (ℓ₂⋤A : ℓ₂ ⋤ A) → Value-≈ β (r₁ ^ ℓ₁) (r₂ ^ ℓ₂)
+
+  _≈⟨_⟩ⱽ_ : ∀ {τ n m} → Value τ → Bij n m → Value τ → Set
+  v₁ ≈⟨ β ⟩ⱽ v₂ = Value-≈ β v₁ v₂
+
+  data Raw-≈ {n m} (β : Bij n m) : ∀ {τ} → Raw τ → Raw τ → Set where
+    Unit : Raw-≈ β （） （）
+    Lbl : ∀ ℓ → Raw-≈ β ⌞ ℓ ⌟ ⌞ ℓ ⌟
+    Inl : ∀ {τ₁ τ₂} {v₁ v₂ : Value τ₁} → v₁ ≈⟨ β ⟩ⱽ v₂ → Raw-≈ β (inl {τ₂ = τ₂} v₁) (inl v₂)
+    Inr : ∀ {τ₁ τ₂} {v₁ v₂ : Value τ₂} → v₁ ≈⟨ β ⟩ⱽ v₂ → Raw-≈ β (inr {τ₁ = τ₁} v₁) (inr v₂)
+    Pair : ∀ {τ₁ τ₂} {v₁ v₁' : Value τ₁} {v₂ v₂' : Value τ₂} →
+             v₁ ≈⟨ β ⟩ⱽ v₁' →
+             v₂ ≈⟨ β ⟩ⱽ v₂' →
+             Raw-≈ β ⟨ v₁ , v₂ ⟩  ⟨ v₁' , v₂' ⟩
+
+    Fun : ∀ {τ' τ Γ} {e : Expr (τ' ∷ Γ) τ} {θ₁ : Env Γ} {θ₂ : Env Γ} →
+                θ₁ ≈ᴱ θ₂ →
+                {!!} → -- TODO: equivalence up-to-bijection for code as well
+                Raw-≈ β ⟨ e , θ₁ ⟩ᶜ ⟨ e , θ₂ ⟩ᶜ
+
+    -- Flow-insensitive refs
+    Ref-Iᴸ : ∀ {ℓ τ} → (ℓ⊑A : ℓ ⊑ A) (n : ℕ) → Raw-≈ β (Refᴵ {τ = τ} ℓ n) (Refᴵ ℓ n)
+    Ref-Iᴴ : ∀ {ℓ₁ ℓ₂ n₁ n₂ τ} →
+             (ℓ₁⋤A : ℓ₁ ⋤ A) (ℓ₂⋤A : ℓ₂ ⋤ A) →
+             Raw-≈ β (Refᴵ {τ = τ} ℓ₁ n₁) (Refᴵ ℓ₂ n₂)
+
+    -- Flow-sensitive refs
+    Ref-S : ∀ {n₁ n₂ τ} → {!fromℕ n₁ ↦ fromℕ n₂ ∈ᴮ β!} →
+            Raw-≈ β (Refˢ {τ = τ} n₁) (Refˢ n₂)
+
+    Id : ∀ {τ} {v₁ v₂ : Value τ} → v₁ ≈⟨ β ⟩ⱽ v₂ → Raw-≈ β (Id v₁) (Id v₂)
+
+  _≈⟨_⟩ᴿ_ : ∀ {τ n m} → Raw τ → Bij n m → Raw τ → Set
+  r₁ ≈⟨ β ⟩ᴿ r₂ = Raw-≈ β r₁ r₂
+
+    -- Environments.
+  data Env-≈ {n m : ℕ} (β : Bij n m) : ∀ {Γ} → Env Γ → Env Γ → Set where
+    [] : Env-≈ β [] []
+    _∷_ : ∀ {τ Γ} {v₁ v₂ : Value τ} {θ₁ θ₂ : Env Γ} →
+             v₁ ≈⟨ β ⟩ⱽ v₂ → θ₁ ≈⟨ β ⟩ᴱ θ₂ → Env-≈ β (v₁ ∷ θ₁) (v₂ ∷ θ₂)
+
+  _≈⟨_⟩ᴱ_ : ∀ {Γ n m} → Env Γ → Bij n m → Env Γ → Set
+  θ₁ ≈⟨ β ⟩ᴱ θ₂ = Env-≈ β θ₁ θ₂
+
+  --------------------------------------------------------------------------------
+  -- TODO: remove old definitions.
 
   -- Values
   data _≈ⱽ_ {τ} : Value τ → Value τ → Set where
@@ -40,9 +98,14 @@ mutual
     Fun : ∀ {τ' τ Γ} {e : Expr (τ' ∷ Γ) τ} {θ₁ : Env Γ} {θ₂ : Env Γ} →
                 θ₁ ≈ᴱ θ₂ →
                 ⟨ e , θ₁ ⟩ᶜ ≈ᴿ ⟨ e , θ₂ ⟩ᶜ
-    -- TODO: for flow-sensitive refs we need the bijection
+
+    -- Flow-insensitive refs
     Ref-Iᴸ : ∀ {ℓ τ} → (ℓ⊑A : ℓ ⊑ A) (n : ℕ) → Refᴵ {τ = τ} ℓ n ≈ᴿ Refᴵ ℓ n
     Ref-Iᴴ : ∀ {ℓ₁ ℓ₂ n₁ n₂ τ} → (ℓ₁⋤A : ℓ₁ ⋤ A) (ℓ₂⋤A : ℓ₂ ⋤ A) → Refᴵ {τ = τ} ℓ₁ n₁ ≈ᴿ Refᴵ ℓ₂ n₂
+
+    -- Flow-sensitive refs
+    Ref-S : ∀ {n₁ n₂ τ} → Refˢ {τ = τ} n₁ ≈ᴿ Refˢ n₂
+
     Id : ∀ {τ} {v₁ v₂ : Value τ} → v₁ ≈ⱽ v₂ → Id v₁ ≈ᴿ Id v₂
 
   -- Environments.

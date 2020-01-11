@@ -61,3 +61,7 @@ Bij n m = Fin n ⤖ Fin m
 -- Identity bijection.
 ι : ∀ {n} → Bij n n
 ι = B.id
+
+_↦_∈ᴮ_ : ∀ {n m} → Fin n → Fin m → Bij n m → Set
+x ↦ y ∈ᴮ β = to ⟨$⟩ x ≡ y
+  where open Bijection β

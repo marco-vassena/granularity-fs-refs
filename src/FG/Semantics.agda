@@ -137,7 +137,12 @@ mutual
                M' ≔ (Σ₃ ℓ) [ n ↦ r₂ ]ᴹ →
              Step θ pc ⟨ Σ₁ , μ₁ , e₁ ≔ e₂ ⟩ ⟨ Σ₃ [ ℓ ↦ M' ]ˢ , μ₃ , （） ^ pc ⟩
 
-    -- Flow Sensitive ops
+    --------------------------------------------------------------------------------
+    -- Flow Sensitive (FS) primitives
+
+    -- For FS refs, the semantics of labelOf is similar to regular FI refs.
+    -- We have a different rule, because the reference has a different type
+    -- and distinct value.
     LabelOfRef-FS : ∀ {Σ Σ' μ μ' ℓ₁ ℓ₂ ℓ₃ n τ} {e : Expr Γ (Ref S τ)} {r : Raw τ} →
                   ⟨ Σ , μ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , μ' , Refˢ n ^ ℓ₁ ⟩ →
                   n ↦ r ^ ℓ₂ ∈ᴴ μ' →
