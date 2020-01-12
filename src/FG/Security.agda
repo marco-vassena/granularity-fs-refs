@@ -48,7 +48,7 @@ step-≈ᴴ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
                c ⇓⟨ θ , pc ⟩ c' →
                pc ⋤ A →
                μ ≈ᴴ μ'
-step-≈ᴴ (Var τ∈Γ x) pc⋤A = ⟨ ι , refl-≈ᴴ ⟩
+step-≈ᴴ {c = c} (Var τ∈Γ x) pc⋤A = ⟨ ι , refl-≈ᴴ {μ = Conf.heap c} ⟩
 step-≈ᴴ Unit pc⋤A = {!!}
 step-≈ᴴ (Lbl ℓ) pc⋤A = {!!}
 step-≈ᴴ (Test₁ x x₁ x₂ x₃) pc⋤A = {!!}
@@ -76,7 +76,7 @@ step-≈ᴴ (Read x x₁ eq) pc⋤A = {!!}
 step-≈ᴴ (Write x x₁ x₂ ℓ₂⊑ℓ x₃) pc⋤A = {!!}
 step-≈ᴴ (LabelOfRef-FS x x₁ eq) pc⋤A = {!!}
 step-≈ᴴ (New-FS x) pc⋤A =
-  let ⟨ β , μ≈μ' ⟩ = step-≈ᴴ x pc⋤A in ⟨ {!β!} , {!!} ⟩
+  let ⟨ β , μ≈μ' ⟩ = step-≈ᴴ x pc⋤A in new-≈ᴴ μ≈μ' _ (trans-⋤ (step-⊑ x) pc⋤A)
 step-≈ᴴ (Read-FS x x₁ eq) pc⋤A = {!!}
 step-≈ᴴ (Write-FS x x₁ x₂ x₃ eq x₄) pc⋤A = {!!}
 step-≈ᴴ (Id x) pc⋤A = {!!}

@@ -77,8 +77,8 @@ mutual
                Refᴵ {τ = τ} ℓ₁ n₁ ≈⟨ β ⟩ᴿ Refᴵ ℓ₂ n₂
 
     -- Flow-sensitive refs
-    Ref-S : ∀ {n₁ n₂ τ} {β : Bij (ℕ.suc n₁) (ℕ.suc n₂)} →
-              fromℕ n₁ ↦ fromℕ n₂ ∈ᴮ β →
+    Ref-S : ∀ {τ n₁ n₂} {β : Bij (ℕ.suc n₁) (ℕ.suc n₂)} →
+              (fromℕ n₁) ↦ (fromℕ n₂) ∈ᴮ β →
               Refˢ {τ = τ} n₁ ≈⟨ β ⟩ᴿ Refˢ n₂
 
     Id : ∀ {n m} {β : Bij n m} {τ} {v₁ v₂ : Value τ} →
@@ -156,17 +156,17 @@ Falseᴸ ℓ⊑A = Inr (Valueᴸ ℓ⊑A Unit)
 open import Generic.Store.LowEq {Ty} {Raw} _≈ᴿ_ A as S using (_≈ˢ_) public
 
 -- Derive L-equivalence for heaps
-open import Generic.Heap.LowEq {Ty} {Value} _≈ⱽ_ A as H using (_≈⟨_⟩ᴴ_ ; _≈ᴴ_) public
+open import Generic.Heap.LowEq {Ty} {Value} 𝑯 _≈ⱽ_ A as H using (_≈⟨_⟩ᴴ_ ; _≈ᴴ_ ; new-≈ᴴ) public
 
 -- Lift low-equivalence to configurations
 open Conf
 
 open import Generic.Bijection as B
 
-record _≈⟨_⟩ᴬ_ {A : Set} (c₁ : Conf A) (R : A → A → Set) (c₂ : Conf A) : Set where
+record _≈⟨_⟩ᴬ_ {B : Set} (c₁ : Conf B) (R : B → B → Set) (c₂ : Conf B) : Set where
   constructor ⟨_,_,_,_⟩
   field
-    bij : Bij ∥ heap c₁ ∥ᴴ ∥ heap c₂ ∥ᴴ
+    bij : Bij ∥ heap c₁ ↓⊑ A ∥ᴴ ∥ heap c₂ ↓⊑ A ∥ᴴ
     store-≈ˢ : store c₁ ≈ˢ store c₂
     heap-≈ᴴ : heap c₁ ≈⟨ bij ⟩ᴴ heap c₂
     term-≈ : R (term c₁) (term c₂)
@@ -197,10 +197,26 @@ mutual
   domᴿ (inr x) = {!!}
   domᴿ ⟨ v₁ , v₂ ⟩ = domⱽ v₁ ⊔ᴺ domⱽ v₂
   domᴿ (Refᴵ x x₁) = 0
-  domᴿ (Refˢ n) = ℕ.suc n
+  domᴿ (Refˢ n) = {!!} -- suc n
   domᴿ ⌞ x ⌟ = {!!}
   domᴿ (Id x) = {!!}
 
+
+  wken-≈ⱽ : ∀ {τ n m} {v : Value τ} → v ≈⟨ ι⟨ n ⟩ ⟩ⱽ v → v ≈⟨ ι⟨ n ⊔ᴺ m ⟩ ⟩ⱽ v
+  wken-≈ⱽ (Valueᴸ ℓ⊑A r≈) = {!!}
+  wken-≈ⱽ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = {!!}
+
+  -- wken-≈ᴿ : ∀ {τ n m} {r : Raw τ} → r ≈⟨ ι⟨ n ⟩ ⟩ᴿ r → r ≈⟨ ι⟨ n ⊔ᴺ m ⟩ ⟩ᴿ r
+  -- wken-≈ᴿ Unit = {!!}
+  -- wken-≈ᴿ (Lbl ℓ) = {!!}
+  -- wken-≈ᴿ (Inl x) = {!!}
+  -- wken-≈ᴿ (Inr x) = {!!}
+  -- wken-≈ᴿ (Pair x x₁) = {!!}
+  -- wken-≈ᴿ (Fun x) = {!!}
+  -- wken-≈ᴿ (Ref-Iᴸ ℓ⊑A n) = {!!}
+  -- wken-≈ᴿ (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = {!!}
+  -- -- wken-≈ᴿ (Ref-S x) = {!!}
+  -- wken-≈ᴿ (Id x) = {!!}
 
   -- Reflexive
   refl-≈ⱽ′ : ∀ {τ} {v : Value τ} → v ≈⟨ ι⟨ domⱽ v ⟩ ⟩ⱽ v
@@ -211,7 +227,7 @@ mutual
   refl-≈ᴿ′ {r = ⟨ x , θ ⟩ᶜ} = {!!}
   refl-≈ᴿ′ {r = inl x} = {!!}
   refl-≈ᴿ′ {r = inr x} = {!!}
-  refl-≈ᴿ′ {r = ⟨ x , x₁ ⟩} = {!!}
+  refl-≈ᴿ′ {r = ⟨ v₁ , v₂ ⟩} = Pair (wken-≈ⱽ (refl-≈ⱽ′ {v = v₁})) {!refl-≈ⱽ′ {v = v₂}!}
   refl-≈ᴿ′ {r = Refᴵ x x₁} = {!!}
   refl-≈ᴿ′ {r = Refˢ x} = Ref-S refl
   refl-≈ᴿ′ {r = ⌞ x ⌟} = {!!}

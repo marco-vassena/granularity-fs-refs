@@ -144,11 +144,20 @@ if_then_else_ : ∀ {Γ τ} → Expr Γ Bool → Expr Γ τ → Expr Γ τ → E
 if_then_else_ c t e = case c (wken t (drop refl-⊆)) (wken e (drop refl-⊆))
 
 --------------------------------------------------------------------------------
+-- Implementation of the HasLabel generic interface
+
+open import Generic.LValue
+
+𝑯 : HasLabel Ty Value
+𝑯 = record { F = id ; value = id ; label = lbl }
+  where open import Function
+
+--------------------------------------------------------------------------------
 -- Configurations
 
 -- Generic store and flow-sensitive heap
 open import Generic.Store.Base Ty Raw public
-open import Generic.Heap Ty Value public
+open import Generic.Heap 𝑯 public
 
 -- Generic configuration container.
 record Conf (A : Set) : Set where
@@ -216,3 +225,5 @@ slice-drop-⊆-≡ θ₁ [] = refl
 slice-drop-⊆-≡ θ₁ (v ∷ θ₂) = slice-drop-⊆-≡ θ₁ θ₂
 
 {-# REWRITE slice-drop-⊆-≡ #-}
+
+--------------------------------------------------------------------------------

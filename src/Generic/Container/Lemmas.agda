@@ -17,3 +17,12 @@ inj-∈ : ∀ {ℓ n τ} {C : Container ℓ} {v₁ v₂ : Value τ} →
         n ↦ v₁ ∈ C → n ↦ v₂ ∈ C → v₁ ≡ v₂
 inj-∈ x y with inj-∈′ x y
 ... | refl , eq = eq
+
+open import Lattice -- Here just because it defines the pragma {#- BUILTIN REWRITE #-}
+open import Data.Nat
+
+∥snoc∥ : ∀ {ℓ τ} (C : Container ℓ) (v : Value τ) → ∥ C ∷ᴿ v ∥ ≡ suc ∥ C ∥
+∥snoc∥ [] v = refl
+∥snoc∥ (x ∷ C) v = cong suc (∥snoc∥ C v)
+
+{-# REWRITE ∥snoc∥ #-}

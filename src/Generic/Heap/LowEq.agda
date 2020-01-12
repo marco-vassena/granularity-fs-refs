@@ -2,11 +2,13 @@
 
 open import Lattice
 open import Relation.Binary
+open import Generic.LValue as L
 
 module Generic.Heap.LowEq
   {Ty : Set}
   {Value : Ty → Set}
   {{𝑳 : Lattice}}
+  (𝑯 : HasLabel Ty Value)
   (_≈ⱽ_ :  ∀ {τ} → Value τ → Value τ → Set)
   (A : Label) where
 
@@ -14,34 +16,36 @@ open import Data.Product
 open import Data.Fin
 open import Data.Maybe
 open import Generic.Bijection
-open import Generic.Heap.Base Ty Value
+open import Generic.Heap.Base 𝑯
 open import Function.Equality
 open import Function.Bijection as B
 open import Relation.Binary.PropositionalEquality as P
 
--- Syntatic sugar. A bijection with domain and range equal
--- to the given heaps.
+-- A bijection with domain and range equal
+-- to the low addresses in the given heaps.
 Bij⟨_,_⟩ : Heap → Heap → Set
-Bij⟨ μ₁ , μ₂ ⟩ = Bij ∥ μ₁ ∥ᴴ ∥ μ₂ ∥ᴴ
+Bij⟨ μ₁ , μ₂ ⟩ = Bij ∥ μ₁ ↓⊑ A ∥ᴴ ∥ μ₂ ↓⊑ A ∥ᴴ
 
--- Two heaps are A-equivalent up to bijection β iff the addresses
--- related by the bijection map to related values in the respective
--- heaps. Since the domain and the range of the bijection is indexed with
--- the size of the heaps, the lookups are safe.
--- To index the bijection correctly, the relation must first introduce
--- the heaps and then the bijection. The following definition defines
--- the usual infix operator as syntatic sugar.
+-- Two heaps are A-equivalent up to bijection β iff the low addresses
+-- related by the bijection correspond to related values in the
+-- respective heaps. Since the domain and the range of the bijection
+-- is indexed with the size of the (low parts of) heaps, the lookups
+-- are safe.  To index the bijection correctly, the relation must
+-- first introduce the heaps and then the bijection. The following
+-- definition defines the usual infix operator as syntatic sugar.
 Heap-≈ : (μ₁ μ₂ : Heap) → Bij⟨ μ₁ , μ₂ ⟩ → Set
 Heap-≈ μ₁ μ₂ β =
-  ∀ (x : Fin ∥ μ₁ ∥ᴴ) →
-  let τ , v , ∈₁ = μ₁ [ x ]ᴴ
-      τ' , v' , ∈₂ = μ₂ [ to ⟨$⟩ x ]ᴴ in v ≅ⱽ v'
+  let μ₁ᴸ = μ₁ ↓⊑ A
+      μ₂ᴸ = μ₂ ↓⊑ A in
+  ∀ (x : Fin ∥ μ₁ᴸ ∥ᴴ) →
+  let τ , v , ∈₁ = μ₁ᴸ [ x ]ᴴ
+      τ' , v' , ∈₂ = μ₂ᴸ [ to ⟨$⟩ x ]ᴴ in v ≅ⱽ v'
   where open Bijection β
         open import Function.Equality
         open import Generic.Value.HLowEq {Ty} {Value} _≈ⱽ_
 
 -- Syntactic sugar
-_≈⟨_⟩ᴴ_ : ∀ {n} → (μ₁ : Heap) → Bij ∥ μ₁ ∥ᴴ n → (μ₂ : Heap) → {{eq : n ≡ ∥ μ₂ ∥ᴴ}} → Set
+_≈⟨_⟩ᴴ_ : ∀ {n} → (μ₁ : Heap) → Bij ∥ μ₁ ↓⊑ A ∥ᴴ n → (μ₂ : Heap) → {{eq : n ≡ ∥ μ₂ ↓⊑ A ∥ᴴ}} → Set
 _≈⟨_⟩ᴴ_ μ₁ β μ₂ {{eq}} rewrite eq = Heap-≈ μ₁ μ₂ β
 
 module Props (𝑽 : ∀ {τ} → IsEquivalence (_≈ⱽ_ {τ})) where
@@ -66,21 +70,22 @@ module Props (𝑽 : ∀ {τ} → IsEquivalence (_≈ⱽ_ {τ})) where
 _≈ᴴ_ : Heap → Heap → Set
 μ₁ ≈ᴴ μ₂ = Σ Bij⟨ μ₁ , μ₂ ⟩ (λ β → μ₁ ≈⟨ β ⟩ᴴ μ₂)
 
-postulate lbl : ∀ {τ} → Value τ → Label
 
 open import Data.Nat
-postulate ∥snoc∥ : ∀ {τ} (μ : Heap) (v : Value τ) → ∥ snocᴴ μ v ∥ᴴ ≡ suc ∥ μ ∥ᴴ
-
-{-# REWRITE ∥snoc∥ #-}
+open HasLabel 𝑯
 
 open import Generic.Value.HLowEq {Ty} {Value} _≈ⱽ_
 
+--open import Generic.Heap.Lemmas Ty LValue
+
+
+open import Data.Unit
+open import Generic.Container.Base  ⊤ Ty LValue
+open import Generic.Heap.Lemmas 𝑯
+
 -- Add smth secret, remain related
-new-≈ᴴ : ∀ {τ μ₁ μ₂} {β : Bij⟨ μ₁ , μ₂ ⟩} → μ₁ ≈⟨ β ⟩ᴴ μ₂ → (v : Value τ) →
-         (lbl v) ⋤ A → μ₁ ≈⟨ β ↑¹ ⟩ᴴ (snocᴴ μ₂ v)
--- Here β should stay the same (I shouldn't add anything, because a secret value
--- is added). Can I wken the β? No because the wken'd bijection is not a bijection
--- (it is partial).
-new-≈ᴴ ≈ v ℓ⋤A x' = {!≈ x'!}  -- and should show that to (β ↑¹) ⟨$⟩ x
-                              -- ≡ to β ⟨$⟩ x because the new entry is
-                              -- not affected.
+new-≈ᴴ : ∀ {τ μ₁ μ₂} {β : Bij⟨ μ₁ , μ₂ ⟩} →
+         μ₁ ≈⟨ β ⟩ᴴ μ₂ → (v : LValue τ) →
+         (label v) ⋤ A → μ₁ ≈ᴴ (snocᴴ μ₂ v)
+new-≈ᴴ {μ₂ = μ₂} {β = β} ≈ v ℓ⋤A
+  rewrite snocᴴ-⋤ μ₂ v ℓ⋤A = (β , ≈)

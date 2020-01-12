@@ -154,6 +154,17 @@ if_then_else_ : ∀ {Γ τ} → Expr Γ Bool → Expr Γ τ → Expr Γ τ → E
 if_then_else_ c t e = case c (wken t (drop refl-⊆)) (wken e (drop refl-⊆))
 
 --------------------------------------------------------------------------------
+-- Implementation of the HasLabel generic interface for Labeled values
+
+open import Generic.LValue
+
+𝑯 : HasLabel Ty Value
+𝑯 = record { F = Labeled ;
+             value = λ { (Labeled ℓ v) → v } ;
+             label = λ { (Labeled ℓ v) → ℓ } }
+  where open import Function
+
+--------------------------------------------------------------------------------
 -- Configurations
 
 -- Generic store.

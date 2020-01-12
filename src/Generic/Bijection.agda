@@ -64,6 +64,7 @@ Bij n m = Fin n ⤖ Fin m
 ι : ∀ {n} → Bij n n
 ι = B.id
 
+-- TODO: rename ι′ n
 ι⟨_⟩ : ∀ n → Bij n n
 ι⟨ n ⟩ = B.id
 
@@ -96,5 +97,5 @@ suc x ≟ᶠ suc y | no ¬p = no λ { refl → ¬p refl }
 -- I could restrict the inverse to consider only the parts where it is
 -- defined.
 _↑¹ : ∀ {n m} → Bij n m → Bij n (suc m)
-β ↑¹ = bijection (λ x → inject₁ (to ⟨$⟩ x)) (λ y → from ⟨$⟩ {!!}) {!injective!} {!!}
+β ↑¹ = bijection (λ x → inject₁ (to ⟨$⟩ x)) (λ y → from ⟨$⟩ {!!}) {!!} {!!}
   where open Bijection β
