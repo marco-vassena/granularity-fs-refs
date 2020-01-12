@@ -1,3 +1,5 @@
+{-# OPTIONS --allow-unsolved-metas #-}
+
 module Generic.Bijection where
 
 open import Function as F hiding (flip)
@@ -87,3 +89,12 @@ suc x ≟ᶠ suc y | no ¬p = no λ { refl → ¬p refl }
 --         to x | no ¬p = {!!} -- what should I return here?
 -- I guess I should just use composition, but there will be secret entries
 -- that have no counterpart and that are just "not defined"
+
+-- wken the codomain (modeling adding a secret entry to the
+-- bijection).  It doens't work because in the invert function I need
+-- to map back one extra value. With an (explicitly) partial function
+-- I could restrict the inverse to consider only the parts where it is
+-- defined.
+_↑¹ : ∀ {n m} → Bij n m → Bij n (suc m)
+β ↑¹ = bijection (λ x → inject₁ (to ⟨$⟩ x)) (λ y → from ⟨$⟩ {!!}) {!injective!} {!!}
+  where open Bijection β

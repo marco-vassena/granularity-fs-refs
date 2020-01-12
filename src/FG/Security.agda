@@ -37,6 +37,52 @@ slice-≈ᴱ (v₁≈v₂ ∷ θ₁≈θ₂) (cons p) = v₁≈v₂ ∷ slice-�
 slice-≈ᴱ (v₁≈v₂ ∷ θ₁≈θ₂) (drop p) = slice-≈ᴱ θ₁≈θ₂ p
 
 --------------------------------------------------------------------------------
+
+open import Data.Product renaming (_×_ to _∧_ ; _,_ to ⟨_,_⟩)
+open import Generic.Bijection
+
+-- TODO: Ideally combined with the lemma below
+step-≈ᴴ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
+             let ⟨ Σ , μ , _ ⟩ = c
+                 ⟨ Σ' , μ' , _ ⟩ = c' in
+               c ⇓⟨ θ , pc ⟩ c' →
+               pc ⋤ A →
+               μ ≈ᴴ μ'
+step-≈ᴴ (Var τ∈Γ x) pc⋤A = ⟨ ι , refl-≈ᴴ ⟩
+step-≈ᴴ Unit pc⋤A = {!!}
+step-≈ᴴ (Lbl ℓ) pc⋤A = {!!}
+step-≈ᴴ (Test₁ x x₁ x₂ x₃) pc⋤A = {!!}
+step-≈ᴴ (Test₂ x x₁ x₂ x₃) pc⋤A = {!!}
+step-≈ᴴ Fun pc⋤A = {!!}
+step-≈ᴴ (App x x₁ refl x₃) pc⋤A =
+  let ⟨ β , μ≈μ₁ ⟩ = step-≈ᴴ x pc⋤A
+      ⟨ β₁ , μ₁≈μ₂ ⟩ = step-≈ᴴ x₁ pc⋤A
+      ⟨ β₂ , μ₂≈μ₃ ⟩ = step-≈ᴴ x₃ (trans-⋤ (join-⊑₁ _ _) pc⋤A) in
+        ⟨ β₂ ∘ᴮ β₁ ∘ᴮ β , (trans-≈ᴴ {β₁ = β} {β₂ ∘ᴮ β₁} μ≈μ₁ (trans-≈ᴴ {β₁ = β₁} {β₂ = β₂} μ₁≈μ₂ μ₂≈μ₃)) ⟩
+step-≈ᴴ (Wken p x) pc⋤A = {!!}
+step-≈ᴴ (Inl x) pc⋤A = {!!}
+step-≈ᴴ (Inr x) pc⋤A = {!!}
+step-≈ᴴ (Case₁ x x₁ x₂) pc⋤A = {!!}
+step-≈ᴴ (Case₂ x x₁ x₂) pc⋤A = {!!}
+step-≈ᴴ (Pair x x₁) pc⋤A = {!!}
+step-≈ᴴ (Fst x x₁) pc⋤A = {!!}
+step-≈ᴴ (Snd x x₁) pc⋤A = {!!}
+step-≈ᴴ (LabelOf x) pc⋤A = {!!}
+step-≈ᴴ GetLabel pc⋤A = {!!}
+step-≈ᴴ (Taint eq x x₁ pc'⊑pc'') pc⋤A = {!!}
+step-≈ᴴ (LabelOfRef x eq) pc⋤A = {!!}
+step-≈ᴴ (New x) pc⋤A = {!!}
+step-≈ᴴ (Read x x₁ eq) pc⋤A = {!!}
+step-≈ᴴ (Write x x₁ x₂ ℓ₂⊑ℓ x₃) pc⋤A = {!!}
+step-≈ᴴ (LabelOfRef-FS x x₁ eq) pc⋤A = {!!}
+step-≈ᴴ (New-FS x) pc⋤A =
+  let ⟨ β , μ≈μ' ⟩ = step-≈ᴴ x pc⋤A in ⟨ {!β!} , {!!} ⟩
+step-≈ᴴ (Read-FS x x₁ eq) pc⋤A = {!!}
+step-≈ᴴ (Write-FS x x₁ x₂ x₃ eq x₄) pc⋤A = {!!}
+step-≈ᴴ (Id x) pc⋤A = {!!}
+step-≈ᴴ (UnId x eq) pc⋤A = {!!}
+
+
 -- TODO: add FS-Store to this lemma
 -- High steps preserve low-equivalence of stores
 step-≈ˢ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
@@ -44,7 +90,7 @@ step-≈ˢ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
                  ⟨ Σ' , μ' , _ ⟩ = c' in
                c ⇓⟨ θ , pc ⟩ c' →
                pc ⋤ A →
-               Σ ≈ˢ Σ' × μ ≈ᴴ μ'
+                 (Σ ≈ˢ Σ')
 
 step-≈ˢ (Var τ∈Γ x) pc⋤A = refl-≈ˢ
 step-≈ˢ Unit pc⋤A = refl-≈ˢ
@@ -318,7 +364,7 @@ mutual
            c₂ ⇓⟨ θ₂ , pc₂ ⟩ c₂' →
            pc₁ ⋤ A → pc₂ ⋤ A →
            c₁' ≈ᶜ c₂'
-  tiniᴴ Σ₁≈Σ₂ x₁ x₂ pc₁⋤A pc₂⋤A = ⟨ Σ₁'≈Σ₂' , v≈ ⟩
+  tiniᴴ Σ₁≈Σ₂ x₁ x₂ pc₁⋤A pc₂⋤A = {!!} -- ⟨ Σ₁'≈Σ₂' , v≈ ⟩
     where Σ₁≈Σ₁' = step-≈ˢ x₁ pc₁⋤A
           Σ₂≈Σ₂' = step-≈ˢ x₂ pc₂⋤A
           Σ₁'≈Σ₂' = square-≈ˢ Σ₁≈Σ₂ Σ₁≈Σ₁' Σ₂≈Σ₂'
@@ -331,6 +377,7 @@ mutual
            c₁ ≈ᴵ c₂ →
            θ₁ ≈ᴱ θ₂ →
            c₁' ≈ᶜ c₂'
-  tini {pc = pc} x₁ x₂ ⟨ Σ₁≈Σ₂ , refl ⟩  θ₁≈θ₂ with pc ⊑? A
-  ... | yes pc⊑A = tiniᴸ x₁ x₂ Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A
-  ... | no pc⋤A = tiniᴴ Σ₁≈Σ₂ x₁ x₂ pc⋤A pc⋤A
+  tini = {!!}
+  -- {pc = pc} x₁ x₂ ⟨ Σ₁≈Σ₂ , refl ⟩  θ₁≈θ₂ with pc ⊑? A
+  -- ... | yes pc⊑A = tiniᴸ x₁ x₂ Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A
+  -- ... | no pc⋤A = tiniᴴ Σ₁≈Σ₂ x₁ x₂ pc⋤A pc⋤A

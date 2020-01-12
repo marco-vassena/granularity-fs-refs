@@ -156,7 +156,7 @@ Falseᴸ ℓ⊑A = Inr (Valueᴸ ℓ⊑A Unit)
 open import Generic.Store.LowEq {Ty} {Raw} _≈ᴿ_ A as S using (_≈ˢ_) public
 
 -- Derive L-equivalence for heaps
-open import Generic.Heap.LowEq {Ty} {Value} _≈ⱽ_ A as H using (_≈⟨_⟩ᴴ_) public
+open import Generic.Heap.LowEq {Ty} {Value} _≈ⱽ_ A as H using (_≈⟨_⟩ᴴ_ ; _≈ᴴ_) public
 
 -- Lift low-equivalence to configurations
 open Conf

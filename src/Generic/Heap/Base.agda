@@ -3,7 +3,8 @@ module Generic.Heap.Base (Ty : Set) (Value : Ty → Set) where
 open import Data.Unit
 
 -- TODO: should we constraint the type of the values (for CG?)
-
+-- yes, we must be able to project the label to identify secret
+-- values.
 open import Generic.Container ⊤ Ty Value
   renaming ( Lookup to Lookupᴴ
            ; _↦_∈_ to _↦_∈ᴴ_

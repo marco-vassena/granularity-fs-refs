@@ -1,3 +1,5 @@
+{-# OPTIONS --allow-unsolved-metas #-}
+
 open import Lattice
 open import Relation.Binary
 
@@ -63,3 +65,22 @@ module Props (𝑽 : ∀ {τ} → IsEquivalence (_≈ⱽ_ {τ})) where
 
 _≈ᴴ_ : Heap → Heap → Set
 μ₁ ≈ᴴ μ₂ = Σ Bij⟨ μ₁ , μ₂ ⟩ (λ β → μ₁ ≈⟨ β ⟩ᴴ μ₂)
+
+postulate lbl : ∀ {τ} → Value τ → Label
+
+open import Data.Nat
+postulate ∥snoc∥ : ∀ {τ} (μ : Heap) (v : Value τ) → ∥ snocᴴ μ v ∥ᴴ ≡ suc ∥ μ ∥ᴴ
+
+{-# REWRITE ∥snoc∥ #-}
+
+open import Generic.Value.HLowEq {Ty} {Value} _≈ⱽ_
+
+-- Add smth secret, remain related
+new-≈ᴴ : ∀ {τ μ₁ μ₂} {β : Bij⟨ μ₁ , μ₂ ⟩} → μ₁ ≈⟨ β ⟩ᴴ μ₂ → (v : Value τ) →
+         (lbl v) ⋤ A → μ₁ ≈⟨ β ↑¹ ⟩ᴴ (snocᴴ μ₂ v)
+-- Here β should stay the same (I shouldn't add anything, because a secret value
+-- is added). Can I wken the β? No because the wken'd bijection is not a bijection
+-- (it is partial).
+new-≈ᴴ ≈ v ℓ⋤A x' = {!≈ x'!}  -- and should show that to (β ↑¹) ⟨$⟩ x
+                              -- ≡ to β ⟨$⟩ x because the new entry is
+                              -- not affected.
