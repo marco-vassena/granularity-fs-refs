@@ -62,6 +62,28 @@ Bij n m = Fin n ⤖ Fin m
 ι : ∀ {n} → Bij n n
 ι = B.id
 
+ι⟨_⟩ : ∀ n → Bij n n
+ι⟨ n ⟩ = B.id
+
+
 _↦_∈ᴮ_ : ∀ {n m} → Fin n → Fin m → Bij n m → Set
 x ↦ y ∈ᴮ β = to ⟨$⟩ x ≡ y
   where open Bijection β
+
+_≟ᶠ_ : ∀ {n} → (x y : Fin n) → Dec (x ≡ y)
+zero ≟ᶠ zero = yes refl
+zero ≟ᶠ suc y = no (λ ())
+suc x ≟ᶠ zero = no (λ ())
+suc x ≟ᶠ suc y with x  ≟ᶠ y
+suc x ≟ᶠ suc .x | yes refl = yes refl
+suc x ≟ᶠ suc y | no ¬p = no λ { refl → ¬p refl }
+
+-- Singleton bijection
+-- _↔_ : ∀ (n m : ℕ) → Bij (suc n) (suc m)
+-- n ↔ m  = bijection to {!!} {!!} {!!}
+--   where to : Fin (suc n) → Fin (suc m)
+--         to x with x ≟ᶠ (fromℕ n)
+--         to .(fromℕ _) | yes refl = fromℕ m
+--         to x | no ¬p = {!!} -- what should I return here?
+-- I guess I should just use composition, but there will be secret entries
+-- that have no counterpart and that are just "not defined"

@@ -14,7 +14,7 @@ module FG.LowEq {{𝑳 : Lattice}} (A : Label) where
 open import FG.Types
 open import FG.Syntax
 open import Data.Empty
-open import Data.Nat using (ℕ)
+open import Data.Nat using (ℕ) renaming (_⊔_ to _⊔ᴺ_)
 open import Data.Fin
 open import Relation.Binary
 open import Relation.Binary.PropositionalEquality
@@ -29,52 +29,69 @@ mutual
 -- domain of the heap. Since this change would involve virtually
 -- the whole formalization, I will add extra assumptions only
 -- where needed.
+--
+-- Maybe this is not true. Only values would need this extra parameter
+-- and it seems we can universally quantify the bijection in the
+-- low-equivalence relation without the need for pervasive changes to
+-- the syntax.
 
-  data Value-≈ {n m τ} (β : Bij n m) : Value τ → Value τ → Set where
-    Valueᴸ : ∀ {r₁ r₂ ℓ} → (ℓ⊑A : ℓ ⊑ A) (r≈ : r₁ ≈⟨ β ⟩ᴿ r₂) → Value-≈ β (r₁ ^ ℓ) (r₂ ^ ℓ)
-    Valueᴴ : ∀ {r₁ r₂ ℓ₁ ℓ₂} → (ℓ₁⋤A : ℓ₁ ⋤ A) (ℓ₂⋤A : ℓ₂ ⋤ A) → Value-≈ β (r₁ ^ ℓ₁) (r₂ ^ ℓ₂)
+  data _≈⟨_⟩ⱽ_ {τ n m} : Value τ → Bij n m → Value τ → Set where
+    Valueᴸ : ∀ {r₁ r₂ ℓ β} → (ℓ⊑A : ℓ ⊑ A) (r≈ : r₁ ≈⟨ β ⟩ᴿ r₂) → (r₁ ^ ℓ) ≈⟨ β ⟩ⱽ (r₂ ^ ℓ)
+    Valueᴴ : ∀ {r₁ r₂ ℓ₁ ℓ₂ β} → (ℓ₁⋤A : ℓ₁ ⋤ A) (ℓ₂⋤A : ℓ₂ ⋤ A) → (r₁ ^ ℓ₁) ≈⟨ β ⟩ⱽ (r₂ ^ ℓ₂)
 
-  _≈⟨_⟩ⱽ_ : ∀ {τ n m} → Value τ → Bij n m → Value τ → Set
-  v₁ ≈⟨ β ⟩ⱽ v₂ = Value-≈ β v₁ v₂
+  -- _≈⟨_⟩ⱽ_ : ∀ {τ n m} → Value τ → Bij n m → Value τ → Set
+  -- v₁ ≈⟨ β ⟩ⱽ v₂ = Value-≈ β v₁ v₂
 
-  data Raw-≈ {n m} (β : Bij n m) : ∀ {τ} → Raw τ → Raw τ → Set where
-    Unit : Raw-≈ β （） （）
-    Lbl : ∀ ℓ → Raw-≈ β ⌞ ℓ ⌟ ⌞ ℓ ⌟
-    Inl : ∀ {τ₁ τ₂} {v₁ v₂ : Value τ₁} → v₁ ≈⟨ β ⟩ⱽ v₂ → Raw-≈ β (inl {τ₂ = τ₂} v₁) (inl v₂)
-    Inr : ∀ {τ₁ τ₂} {v₁ v₂ : Value τ₂} → v₁ ≈⟨ β ⟩ⱽ v₂ → Raw-≈ β (inr {τ₁ = τ₁} v₁) (inr v₂)
-    Pair : ∀ {τ₁ τ₂} {v₁ v₁' : Value τ₁} {v₂ v₂' : Value τ₂} →
+  -- Raw values
+  data _≈⟨_⟩ᴿ_ : ∀ {τ n m} → Raw τ → Bij n m → Raw τ → Set where
+
+    Unit : ∀ {n m} {β : Bij n m} → （） ≈⟨ β ⟩ᴿ （）
+
+    Lbl : ∀ {n m} {β : Bij n m} ℓ → ⌞ ℓ ⌟ ≈⟨ β ⟩ᴿ ⌞ ℓ ⌟
+
+    Inl : ∀ {n m} {β : Bij n m} {τ₁ τ₂} {v₁ v₂ : Value τ₁} →
+          v₁ ≈⟨ β ⟩ⱽ v₂ →
+          inl {τ₂ = τ₂} v₁ ≈⟨ β ⟩ᴿ inl v₂
+
+    Inr : ∀ {n m} {β : Bij n m} {τ₁ τ₂} {v₁ v₂ : Value τ₂} →
+            v₁ ≈⟨ β ⟩ⱽ v₂ →
+            inr {τ₁ = τ₁} v₁ ≈⟨ β ⟩ᴿ inr v₂
+
+    Pair : ∀ {n m} {β : Bij n m} {τ₁ τ₂} {v₁ v₁' : Value τ₁} {v₂ v₂' : Value τ₂} →
              v₁ ≈⟨ β ⟩ⱽ v₁' →
              v₂ ≈⟨ β ⟩ⱽ v₂' →
-             Raw-≈ β ⟨ v₁ , v₂ ⟩  ⟨ v₁' , v₂' ⟩
+             ⟨ v₁ , v₂ ⟩  ≈⟨ β ⟩ᴿ ⟨ v₁' , v₂' ⟩
 
-    Fun : ∀ {τ' τ Γ} {e : Expr (τ' ∷ Γ) τ} {θ₁ : Env Γ} {θ₂ : Env Γ} →
-                θ₁ ≈ᴱ θ₂ →
-                {!!} → -- TODO: equivalence up-to-bijection for code as well
-                Raw-≈ β ⟨ e , θ₁ ⟩ᶜ ⟨ e , θ₂ ⟩ᶜ
+    Fun : ∀ {n m} {β : Bij n m} {τ' τ Γ} {e : Expr (τ' ∷ Γ) τ}
+            {θ₁ : Env Γ} {θ₂ : Env Γ} →
+            θ₁ ≈ᴱ θ₂ →
+            ⟨ e , θ₁ ⟩ᶜ ≈⟨ β ⟩ᴿ ⟨ e , θ₂ ⟩ᶜ
 
     -- Flow-insensitive refs
-    Ref-Iᴸ : ∀ {ℓ τ} → (ℓ⊑A : ℓ ⊑ A) (n : ℕ) → Raw-≈ β (Refᴵ {τ = τ} ℓ n) (Refᴵ ℓ n)
-    Ref-Iᴴ : ∀ {ℓ₁ ℓ₂ n₁ n₂ τ} →
-             (ℓ₁⋤A : ℓ₁ ⋤ A) (ℓ₂⋤A : ℓ₂ ⋤ A) →
-             Raw-≈ β (Refᴵ {τ = τ} ℓ₁ n₁) (Refᴵ ℓ₂ n₂)
+    Ref-Iᴸ : ∀ {n m} {β : Bij n m} {ℓ τ} →
+               (ℓ⊑A : ℓ ⊑ A) (n : ℕ) →
+               Refᴵ {τ = τ} ℓ n ≈⟨ β ⟩ᴿ Refᴵ ℓ n
+
+    Ref-Iᴴ : ∀ {n m} {β : Bij n m} {ℓ₁ ℓ₂ n₁ n₂ τ} →
+               (ℓ₁⋤A : ℓ₁ ⋤ A) (ℓ₂⋤A : ℓ₂ ⋤ A) →
+               Refᴵ {τ = τ} ℓ₁ n₁ ≈⟨ β ⟩ᴿ Refᴵ ℓ₂ n₂
 
     -- Flow-sensitive refs
-    Ref-S : ∀ {n₁ n₂ τ} → {!fromℕ n₁ ↦ fromℕ n₂ ∈ᴮ β!} →
-            Raw-≈ β (Refˢ {τ = τ} n₁) (Refˢ n₂)
+    Ref-S : ∀ {n₁ n₂ τ} {β : Bij (ℕ.suc n₁) (ℕ.suc n₂)} →
+              fromℕ n₁ ↦ fromℕ n₂ ∈ᴮ β →
+              Refˢ {τ = τ} n₁ ≈⟨ β ⟩ᴿ Refˢ n₂
 
-    Id : ∀ {τ} {v₁ v₂ : Value τ} → v₁ ≈⟨ β ⟩ⱽ v₂ → Raw-≈ β (Id v₁) (Id v₂)
+    Id : ∀ {n m} {β : Bij n m} {τ} {v₁ v₂ : Value τ} →
+           v₁ ≈⟨ β ⟩ⱽ v₂ →
+           Id v₁ ≈⟨ β ⟩ᴿ Id v₂
 
-  _≈⟨_⟩ᴿ_ : ∀ {τ n m} → Raw τ → Bij n m → Raw τ → Set
-  r₁ ≈⟨ β ⟩ᴿ r₂ = Raw-≈ β r₁ r₂
-
-    -- Environments.
-  data Env-≈ {n m : ℕ} (β : Bij n m) : ∀ {Γ} → Env Γ → Env Γ → Set where
-    [] : Env-≈ β [] []
-    _∷_ : ∀ {τ Γ} {v₁ v₂ : Value τ} {θ₁ θ₂ : Env Γ} →
-             v₁ ≈⟨ β ⟩ⱽ v₂ → θ₁ ≈⟨ β ⟩ᴱ θ₂ → Env-≈ β (v₁ ∷ θ₁) (v₂ ∷ θ₂)
-
-  _≈⟨_⟩ᴱ_ : ∀ {Γ n m} → Env Γ → Bij n m → Env Γ → Set
-  θ₁ ≈⟨ β ⟩ᴱ θ₂ = Env-≈ β θ₁ θ₂
+  -- Environments.
+  data _≈⟨_⟩ᴱ_  {n m} : ∀ {Γ} → Env Γ → Bij n m → Env Γ → Set where
+    [] : ∀ {β} → [] ≈⟨ β ⟩ᴱ []
+    _∷_ : ∀ {τ Γ β} {v₁ v₂ : Value τ} {θ₁ θ₂ : Env Γ} →
+             v₁ ≈⟨ β ⟩ⱽ v₂ →
+             θ₁ ≈⟨ β ⟩ᴱ θ₂ →
+             (v₁ ∷ θ₁) ≈⟨ β ⟩ᴱ (v₂ ∷ θ₂)
 
   --------------------------------------------------------------------------------
   -- TODO: remove old definitions.
@@ -168,6 +185,37 @@ _≈ᶜ_ = _≈⟨ _≈ⱽ_ ⟩ᴬ_
 -- Properties: L-equivalence is an equivalence relation.
 
 mutual
+
+  -- Computes the domain and codomain of a bijection for values.
+  domⱽ : ∀ {τ} (v : Value τ) → ℕ
+  domⱽ v = {!!}
+
+  domᴿ : ∀ {τ} (v : Raw τ) → ℕ
+  domᴿ （） = {!!}
+  domᴿ ⟨ x , θ ⟩ᶜ = {!!}
+  domᴿ (inl x) = {!!}
+  domᴿ (inr x) = {!!}
+  domᴿ ⟨ v₁ , v₂ ⟩ = domⱽ v₁ ⊔ᴺ domⱽ v₂
+  domᴿ (Refᴵ x x₁) = 0
+  domᴿ (Refˢ n) = ℕ.suc n
+  domᴿ ⌞ x ⌟ = {!!}
+  domᴿ (Id x) = {!!}
+
+
+  -- Reflexive
+  refl-≈ⱽ′ : ∀ {τ} {v : Value τ} → v ≈⟨ ι⟨ domⱽ v ⟩ ⟩ⱽ v
+  refl-≈ⱽ′ = {!!}
+
+  refl-≈ᴿ′ : ∀ {τ} {r : Raw τ} → r ≈⟨ ι⟨ domᴿ r ⟩ ⟩ᴿ r
+  refl-≈ᴿ′ {r = （）} = {!!}
+  refl-≈ᴿ′ {r = ⟨ x , θ ⟩ᶜ} = {!!}
+  refl-≈ᴿ′ {r = inl x} = {!!}
+  refl-≈ᴿ′ {r = inr x} = {!!}
+  refl-≈ᴿ′ {r = ⟨ x , x₁ ⟩} = {!!}
+  refl-≈ᴿ′ {r = Refᴵ x x₁} = {!!}
+  refl-≈ᴿ′ {r = Refˢ x} = Ref-S refl
+  refl-≈ᴿ′ {r = ⌞ x ⌟} = {!!}
+  refl-≈ᴿ′ {r = Id x} = {!!}
 
   -- Reflexive
   refl-≈ⱽ : ∀ {τ} {v : Value τ} → v ≈ⱽ v
