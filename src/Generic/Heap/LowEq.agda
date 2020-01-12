@@ -26,6 +26,9 @@ open import Relation.Binary.PropositionalEquality as P
 Bij⟨_,_⟩ : Heap → Heap → Set
 Bij⟨ μ₁ , μ₂ ⟩ = Bij ∥ μ₁ ↓⊑ A ∥ᴴ ∥ μ₂ ↓⊑ A ∥ᴴ
 
+Heap-≈′ : (μ₁ μ₂ : Heap) → Bij⟨ μ₁ , μ₂ ⟩ → Set
+Heap-≈′ μ₁ μ₂ β = Σ (∥ μ₁ ↓⊑ A ∥ᴴ ≡ ∥ μ₂ ↓⊑ A ∥ᴴ) {!λ { refl → ?}!}
+
 -- Two heaps are A-equivalent up to bijection β iff the low addresses
 -- related by the bijection correspond to related values in the
 -- respective heaps. Since the domain and the range of the bijection
@@ -84,7 +87,7 @@ open import Generic.Container.Base  ⊤ Ty LValue
 open import Generic.Heap.Lemmas 𝑯
 
 -- Add smth secret, remain related
-new-≈ᴴ : ∀ {τ μ₁ μ₂} {β : Bij⟨ μ₁ , μ₂ ⟩} →
+new-≈ᴴ : ∀ {μ₁ μ₂} {β : Bij⟨ μ₁ , μ₂ ⟩} {τ} →
          μ₁ ≈⟨ β ⟩ᴴ μ₂ → (v : LValue τ) →
          (label v) ⋤ A → μ₁ ≈ᴴ (snocᴴ μ₂ v)
 new-≈ᴴ {μ₂ = μ₂} {β = β} ≈ v ℓ⋤A

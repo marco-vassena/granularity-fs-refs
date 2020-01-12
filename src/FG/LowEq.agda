@@ -156,7 +156,7 @@ Falseᴸ ℓ⊑A = Inr (Valueᴸ ℓ⊑A Unit)
 open import Generic.Store.LowEq {Ty} {Raw} _≈ᴿ_ A as S using (_≈ˢ_) public
 
 -- Derive L-equivalence for heaps
-open import Generic.Heap.LowEq {Ty} {Value} 𝑯 _≈ⱽ_ A as H using (_≈⟨_⟩ᴴ_ ; _≈ᴴ_ ; new-≈ᴴ) public
+open import Generic.Heap.LowEq {Ty} {Value} 𝑯 _≈ⱽ_ A as H using (_≈⟨_⟩ᴴ_ ; _≈ᴴ_ ; new-≈ᴴ ; Bij⟨_,_⟩) public
 
 -- Lift low-equivalence to configurations
 open Conf
@@ -183,6 +183,10 @@ _≈ᶜ_ = _≈⟨ _≈ⱽ_ ⟩ᴬ_
 
 --------------------------------------------------------------------------------
 -- Properties: L-equivalence is an equivalence relation.
+
+-- For testing, remove
+postulate lift-≈ⱽ : ∀ {τ n m} {v : Value τ} → v ≈ⱽ v → (β : Bij n m) → v ≈⟨ β ⟩ⱽ v
+postulate unlift-≈ᴿ : ∀ {τ n m} {r₁ r₂ : Raw τ} (β : Bij n m) → r₁ ≈⟨ β ⟩ᴿ r₂ → r₁ ≈ᴿ r₂
 
 mutual
 

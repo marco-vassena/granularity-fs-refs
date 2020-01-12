@@ -42,118 +42,166 @@ open import Data.Product renaming (_×_ to _∧_ ; _,_ to ⟨_,_⟩)
 open import Generic.Bijection
 
 -- TODO: Ideally combined with the lemma below
-step-≈ᴴ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
+postulate step-≈ᴴ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
              let ⟨ Σ , μ , _ ⟩ = c
                  ⟨ Σ' , μ' , _ ⟩ = c' in
                c ⇓⟨ θ , pc ⟩ c' →
                pc ⋤ A →
                μ ≈ᴴ μ'
-step-≈ᴴ {c = c} (Var τ∈Γ x) pc⋤A = ⟨ ι , refl-≈ᴴ {μ = Conf.heap c} ⟩
-step-≈ᴴ Unit pc⋤A = {!!}
-step-≈ᴴ (Lbl ℓ) pc⋤A = {!!}
-step-≈ᴴ (Test₁ x x₁ x₂ x₃) pc⋤A = {!!}
-step-≈ᴴ (Test₂ x x₁ x₂ x₃) pc⋤A = {!!}
-step-≈ᴴ Fun pc⋤A = {!!}
-step-≈ᴴ (App x x₁ refl x₃) pc⋤A =
-  let ⟨ β , μ≈μ₁ ⟩ = step-≈ᴴ x pc⋤A
-      ⟨ β₁ , μ₁≈μ₂ ⟩ = step-≈ᴴ x₁ pc⋤A
-      ⟨ β₂ , μ₂≈μ₃ ⟩ = step-≈ᴴ x₃ (trans-⋤ (join-⊑₁ _ _) pc⋤A) in
-        ⟨ β₂ ∘ᴮ β₁ ∘ᴮ β , (trans-≈ᴴ {β₁ = β} {β₂ ∘ᴮ β₁} μ≈μ₁ (trans-≈ᴴ {β₁ = β₁} {β₂ = β₂} μ₁≈μ₂ μ₂≈μ₃)) ⟩
-step-≈ᴴ (Wken p x) pc⋤A = {!!}
-step-≈ᴴ (Inl x) pc⋤A = {!!}
-step-≈ᴴ (Inr x) pc⋤A = {!!}
-step-≈ᴴ (Case₁ x x₁ x₂) pc⋤A = {!!}
-step-≈ᴴ (Case₂ x x₁ x₂) pc⋤A = {!!}
-step-≈ᴴ (Pair x x₁) pc⋤A = {!!}
-step-≈ᴴ (Fst x x₁) pc⋤A = {!!}
-step-≈ᴴ (Snd x x₁) pc⋤A = {!!}
-step-≈ᴴ (LabelOf x) pc⋤A = {!!}
-step-≈ᴴ GetLabel pc⋤A = {!!}
-step-≈ᴴ (Taint eq x x₁ pc'⊑pc'') pc⋤A = {!!}
-step-≈ᴴ (LabelOfRef x eq) pc⋤A = {!!}
-step-≈ᴴ (New x) pc⋤A = {!!}
-step-≈ᴴ (Read x x₁ eq) pc⋤A = {!!}
-step-≈ᴴ (Write x x₁ x₂ ℓ₂⊑ℓ x₃) pc⋤A = {!!}
-step-≈ᴴ (LabelOfRef-FS x x₁ eq) pc⋤A = {!!}
-step-≈ᴴ (New-FS x) pc⋤A =
-  let ⟨ β , μ≈μ' ⟩ = step-≈ᴴ x pc⋤A in new-≈ᴴ μ≈μ' _ (trans-⋤ (step-⊑ x) pc⋤A)
-step-≈ᴴ (Read-FS x x₁ eq) pc⋤A = {!!}
-step-≈ᴴ (Write-FS x x₁ x₂ x₃ eq x₄) pc⋤A = {!!}
-step-≈ᴴ (Id x) pc⋤A = {!!}
-step-≈ᴴ (UnId x eq) pc⋤A = {!!}
+-- step-≈ᴴ {c = c} (Var τ∈Γ x) pc⋤A = ⟨ ι , refl-≈ᴴ {μ = Conf.heap c} ⟩
+-- step-≈ᴴ Unit pc⋤A = {!!}
+-- step-≈ᴴ (Lbl ℓ) pc⋤A = {!!}
+-- step-≈ᴴ (Test₁ x x₁ x₂ x₃) pc⋤A = {!!}
+-- step-≈ᴴ (Test₂ x x₁ x₂ x₃) pc⋤A = {!!}
+-- step-≈ᴴ Fun pc⋤A = {!!}
+-- step-≈ᴴ (App {μ = μ₁} {μ₂} {μ₃} {μ₄} x x₁ refl x₃) pc⋤A =
+--   let ⟨ β , μ≈μ₁ ⟩ = step-≈ᴴ x pc⋤A
+--       ⟨ β₁ , μ₁≈μ₂ ⟩ = step-≈ᴴ x₁ pc⋤A
+--       ⟨ β₂ , μ₂≈μ₃ ⟩ = step-≈ᴴ x₃ (trans-⋤ (join-⊑₁ _ _) pc⋤A) in
+--         ⟨ β₂ ∘ᴮ β₁ ∘ᴮ β , (trans-≈ᴴ {μ₁} {μ₂} {μ₄} {β₁ = β} {β₂ ∘ᴮ β₁} μ≈μ₁
+--                             (trans-≈ᴴ {μ₂} {μ₃} {μ₄} {β₁ = β₁} {β₂ = β₂} μ₁≈μ₂ μ₂≈μ₃)) ⟩
+-- step-≈ᴴ (Wken p x) pc⋤A = {!!}
+-- step-≈ᴴ (Inl x) pc⋤A = {!!}
+-- step-≈ᴴ (Inr x) pc⋤A = {!!}
+-- step-≈ᴴ (Case₁ x x₁ x₂) pc⋤A = {!!}
+-- step-≈ᴴ (Case₂ x x₁ x₂) pc⋤A = {!!}
+-- step-≈ᴴ (Pair x x₁) pc⋤A = {!!}
+-- step-≈ᴴ (Fst x x₁) pc⋤A = {!!}
+-- step-≈ᴴ (Snd x x₁) pc⋤A = {!!}
+-- step-≈ᴴ (LabelOf x) pc⋤A = {!!}
+-- step-≈ᴴ GetLabel pc⋤A = {!!}
+-- step-≈ᴴ (Taint eq x x₁ pc'⊑pc'') pc⋤A = {!!}
+-- step-≈ᴴ (LabelOfRef x eq) pc⋤A = {!!}
+-- step-≈ᴴ (New x) pc⋤A = {!!}
+-- step-≈ᴴ (Read x x₁ eq) pc⋤A = {!!}
+-- step-≈ᴴ (Write x x₁ x₂ ℓ₂⊑ℓ x₃) pc⋤A = {!!}
+-- step-≈ᴴ (LabelOfRef-FS x x₁ eq) pc⋤A = {!!}
+-- step-≈ᴴ (New-FS {μ = μ} {μ'} {v = v} x) pc⋤A =
+--   let ⟨ β , μ≈μ' ⟩ = step-≈ᴴ x pc⋤A in new-≈ᴴ {μ} {μ'} {β} μ≈μ' v (trans-⋤ (step-⊑ x) pc⋤A)
+-- step-≈ᴴ (Read-FS x x₁ eq) pc⋤A = {!!}
+-- step-≈ᴴ (Write-FS x x₁ x₂ x₃ eq x₄) pc⋤A = {!!}
+-- step-≈ᴴ (Id x) pc⋤A = {!!}
+-- step-≈ᴴ (UnId x eq) pc⋤A = {!!}
 
 
 -- TODO: add FS-Store to this lemma
 -- High steps preserve low-equivalence of stores
-step-≈ˢ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
+postulate step-≈ˢ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
              let ⟨ Σ , μ , _ ⟩ = c
                  ⟨ Σ' , μ' , _ ⟩ = c' in
                c ⇓⟨ θ , pc ⟩ c' →
                pc ⋤ A →
                  (Σ ≈ˢ Σ')
 
-step-≈ˢ (Var τ∈Γ x) pc⋤A = refl-≈ˢ
-step-≈ˢ Unit pc⋤A = refl-≈ˢ
-step-≈ˢ (Lbl ℓ) pc⋤A = refl-≈ˢ
-step-≈ˢ (Test₁ x x₁ x₂ refl) pc⋤A = trans-≈ˢ Σ₁≈Σ₂′ Σ₁≈Σ₂′′
-  where Σ₁≈Σ₂′ = step-≈ˢ x pc⋤A
-        Σ₁≈Σ₂′′ = step-≈ˢ x₁ pc⋤A
-step-≈ˢ (Test₂ x x₁ x₂ refl) pc⋤A = trans-≈ˢ Σ₁≈Σ₂′ Σ₁≈Σ₂′′
-  where Σ₁≈Σ₂′ = step-≈ˢ x pc⋤A
-        Σ₁≈Σ₂′′ = step-≈ˢ x₁ pc⋤A
-step-≈ˢ Fun pc⋤A = refl-≈ˢ
-step-≈ˢ (App x x₁ refl x₃) pc⋤A = trans-≈ˢ Σ₁≈Σ₂′ (trans-≈ˢ Σ₁≈Σ₂′′ Σ₁≈Σ₂′′′)
-  where Σ₁≈Σ₂′ = step-≈ˢ x pc⋤A
-        Σ₁≈Σ₂′′ = step-≈ˢ x₁ pc⋤A
-        Σ₁≈Σ₂′′′ = step-≈ˢ x₃ (trans-⋤ (join-⊑₁ _ _) pc⋤A)
-step-≈ˢ (Wken p x) pc⋤A = step-≈ˢ x pc⋤A
-step-≈ˢ (Inl x) pc⋤A = step-≈ˢ x pc⋤A
-step-≈ˢ (Inr x) pc⋤A = step-≈ˢ x pc⋤A
-step-≈ˢ (Case₁ x refl x₂) pc⋤A = trans-≈ˢ Σ≈Σ' Σ'≈Σ''
-  where Σ≈Σ' = step-≈ˢ x pc⋤A
-        Σ'≈Σ'' = step-≈ˢ x₂ (trans-⋤ (join-⊑₁ _ _) pc⋤A)
-step-≈ˢ (Case₂ x refl x₂) pc⋤A = trans-≈ˢ Σ≈Σ' Σ'≈Σ''
-  where Σ≈Σ' = step-≈ˢ x pc⋤A
-        Σ'≈Σ'' = step-≈ˢ x₂ (trans-⋤ (join-⊑₁ _ _) pc⋤A)
-step-≈ˢ (Pair x x₁) pc⋤A = trans-≈ˢ Σ≈Σ' Σ'≈Σ''
-  where Σ≈Σ' = step-≈ˢ x pc⋤A
-        Σ'≈Σ'' = step-≈ˢ x₁ pc⋤A
-step-≈ˢ (Fst x x₁) pc⋤A = step-≈ˢ x pc⋤A
-step-≈ˢ (Snd x x₁) pc⋤A = step-≈ˢ x pc⋤A
-step-≈ˢ (LabelOf x) pc⋤A = step-≈ˢ x pc⋤A
-step-≈ˢ GetLabel pc⋤A = refl-≈ˢ
-step-≈ˢ (Taint refl x₁ x₂ pc'⊑pc'') pc⋤A = trans-≈ˢ Σ≈Σ' Σ'≈Σ''
-  where Σ≈Σ' = step-≈ˢ x₁ pc⋤A
-        Σ'≈Σ'' = step-≈ˢ x₂ (trans-⋤ (join-⊑₁ _ _) pc⋤A)
-step-≈ˢ (LabelOfRef x eq) pc⋤A = step-≈ˢ x pc⋤A
-step-≈ˢ (New x) pc⋤A = trans-≈ˢ Σ≈Σ' Σ'≈Σ''
-  where Σ≈Σ' = step-≈ˢ x pc⋤A
-        Σ'≈Σ'' = updateᴴ-≈ˢ _ _ (trans-⋤ (step-⊑ x) pc⋤A)
-step-≈ˢ (Read x₁ x₂ eq) pc⋤A = step-≈ˢ x₁ pc⋤A
-step-≈ˢ (Write x ℓ'⊑pc x₂ ℓ₂⊑ℓ x₃) pc⋤A = trans-≈ˢ Σ≈Σ' (trans-≈ˢ Σ'≈Σ'' Σ''≈Σ''')
-  where pc⊑ℓ = trans-⊑ (step-⊑ x₂) ℓ₂⊑ℓ
-        Σ≈Σ' = step-≈ˢ x pc⋤A
-        Σ'≈Σ'' = step-≈ˢ x₂ pc⋤A
-        Σ''≈Σ''' = updateᴴ-≈ˢ _ _ (trans-⋤ pc⊑ℓ pc⋤A)
-step-≈ˢ (Id x) pc⋤A = step-≈ˢ x pc⋤A
-step-≈ˢ (UnId x₁ x₂) pc⋤A = step-≈ˢ x₁ pc⋤A
+-- step-≈ˢ (Var τ∈Γ x) pc⋤A = refl-≈ˢ
+-- step-≈ˢ Unit pc⋤A = refl-≈ˢ
+-- step-≈ˢ (Lbl ℓ) pc⋤A = refl-≈ˢ
+-- step-≈ˢ (Test₁ x x₁ x₂ refl) pc⋤A = trans-≈ˢ Σ₁≈Σ₂′ Σ₁≈Σ₂′′
+--   where Σ₁≈Σ₂′ = step-≈ˢ x pc⋤A
+--         Σ₁≈Σ₂′′ = step-≈ˢ x₁ pc⋤A
+-- step-≈ˢ (Test₂ x x₁ x₂ refl) pc⋤A = trans-≈ˢ Σ₁≈Σ₂′ Σ₁≈Σ₂′′
+--   where Σ₁≈Σ₂′ = step-≈ˢ x pc⋤A
+--         Σ₁≈Σ₂′′ = step-≈ˢ x₁ pc⋤A
+-- step-≈ˢ Fun pc⋤A = refl-≈ˢ
+-- step-≈ˢ (App x x₁ refl x₃) pc⋤A = trans-≈ˢ Σ₁≈Σ₂′ (trans-≈ˢ Σ₁≈Σ₂′′ Σ₁≈Σ₂′′′)
+--   where Σ₁≈Σ₂′ = step-≈ˢ x pc⋤A
+--         Σ₁≈Σ₂′′ = step-≈ˢ x₁ pc⋤A
+--         Σ₁≈Σ₂′′′ = step-≈ˢ x₃ (trans-⋤ (join-⊑₁ _ _) pc⋤A)
+-- step-≈ˢ (Wken p x) pc⋤A = step-≈ˢ x pc⋤A
+-- step-≈ˢ (Inl x) pc⋤A = step-≈ˢ x pc⋤A
+-- step-≈ˢ (Inr x) pc⋤A = step-≈ˢ x pc⋤A
+-- step-≈ˢ (Case₁ x refl x₂) pc⋤A = trans-≈ˢ Σ≈Σ' Σ'≈Σ''
+--   where Σ≈Σ' = step-≈ˢ x pc⋤A
+--         Σ'≈Σ'' = step-≈ˢ x₂ (trans-⋤ (join-⊑₁ _ _) pc⋤A)
+-- step-≈ˢ (Case₂ x refl x₂) pc⋤A = trans-≈ˢ Σ≈Σ' Σ'≈Σ''
+--   where Σ≈Σ' = step-≈ˢ x pc⋤A
+--         Σ'≈Σ'' = step-≈ˢ x₂ (trans-⋤ (join-⊑₁ _ _) pc⋤A)
+-- step-≈ˢ (Pair x x₁) pc⋤A = trans-≈ˢ Σ≈Σ' Σ'≈Σ''
+--   where Σ≈Σ' = step-≈ˢ x pc⋤A
+--         Σ'≈Σ'' = step-≈ˢ x₁ pc⋤A
+-- step-≈ˢ (Fst x x₁) pc⋤A = step-≈ˢ x pc⋤A
+-- step-≈ˢ (Snd x x₁) pc⋤A = step-≈ˢ x pc⋤A
+-- step-≈ˢ (LabelOf x) pc⋤A = step-≈ˢ x pc⋤A
+-- step-≈ˢ GetLabel pc⋤A = refl-≈ˢ
+-- step-≈ˢ (Taint refl x₁ x₂ pc'⊑pc'') pc⋤A = trans-≈ˢ Σ≈Σ' Σ'≈Σ''
+--   where Σ≈Σ' = step-≈ˢ x₁ pc⋤A
+--         Σ'≈Σ'' = step-≈ˢ x₂ (trans-⋤ (join-⊑₁ _ _) pc⋤A)
+-- step-≈ˢ (LabelOfRef x eq) pc⋤A = step-≈ˢ x pc⋤A
+-- step-≈ˢ (New x) pc⋤A = trans-≈ˢ Σ≈Σ' Σ'≈Σ''
+--   where Σ≈Σ' = step-≈ˢ x pc⋤A
+--         Σ'≈Σ'' = updateᴴ-≈ˢ _ _ (trans-⋤ (step-⊑ x) pc⋤A)
+-- step-≈ˢ (Read x₁ x₂ eq) pc⋤A = step-≈ˢ x₁ pc⋤A
+-- step-≈ˢ (Write x ℓ'⊑pc x₂ ℓ₂⊑ℓ x₃) pc⋤A = trans-≈ˢ Σ≈Σ' (trans-≈ˢ Σ'≈Σ'' Σ''≈Σ''')
+--   where pc⊑ℓ = trans-⊑ (step-⊑ x₂) ℓ₂⊑ℓ
+--         Σ≈Σ' = step-≈ˢ x pc⋤A
+--         Σ'≈Σ'' = step-≈ˢ x₂ pc⋤A
+--         Σ''≈Σ''' = updateᴴ-≈ˢ _ _ (trans-⋤ pc⊑ℓ pc⋤A)
+-- step-≈ˢ (Id x) pc⋤A = step-≈ˢ x pc⋤A
+-- step-≈ˢ (UnId x₁ x₂) pc⋤A = step-≈ˢ x₁ pc⋤A
 
 --------------------------------------------------------------------------------
 
 open _≈⟨_⟩ᴬ_
+open import Data.Unit
+open import Generic.Heap 𝑯
+open SecurityLattice 𝑳
+open import Data.Nat
+open import Generic.LValue
+open HasLabel 𝑯 -- import Generic.LValue as H
 
 mutual
 
   -- TINI for low steps
-  postulate tiniᴸ : ∀ {pc τ Γ Σ₁ Σ₂ μ₁ μ₂ e} {θ₁ θ₂ : Env Γ} {c₁' c₂' : FConf τ} →
+  tiniᴸ : ∀ {pc τ Γ Σ₁ Σ₂ μ₁ μ₂ e} {θ₁ θ₂ : Env Γ} {c₁' c₂' : FConf τ} →
                     let c₁ = ⟨ Σ₁ , μ₁ , e ⟩
                         c₂ = ⟨ Σ₂ , μ₂ , e ⟩ in
                     c₁ ⇓⟨ θ₁ , pc ⟩ c₁' →
                     c₂ ⇓⟨ θ₂ , pc ⟩ c₂' →
+                    (β : Bij⟨ μ₁ , μ₂ ⟩) →
                     Σ₁ ≈ˢ Σ₂ →
+                    μ₁ ≈⟨ β ⟩ᴴ μ₂ →
                     θ₁ ≈ᴱ θ₂ →
                     pc ⊑ A →
                     c₁' ≈ᶜ c₂'
+  tiniᴸ (Var τ∈Γ x) (Var .τ∈Γ x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ Unit Unit β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (Lbl ℓ) (Lbl .ℓ) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (Test₁ x x₁ x₂ x₃) (Test₁ x₄ x₅ x₆ x₇) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (Test₁ x x₁ x₂ x₃) (Test₂ x₄ x₅ x₆ x₇) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (Test₂ x x₁ x₂ x₃) (Test₁ x₄ x₅ x₆ x₇) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (Test₂ x x₁ x₂ x₃) (Test₂ x₄ x₅ x₆ x₇) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ Fun Fun β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (App x x₁ x₂ x₃) (App x₄ x₅ x₆ x₇) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (Wken p x) (Wken .p x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (Inl x) (Inl x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (Inr x) (Inr x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (Case₁ x x₁ x₂) (Case₁ x₃ x₄ x₅) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (Case₁ x x₁ x₂) (Case₂ x₃ x₄ x₅) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (Case₂ x x₁ x₂) (Case₁ x₃ x₄ x₅) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (Case₂ x x₁ x₂) (Case₂ x₃ x₄ x₅) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (Pair x x₁) (Pair x₂ x₃) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (Fst x x₁) (Fst x₂ x₃) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (Snd x x₁) (Snd x₂ x₃) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (LabelOf x) (LabelOf x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ GetLabel GetLabel β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (Taint eq x x₁ pc'⊑pc'') (Taint eq₁ y y₁ pc'⊑pc''') β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (LabelOfRef x eq) (LabelOfRef x₁ eq₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (New x) (New x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (Read x x₁ eq) (Read x₂ x₃ eq₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (Write x x₁ x₂ ℓ₂⊑ℓ x₃) (Write x₄ x₅ x₆ ℓ₂⊑ℓ₁ x₇) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (LabelOfRef-FS x x₁ eq) (LabelOfRef-FS x₂ x₃ eq₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (New-FS x) (New-FS y) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A
+    with tiniᴸ x y β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A
+  ... | E.⟨ β' , store-≈ˢ , heap-≈ᴴ , v≈ ⟩
+    = ⟨ {!!} , store-≈ˢ , {!!} , Valueᴸ pc⊑A (unlift-≈ᴿ {!? ∘ᴮ β' !} (Ref-S {!!})) ⟩
+--    where open import Generic.Container.Base ⊤ Ty LValue
+  -- ... | E.⟨ bij , store-≈ˢ , heap-≈ᴴ , Valueᴸ ℓ⊑A r≈ ⟩ = {!!} -- ⟨ {!!} , {!!} , {!!} , {!!} ⟩
+  -- ... | E.⟨ bij , store-≈ˢ , heap-≈ᴴ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = {!!} -- ⟨ {!!} , {!!} , {!!} , {!!} ⟩
+
+  tiniᴸ (Read-FS x x₁ eq) (Read-FS x₂ x₃ eq₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (Write-FS x x₁ x₂ x₃ eq x₄) (Write-FS x₅ x₆ x₇ x₈ eq₁ x₉) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (Id x) (Id x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (UnId x eq) (UnId x₁ eq₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
 
   -- tiniᴸ (Var τ∈Γ refl) (Var .τ∈Γ refl) Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A = ⟨ Σ₁≈Σ₂ , ≈ⱽ-⊑ _ v₁≈v₂ ⟩
   --   where v₁≈v₂ = lookup-≈ⱽ τ∈Γ θ₁≈θ₂

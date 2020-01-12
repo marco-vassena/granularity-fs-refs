@@ -96,6 +96,23 @@ suc x ≟ᶠ suc y | no ¬p = no λ { refl → ¬p refl }
 -- to map back one extra value. With an (explicitly) partial function
 -- I could restrict the inverse to consider only the parts where it is
 -- defined.
-_↑¹ : ∀ {n m} → Bij n m → Bij n (suc m)
-β ↑¹ = bijection (λ x → inject₁ (to ⟨$⟩ x)) (λ y → from ⟨$⟩ {!!}) {!!} {!!}
+_↑¹ : ∀ {n m} → Bij n m → Bij (suc n) (suc m)
+β ↑¹ = {!!} -- bijection (λ x → inject₁ (to ⟨$⟩ x)) (λ y → from ⟨$⟩ {!!}) {!!} {!!}
   where open Bijection β
+
+-- The domain and the codomain should have the same size! n ≡ m
+
+-- add one entry to a bijection
+_▻_ : ∀ {n m} → Bij n m → (Fin (suc n)) × (Fin (suc m)) → Bij (suc n) (suc m)
+_▻_ {n} {m} β (x , y) =  {!β₁!} ∘ᴮ β'
+  where β₁ β' : Bij (suc n) (suc m)
+        β' = β ↑¹
+
+        β₁ = bijection {!!} {!!} {!!} {!!}
+
+        -- to₁ :
+-- record { to = {!to ⟨$⟩ !} ; bijective = {!!} }
+--   where open Bijection β
+
+foo : ∀ {n m} → Bij n m → n ≡ m
+foo record { to = to ; bijective = bijective } = ?
