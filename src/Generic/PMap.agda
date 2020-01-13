@@ -7,6 +7,7 @@ open import Data.Maybe
 open import Relation.Nullary
 open import Relation.Binary
 open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Category.Monad
 
 -- If and only if
 _⇔_ : ∀ (A B : Set) → Set
@@ -19,6 +20,24 @@ _⇀_ : Set → Set → Set
 A ⇀ B = A → Maybe B
 
 infix 1 _⇀_
+
+-- _>=>_ : ∀ {A B C} → (B ⇀ C) → (A ⇀ B) → (A ⇀ C)
+-- f >=> g = (λ x → g x >>= f)
+
+open import Level
+open RawMonad {zero} monad
+
+back : ∀ {A B C x} (f : B ⇀ C) (g : A ⇀ B) → Is-just ((g >=> f) x) → Is-just (g x)
+back {x = x} f g p with g x
+back f g p | just x₁ = just tt
+back f g () | nothing
+
+-- back₂ : ∀ {A B C x} (f : B ⇀ C) (g : A ⇀ B) → Is-just ((g >=> f) x) → Is-just (f {!!})
+-- back₂ {x = x} f g p = {!!}
+-- with f x
+-- back₂ f g p | just x₁ = just tt
+-- back₂ f g () | nothing
+
 
 -- Empty Map
 ∅ : ∀ {A B} → A ⇀ B
@@ -49,12 +68,26 @@ sym-# {f = f} {g} p a | just x | nothing | f#g = λ ()
 sym-# {f = f} {g} p a | nothing | ga | f#g = λ _ → nothing
 
 -- Proof that a maps to b in the partial map.
-_∈_ : ∀ {A B} → A × B → A ⇀ B → Set
-(a , b) ∈ p = p a ≡ just b
+_∈′_ : ∀ {A B} → A × B → A ⇀ B → Set
+(a , b) ∈′ p = p a ≡ just b
 
 infixr 4 _∈_
 
--- Proof that a is undefined in the nap
+_∈ᴰ_ : ∀ {A B} → A → A ⇀ B → Set
+a ∈ᴰ p = ∃ (λ b → (a , b) ∈′ p )
+
+_∈ᴿ_ : ∀ {A B} → B → A ⇀ B → Set
+b ∈ᴿ p = ∃ (λ a → (a , b) ∈′ p )
+
+-- Proof smth is defined in the map
+_∈_ : ∀ {A B} → A →  A ⇀ B → Set
+a ∈ p = Is-just (p a)
+
+∈-∈ᴰ : ∀ {A B} {a : A} {p : A ⇀ B} → a ∈ p → a ∈ᴰ p
+∈-∈ᴰ {a = a} {p} x with p a
+∈-∈ᴰ {a = a} {p} (just px) | .(just _) = _ , refl
+
+-- Proof that a is undefined in the map
 _∉_ : ∀ {A B} → A → A ⇀ B → Set
 a ∉ p = Is-nothing (p a)
 
@@ -81,10 +114,15 @@ module Util {A B : Set} {{ _≟ᴬ_ : DecEq A }}  where
   infixr 1 _↦_
 
   -- Only one mapping
-  only-one : ∀ a b a' b' → (a' , b') ∈ (a ↦ b) → a' ≡ a × b' ≡ b
+  only-one : ∀ a b a' b' → (a' , b') ∈′ (a ↦ b) → a' ≡ a × b' ≡ b
   only-one a b a' b' x with a ≟ᴬ a'
   only-one a b .a .b refl | yes refl = refl , refl
   only-one a b a' b' () | no ¬p
+
+  back↦ : ∀ x' x y → x' ∈ (x ↦ y) → x' ≡ x
+  back↦ x' x y p with x ≟ᴬ x'
+  back↦ _ _ _ p  | yes refl = refl
+  back↦ _ _ _ () | no ¬p
 
   -- Not in the domain implies disjointness
   ∉-# : ∀ {a : A} {b : B} → (f : A ⇀ B) → a ∉ f → f # (a ↦ b)
@@ -114,7 +152,7 @@ f ∣′ g = λ a → f a ∣ g a
 
 -- Partial Inverse
 Inverse : ∀ {A B} (f : A ⇀ B) (g : B ⇀ A) → Set
-Inverse f g = ∀ {a b} → (a , b) ∈ f → (b , a) ∈ g
+Inverse f g = ∀ {a b} → (a , b) ∈′ f → (b , a) ∈′ g
 
 -- Disjoint invert partial maps compose and remain inverse.
 inverse-compose  : ∀ {A B : Set} {f₁ f₂ : A ⇀ B} {g₁ g₂ : B ⇀ A} →

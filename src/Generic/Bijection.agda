@@ -2,50 +2,91 @@
 
 module Generic.Bijection where
 
-open import Function as F hiding (flip)
+import Function as F
 open import Relation.Nullary
-open import Relation.Binary.PropositionalEquality as P
-open import Function.Bijection renaming (_∘_ to _∘ᴮ_) public   -- rexport composition
-open import Function.Bijection as B
+open import Relation.Binary.PropositionalEquality
+-- open import Function.Bijection renaming (_∘_ to _∘ᴮ_) public   -- rexport composition
+-- open import Function.Bijection as B
 open import Data.Empty
 open import Data.Nat
 open import Data.Maybe
+open import Generic.Injection as I hiding (id ; _∘_)
+open import Generic.Surjection as S hiding (id ; _∘_)
+open import Generic.PMap as P hiding (∅ ; back) -- using (_⇀_)
 
---------------------------------------------------------------------------------
--- (From a more recent version of Agda lib)
--- The set of all bijections between two sets (i.e. bijections with
--- propositional equality)
+-- A partial bijection with restricted injectivity and surjectivity
+-- properties only where the codomain is defined.
+record Bijectiveᴾ {A B : Set} (to : A ⇀ B) : Set where
+  field injectiveᴾ : Injectiveᴾ to
+        surjectiveᴾ : Surjectiveᴾ to
 
-infix 3 _⤖_
+-- The set of partial bijections.
+record Bijectionᴾ (A B : Set) : Set where
+  field to : A ⇀ B
+        bijectiveᴾ : Bijectiveᴾ to
 
-_⤖_ : ∀ {f t} → Set f → Set t → Set _
-From ⤖ To = Bijection (P.setoid From) (P.setoid To)
+  open Bijectiveᴾ bijectiveᴾ public
 
-bijection : ∀ {f t} {From : Set f} {To : Set t} →
-            (to : From → To) (from : To → From) →
-            (∀ {x y} → to x ≡ to y → x ≡ y) →
-            (∀ x → to (from x) ≡ x) →
-            From ⤖ To
-bijection to from inj invʳ = record
-  { to        = P.→-to-⟶ to
-  ; bijective = record
-    { injective  = inj
-    ; surjective = record
-      { from             = P.→-to-⟶ from
-      ; right-inverse-of = invʳ
-      }
+  injectionᴾ : Injectionᴾ A B
+  injectionᴾ = record { to = to ; injectiveᴾ = injectiveᴾ }
+
+  surjectionᴾ : Surjectionᴾ A B
+  surjectionᴾ = record { to = to ; surjectiveᴾ = surjectiveᴾ }
+
+  open Surjectionᴾ surjectionᴾ public using ( right-inverse )
+
+  left-inverse : LeftInverse From To
+  left-inverse = record
+    { to              = to
+    ; from            = from
+    ; left-inverse-of = left-inverse-of
     }
-  }
+
+  open LeftInverse left-inverse public using (to-from)
+
+
+bijectionᴾ : {A B : Set} (to : A ⇀ B) (from : B ⇀ A) →
+             Injectiveᴾ to → from RightInverseOfᴾ to →
+             Bijectionᴾ A B
+bijectionᴾ to from inj inv
+  = record { to = to
+           ; bijectiveᴾ = record
+             { injectiveᴾ = inj
+             ; surjectiveᴾ = record
+               { from = from
+               ; right-inverse-of = inv
+               }
+             }
+           }
+
+infix 3 _⤖ᴾ_
+
+_⤖ᴾ_ : Set → Set → Set
+From ⤖ᴾ To = Bijectionᴾ From To
+
+-- Empty partial bijection
+∅ : ∀ {A B} → A ⤖ᴾ B
+∅ = bijectionᴾ (F.const nothing) (F.const nothing) (λ {x} {y} _ → λ ()) (λ x → λ ())
+
+-- Identity partial bijection
+id : ∀ {A} → A ⤖ᴾ A
+id = bijectionᴾ just just (λ {x₁ x₂ refl → refl }) (λ { x (just px) → refl })
+
+-- Composition
+_∘_ : ∀ {A B C} → B ⤖ᴾ C → A ⤖ᴾ B → A ⤖ᴾ C
+f ∘ g = {!!}
+
+-- Use composition of Injectionᴾ and Surjectionᴾ
 
 --------------------------------------------------------------------------------
-open import Function.Equality
+-- open import Function.Equality
 
 -- Invert a bijection
-
-_⁻¹ : ∀ {f t} {A : Set f} {B : Set t} → A ⤖ B → B ⤖ A
-β ⁻¹ = Inverse.bijection (I.sym (fromBijection β))
-  where open Bijection β
-        open import Function.Inverse as I
+-- Inverse.bijection (I.sym (fromBijection β))
+_⁻¹ : ∀ {A : Set} {B : Set} → A ⤖ᴾ B → B ⤖ᴾ A
+β ⁻¹ = {!!}
+  where open Bijectionᴾ β
+--        open import Function.Inverse as I
 
 --------------------------------------------------------------------------------
 
@@ -58,61 +99,79 @@ open import Data.Product
 -- library provides no support) and carrying extra assumptions about
 -- domain and codomain.
 Bij : ℕ → ℕ → Set
-Bij n m = Fin n ⤖ Fin m
+Bij n m = Fin n ⤖ᴾ Fin m
 
 -- Identity bijection.
 ι : ∀ {n} → Bij n n
-ι = B.id
+ι = {!!}
+-- B.id
 
 -- TODO: rename ι′ n
 ι⟨_⟩ : ∀ n → Bij n n
-ι⟨ n ⟩ = B.id
+ι⟨ n ⟩ = {!!}
+-- B.id
 
 
 _↦_∈ᴮ_ : ∀ {n m} → Fin n → Fin m → Bij n m → Set
-x ↦ y ∈ᴮ β = to ⟨$⟩ x ≡ y
-  where open Bijection β
+x ↦ y ∈ᴮ β = {!!}
+-- to ⟨$⟩ x ≡ y
+--   where open Bijection β
 
-_≟ᶠ_ : ∀ {n} → (x y : Fin n) → Dec (x ≡ y)
-zero ≟ᶠ zero = yes refl
-zero ≟ᶠ suc y = no (λ ())
-suc x ≟ᶠ zero = no (λ ())
-suc x ≟ᶠ suc y with x  ≟ᶠ y
-suc x ≟ᶠ suc .x | yes refl = yes refl
-suc x ≟ᶠ suc y | no ¬p = no λ { refl → ¬p refl }
+instance
+  _≟ᶠ_ : ∀ {n} → (x y : Fin n) → Dec (x ≡ y)
+  zero ≟ᶠ zero = yes refl
+  zero ≟ᶠ suc y = no (λ ())
+  suc x ≟ᶠ zero = no (λ ())
+  suc x ≟ᶠ suc y with x  ≟ᶠ y
+  suc x ≟ᶠ suc .x | yes refl = yes refl
+  suc x ≟ᶠ suc y | no ¬p = no λ { refl → ¬p refl }
 
 -- Singleton bijection
--- _↔_ : ∀ (n m : ℕ) → Bij (suc n) (suc m)
--- n ↔ m  = bijection to {!!} {!!} {!!}
---   where to : Fin (suc n) → Fin (suc m)
---         to x with x ≟ᶠ (fromℕ n)
---         to .(fromℕ _) | yes refl = fromℕ m
---         to x | no ¬p = {!!} -- what should I return here?
--- I guess I should just use composition, but there will be secret entries
--- that have no counterpart and that are just "not defined"
+_↔_ : ∀ {n m} (x : Fin n) (y : Fin m) → Bij n m
+_↔_ {n} {m} x y  = bijectionᴾ (x ↦ y) (y ↦ x) inj inv
+  where
+        inj : Injectiveᴾ (x ↦ y)
+        inj {x'} {y'} p q eq = trans (back↦ x' x y p) (sym (back↦ y' x y q))
 
--- wken the codomain (modeling adding a secret entry to the
--- bijection).  It doens't work because in the invert function I need
--- to map back one extra value. With an (explicitly) partial function
--- I could restrict the inverse to consider only the parts where it is
--- defined.
+        inv : (y ↦ x) RightInverseOfᴾ (x ↦ y)
+        inv y' p with to-witness p | inspect to-witness p
+        ... | r | [ eq ] with x ≟ᶠ r | y ≟ᶠ y'
+        inv _ p | _ | [ eq ] | yes refl | yes refl = refl
+        inv y' () | _ | [ eq ] | yes refl | no ¬p
+        inv _ (just px) | r | [ eq ] | no ¬p | yes refl = ⊥-elim (¬p eq)
+        inv y' () | r | [ eq ] | no ¬p | no ¬p₁
+
+-- This weakening is used to match domain and codomain for composition.
 _↑¹ : ∀ {n m} → Bij n m → Bij (suc n) (suc m)
 β ↑¹ = {!!} -- bijection (λ x → inject₁ (to ⟨$⟩ x)) (λ y → from ⟨$⟩ {!!}) {!!} {!!}
-  where open Bijection β
+  -- where open Bijection β
 
 -- The domain and the codomain should have the same size! n ≡ m
-
 -- add one entry to a bijection
 _▻_ : ∀ {n m} → Bij n m → (Fin (suc n)) × (Fin (suc m)) → Bij (suc n) (suc m)
-_▻_ {n} {m} β (x , y) =  {!β₁!} ∘ᴮ β'
-  where β₁ β' : Bij (suc n) (suc m)
-        β' = β ↑¹
+_▻_ {n} {m} β (x , y) = record { to = B₁.to ∣′ B₂.to ; bijectiveᴾ = bij }
+  where module B₁ = Bijectionᴾ (β ↑¹)
+        module B₂ = Bijectionᴾ (x ↔ y)
 
-        β₁ = bijection {!!} {!!} {!!} {!!}
+        inj : Injectiveᴾ (B₁.to ∣′ B₂.to)
+        inj = {!!}
+
+        sur : Surjectiveᴾ (B₁.to ∣′ B₂.to)
+        sur = record { from = {!B₁.from ∣′ B₂.from!} ; right-inverse-of = {!!} }
+
+        bij : Bijectiveᴾ (B₁.to ∣′ B₂.to)
+        bij = record { injectiveᴾ = inj ; surjectiveᴾ = sur }
+
+
+-- Composition does not give me the type that i expect. Why?
+-- should I write this as a primitive op?
+
+ -- {!β₁!} ∘ᴮ β'
+ --  where β₁ β' : Bij (suc n) (suc m)
+ --        β' = β ↑¹
+
+ --        β₁ = bijection {!!} {!!} {!!} {!!}
 
         -- to₁ :
 -- record { to = {!to ⟨$⟩ !} ; bijective = {!!} }
 --   where open Bijection β
-
-foo : ∀ {n m} → Bij n m → n ≡ m
-foo record { to = to ; bijective = bijective } = ?
