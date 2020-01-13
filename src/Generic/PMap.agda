@@ -6,7 +6,7 @@ open import Data.Unit
 open import Data.Maybe
 open import Relation.Nullary
 open import Relation.Binary
-open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Relation.Binary.PropositionalEquality as P hiding ([_])
 open import Category.Monad
 
 -- If and only if
@@ -67,25 +67,35 @@ sym-# {f = f} {g} p a | just x | just x₁ | f#g = ⊥-elim (⊥-is-nothing-just
 sym-# {f = f} {g} p a | just x | nothing | f#g = λ ()
 sym-# {f = f} {g} p a | nothing | ga | f#g = λ _ → nothing
 
+data Graph {A : Set} {B : Set} (f : A ⇀ B) (a : A) : B → Set where
+  just : ∀ {b a'} → a ≡ a' → f a' ≡ just b → Graph f a b
+
 -- Proof that a maps to b in the partial map.
-_∈′_ : ∀ {A B} → A × B → A ⇀ B → Set
-(a , b) ∈′ p = p a ≡ just b
+_∈_ : ∀ {A B} → A × B → A ⇀ B → Set
+(a , b) ∈ p = Graph p a b
 
 infixr 4 _∈_
 
 _∈ᴰ_ : ∀ {A B} → A → A ⇀ B → Set
-a ∈ᴰ p = ∃ (λ b → (a , b) ∈′ p )
+a ∈ᴰ p = ∃ (λ b → (a , b) ∈ p )
 
 _∈ᴿ_ : ∀ {A B} → B → A ⇀ B → Set
-b ∈ᴿ p = ∃ (λ a → (a , b) ∈′ p )
+b ∈ᴿ p = ∃ (λ a → (a , b) ∈ p )
 
--- Proof smth is defined in the map
-_∈_ : ∀ {A B} → A →  A ⇀ B → Set
-a ∈ p = Is-just (p a)
+∈-∈ᴿ : ∀ {A B} {a b} {p : A ⇀ B} → (a , b) ∈ p → b ∈ᴿ p
+∈-∈ᴿ {a = a} {b} {p} (just x y) = a , just x y
 
-∈-∈ᴰ : ∀ {A B} {a : A} {p : A ⇀ B} → a ∈ p → a ∈ᴰ p
-∈-∈ᴰ {a = a} {p} x with p a
-∈-∈ᴰ {a = a} {p} (just px) | .(just _) = _ , refl
+∈-∈ᴰ : ∀ {A B} {a b} {p : A ⇀ B} → (a , b) ∈ p → a ∈ᴰ p
+∈-∈ᴰ {a = a} {b} {p} x = b , x
+
+
+-- -- Proof smth is defined in the map
+-- _∈_ : ∀ {A B} → A →  A ⇀ B → Set
+-- a ∈ p = Is-just (p a)
+
+-- ∈-∈ᴰ : ∀ {A B} {a : A} {p : A ⇀ B} → a ∈ p → a ∈ᴰ p
+-- ∈-∈ᴰ {a = a} {p} x with p a
+-- ∈-∈ᴰ {a = a} {p} (just px) | .(just _) = _ , refl
 
 -- Proof that a is undefined in the map
 _∉_ : ∀ {A B} → A → A ⇀ B → Set
@@ -113,55 +123,55 @@ module Util {A B : Set} {{ _≟ᴬ_ : DecEq A }}  where
 
   infixr 1 _↦_
 
-  -- Only one mapping
-  only-one : ∀ a b a' b' → (a' , b') ∈′ (a ↦ b) → a' ≡ a × b' ≡ b
-  only-one a b a' b' x with a ≟ᴬ a'
-  only-one a b .a .b refl | yes refl = refl , refl
-  only-one a b a' b' () | no ¬p
+--   -- Only one mapping
+--   only-one : ∀ a b a' b' → (a' , b') ∈ (a ↦ b) → a' ≡ a × b' ≡ b
+--   only-one a b a' b' x with a ≟ᴬ a'
+--   only-one a b .a .b refl | yes refl = refl , refl
+--   only-one a b a' b' () | no ¬p
 
-  back↦ : ∀ x' x y → x' ∈ (x ↦ y) → x' ≡ x
-  back↦ x' x y p with x ≟ᴬ x'
-  back↦ _ _ _ p  | yes refl = refl
-  back↦ _ _ _ () | no ¬p
+--   -- back↦ : ∀ x' x y → x' ∈ (x ↦ y) → x' ≡ x
+--   -- back↦ x' x y p with x ≟ᴬ x'
+--   -- back↦ _ _ _ p  | yes refl = refl
+--   -- back↦ _ _ _ () | no ¬p
 
-  -- Not in the domain implies disjointness
-  ∉-# : ∀ {a : A} {b : B} → (f : A ⇀ B) → a ∉ f → f # (a ↦ b)
-  ∉-# {a} f x a' y  with a ≟ᴬ a'
-  ∉-# {a} {b} f x a' y | no ¬p = nothing
-  ∉-# {a} {b} f x a' y | yes p = ⊥-elim (aux (cong f p) x y)
-    where aux : f a ≡ f a' → Is-nothing (f a) → ¬ (Is-just (f a'))
-          aux eq x y with f a | f a'
-          aux eq (just px) y | .(just _) | b' = px
-          aux () nothing (just px) | .nothing | .(just _)
+--   -- Not in the domain implies disjointness
+--   ∉-# : ∀ {a : A} {b : B} → (f : A ⇀ B) → a ∉ f → f # (a ↦ b)
+--   ∉-# {a} f x a' y  with a ≟ᴬ a'
+--   ∉-# {a} {b} f x a' y | no ¬p = nothing
+--   ∉-# {a} {b} f x a' y | yes p = ⊥-elim (aux (cong f p) x y)
+--     where aux : f a ≡ f a' → Is-nothing (f a) → ¬ (Is-just (f a'))
+--           aux eq x y with f a | f a'
+--           aux eq (just px) y | .(just _) | b' = px
+--           aux () nothing (just px) | .nothing | .(just _)
 
-open Util public
+-- open Util public
 
--- Syntactic sugar when the DecEq instance is not found automatically
-_-⟨_⟩→_ : ∀ {A B : Set} →  A → DecEq A → B → A ⇀ B
-_-⟨_⟩→_ {A} {B} a _≟_  b = a P.↦ b
-  where module P = Util {A} {B} {{_≟_}}
+-- -- Syntactic sugar when the DecEq instance is not found automatically
+-- -- _-⟨_⟩→_ : ∀ {A B : Set} →  A → DecEq A → B → A ⇀ B
+-- -- _-⟨_⟩→_ {A} {B} a _≟_  b = a P.↦ b
+-- --   where module P = Util {A} {B} {{_≟_}}
 
--------------------------------------------------------------------------------
-open import Level
-open import Category.Monad
-open RawMonadPlus {zero} {M = Maybe} monadPlus hiding (∅)
+-- -------------------------------------------------------------------------------
+-- open import Level
+-- open import Category.Monad
+-- open RawMonadPlus {zero} {M = Maybe} monadPlus hiding (∅)
 
--- Pointwise _∣_ for readability
-_∣′_ : ∀ {A B} → A ⇀ B → A ⇀ B → A ⇀ B
-f ∣′ g = λ a → f a ∣ g a
+-- -- Pointwise _∣_ for readability
+-- _∣′_ : ∀ {A B} → A ⇀ B → A ⇀ B → A ⇀ B
+-- f ∣′ g = λ a → f a ∣ g a
 
--- Partial Inverse
-Inverse : ∀ {A B} (f : A ⇀ B) (g : B ⇀ A) → Set
-Inverse f g = ∀ {a b} → (a , b) ∈′ f → (b , a) ∈′ g
+-- -- Partial Inverse
+-- Inverse : ∀ {A B} (f : A ⇀ B) (g : B ⇀ A) → Set
+-- Inverse f g = ∀ {a b} → (a , b) ∈ f → (b , a) ∈ g
 
--- Disjoint invert partial maps compose and remain inverse.
-inverse-compose  : ∀ {A B : Set} {f₁ f₂ : A ⇀ B} {g₁ g₂ : B ⇀ A} →
-          Inverse f₁ g₁ → Inverse f₂ g₂ →
-          f₁ # f₂ → g₁ # g₂ →
-          Inverse (f₁ ∣′ f₂) (g₁ ∣′ g₂)
-inverse-compose {_} {_} {f₁} {f₂} {g₁} {g₂} inv₁ inv₂ #₁ #₂ {a} {b} eq
-  with f₁ a | f₂ a | g₁ b | g₂ b | inv₁ {a} {b} | inv₂ {a} {b} | #₁ a | #₂ b
-... | just x | ma₂ | mb₁ | mb₂ | eq₁ | eq₂ | p₁ | p₂
-  rewrite eq₁ eq = refl
-... | nothing | ma₂ | mb₁ | mb₂ | eq₁ | eq₂ | p₁ | p₂
-  rewrite eq₂ eq | is-just-nothing mb₁ p₂ = refl
+-- -- Disjoint invert partial maps compose and remain inverse.
+-- inverse-compose  : ∀ {A B : Set} {f₁ f₂ : A ⇀ B} {g₁ g₂ : B ⇀ A} →
+--           Inverse f₁ g₁ → Inverse f₂ g₂ →
+--           f₁ # f₂ → g₁ # g₂ →
+--           Inverse (f₁ ∣′ f₂) (g₁ ∣′ g₂)
+-- inverse-compose {_} {_} {f₁} {f₂} {g₁} {g₂} inv₁ inv₂ #₁ #₂ {a} {b} eq
+--   with f₁ a | f₂ a | g₁ b | g₂ b | inv₁ {a} {b} | inv₂ {a} {b} | #₁ a | #₂ b
+-- ... | just x | ma₂ | mb₁ | mb₂ | eq₁ | eq₂ | p₁ | p₂
+--   rewrite eq₁ eq = refl
+-- ... | nothing | ma₂ | mb₁ | mb₂ | eq₁ | eq₂ | p₁ | p₂
+--   rewrite eq₂ eq | is-just-nothing mb₁ p₂ = refl
