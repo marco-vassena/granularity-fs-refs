@@ -1,3 +1,5 @@
+{-# OPTIONS --allow-unsolved-metas #-}
+
 module Generic.LeftInverse where
 
 -- import Function as F
@@ -40,12 +42,12 @@ record LeftInverseᴾ (A : Set) (B : Set) : Set  where
   from′′ b (a , eq) = a
 
 
-  fromᴿ : ∀ (b : B) → (x : b ∈ᴿ to) → Σ A (λ a → a ≡ proj₁ x)
-  fromᴿ b (a , just refl eq ) = (a , refl)
+  -- fromᴿ : ∀ (b : B) → (x : b ∈ᴿ to) → Σ A (λ a → a ≡ proj₁ x)
+  -- fromᴿ b (a , just refl eq ) = (a , refl)
 
-  lemma-from′ : ∀ {b : B} (x : b ∈ᴿ to) → just (from′′ b x) ≡ from b
-  lemma-from′ {b} (a' , g) with from b | inspect from b
-  lemma-from′ {b} (a' , just {a' = a'''} x x₁) | a'' | [ eq ] = {!!}
+  -- lemma-from′ : ∀ {b : B} (x : b ∈ᴿ to) → just (from′′ b x) ≡ from b
+  -- lemma-from′ {b} (a' , g) with from b | inspect from b
+  -- lemma-from′ {b} (a' , just {a' = a'''} x x₁) | a'' | [ eq ] = {!!}
 
 
   toᴰ : ∀ (a : A) → a ∈ᴰ to → B
@@ -54,8 +56,8 @@ record LeftInverseᴾ (A : Set) (B : Set) : Set  where
   ∈-≡₂ : ∀ {a : A} {b b' : B} {f} → (a , b) ∈ f → b ≡ b' → (a , b') ∈ f
   ∈-≡₂ x refl = x
 
-  from∘to≡id : ∀ {a : A} (x : a ∈ᴰ to) (y : toᴰ a x ∈ᴿ to) → a ≡ proj₁ (fromᴿ (toᴰ a x) y)
-  from∘to≡id (proj₃ , just refl x₁) (proj₅ , just refl x₃) = ?
+  -- from∘to≡id : ∀ {a : A} (x : a ∈ᴰ to) (y : toᴰ a x ∈ᴿ to) → a ≡ proj₁ (fromᴿ (toᴰ a x) y)
+  -- from∘to≡id (proj₃ , just refl x₁) (proj₅ , just refl x₃) = {!!}
 
 
   -- from∘to≡id : ∀ {a : A} (x : a ∈ᴰ to) (y : to′′ a x ∈ᴿ to) → a ≡ from′′ (to′′ a x) y
@@ -75,24 +77,24 @@ record LeftInverseᴾ (A : Set) (B : Set) : Set  where
 
   open ≡-Reasoning {A = A}
 
-  left-inverse-of′ : ∀ {a b} → (b , a) ∈ from → (x : b ∈ᴿ to) → a ≡ from′′ b x
-  left-inverse-of′ {a} {b} (just {a' = a₂} x' y') (a₁ , just {a' = a₃} x y) =
-    begin
-      a ≡⟨ {!!} ⟩
-      {!!} ≡⟨ {!!} ⟩
-      from′′ b (a₁ , just x y) ∎
+  -- left-inverse-of′ : ∀ {a b} → (b , a) ∈ from → (x : b ∈ᴿ to) → a ≡ from′′ b x
+  -- left-inverse-of′ {a} {b} (just {a' = a₂} x' y') (a₁ , just {a' = a₃} x y) =
+  --   begin
+  --     a ≡⟨ {!!} ⟩
+  --     {!!} ≡⟨ {!!} ⟩
+  --     from′′ b (a₁ , just x y) ∎
 
 
-  injectiveᴾ : Injectiveᴾ to
-  injectiveᴾ {a₁} {a₂} {b₁} {b₂} ∈₁ ∈₂ eq =
-    let b₁' = (toᴰ a₁ (∈-∈ᴰ {p = to} ∈₁))
-        ∈₁' = ∈-∈ᴿ {!∈₂!}
-        x = fromᴿ b₁' ∈₁'  in
-    begin
-      a₁ ≡⟨ sym {!!} ⟩
-      proj₁ (fromᴿ (toᴰ a₁ (∈-∈ᴰ {p = to} ∈₁)) (∈-∈ᴿ (∈-≡₂ ∈₂ (sym eq)))) ≡⟨ sym {!left-inverse-of ?!} ⟩
-      {!!} ≡⟨ {!!} ⟩
-      a₂ ∎
+  -- injectiveᴾ : Injectiveᴾ to
+  -- injectiveᴾ {a₁} {a₂} {b₁} {b₂} ∈₁ ∈₂ eq =
+  --   let b₁' = (toᴰ a₁ (∈-∈ᴰ {p = to} ∈₁))
+  --       ∈₁' = ∈-∈ᴿ {!∈₂!}
+  --       x = fromᴿ b₁' ∈₁'  in
+  --   begin
+  --     a₁ ≡⟨ sym {!!} ⟩
+  --     proj₁ (fromᴿ (toᴰ a₁ (∈-∈ᴰ {p = to} ∈₁)) (∈-∈ᴿ (∈-≡₂ ∈₂ (sym eq)))) ≡⟨ sym {!left-inverse-of ?!} ⟩
+  --     {!!} ≡⟨ {!!} ⟩
+  --     a₂ ∎
 
   -- injective : Injective to
   -- injective {x} {y} eq = begin
@@ -101,8 +103,8 @@ record LeftInverseᴾ (A : Set) (B : Set) : Set  where
   --   from ⟨$⟩ (to ⟨$⟩ y)  ≈⟨ left-inverse-of y ⟩
   --   y                    ∎
 
-  injection : Injectionᴾ A B
-  injection = record { to = to; injectiveᴾ = injectiveᴾ }
+  -- injection : Injectionᴾ A B
+  -- injection = record { to = to; injectiveᴾ = injectiveᴾ }
 
   -- equivalence : Equivalence From To
   -- equivalence = record

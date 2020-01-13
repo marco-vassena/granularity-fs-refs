@@ -27,10 +27,13 @@ infix 1 _⇀_
 open import Level
 open RawMonad {zero} monad
 
-back : ∀ {A B C x} (f : B ⇀ C) (g : A ⇀ B) → Is-just ((g >=> f) x) → Is-just (g x)
-back {x = x} f g p with g x
-back f g p | just x₁ = just tt
-back f g () | nothing
+Back : ∀ {A B C} (f : B ⇀ C) (g : A ⇀ B) → Set
+Back {A} f g = ∀ (x : A) → Is-just ((g >=> f) x) → Is-just (g x)
+
+back : ∀ {A B C} (f : B ⇀ C) (g : A ⇀ B) (x : A) → Is-just ((g >=> f) x) → Is-just (g x)
+back f g x p with g x
+back f g x p | just x₁ = just tt
+back f g x () | nothing
 
 -- back₂ : ∀ {A B C x} (f : B ⇀ C) (g : A ⇀ B) → Is-just ((g >=> f) x) → Is-just (f {!!})
 -- back₂ {x = x} f g p = {!!}
@@ -52,6 +55,9 @@ f # g = ∀ a → Is-just (f a) → Is-nothing (g a)
 
 infixr 2 _#_
 
+just-or-nothing : ∀ {A B : Set} → (x : Maybe A) → Is-just x → ¬ (Is-nothing x)
+just-or-nothing .(just _) (just px) (just ⊥) = ⊥
+
 -- Lemmas
 ⊥-is-nothing-just : ∀ {A : Set} {x : A} → ¬ Is-nothing (just x)
 ⊥-is-nothing-just (just ())
@@ -72,7 +78,7 @@ data Graph {A : Set} {B : Set} (f : A ⇀ B) (a : A) : B → Set where
 
 -- Proof that a maps to b in the partial map.
 _∈_ : ∀ {A B} → A × B → A ⇀ B → Set
-(a , b) ∈ p = Graph p a b
+(a , b) ∈ p = p a ≡ just b
 
 infixr 4 _∈_
 
@@ -82,11 +88,11 @@ a ∈ᴰ p = ∃ (λ b → (a , b) ∈ p )
 _∈ᴿ_ : ∀ {A B} → B → A ⇀ B → Set
 b ∈ᴿ p = ∃ (λ a → (a , b) ∈ p )
 
-∈-∈ᴿ : ∀ {A B} {a b} {p : A ⇀ B} → (a , b) ∈ p → b ∈ᴿ p
-∈-∈ᴿ {a = a} {b} {p} (just x y) = a , just x y
+-- ∈-∈ᴿ : ∀ {A B} {a b} {p : A ⇀ B} → (a , b) ∈ p → b ∈ᴿ p
+-- ∈-∈ᴿ {a = a} {b} {p} (just x y) = a , just x y
 
-∈-∈ᴰ : ∀ {A B} {a b} {p : A ⇀ B} → (a , b) ∈ p → a ∈ᴰ p
-∈-∈ᴰ {a = a} {b} {p} x = b , x
+-- ∈-∈ᴰ : ∀ {A B} {a b} {p : A ⇀ B} → (a , b) ∈ p → a ∈ᴰ p
+-- ∈-∈ᴰ {a = a} {b} {p} x = b , x
 
 
 -- -- Proof smth is defined in the map
@@ -102,6 +108,14 @@ _∉_ : ∀ {A B} → A → A ⇀ B → Set
 a ∉ p = Is-nothing (p a)
 
 infixr 4 _∉_
+
+≡-∉ : ∀ {A B} a (p : A ⇀ B) → p a ≡ nothing → a ∉ p
+≡-∉ _ _ eq rewrite eq = nothing
+
+∈-just : ∀ {A B} a b (p : A ⇀ B) → p a ≡ just b → Is-just (p a)
+∈-just a b p eq rewrite eq = just tt
+
+-- TODO: it seems we have too many representations ... clean it up!
 
 -- Shorthand
 DecEq : (A : Set) → Set
