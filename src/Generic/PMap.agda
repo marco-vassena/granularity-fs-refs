@@ -82,11 +82,11 @@ _∈_ : ∀ {A B} → A × B → A ⇀ B → Set
 
 infixr 4 _∈_
 
-_∈ᴰ_ : ∀ {A B} → A → A ⇀ B → Set
-a ∈ᴰ p = ∃ (λ b → (a , b) ∈ p )
+-- _∈ᴰ_ : ∀ {A B} → A → A ⇀ B → Set
+-- a ∈ᴰ p = ∃ (λ b → (a , b) ∈ p )
 
-_∈ᴿ_ : ∀ {A B} → B → A ⇀ B → Set
-b ∈ᴿ p = ∃ (λ a → (a , b) ∈ p )
+-- _∈ᴿ_ : ∀ {A B} → B → A ⇀ B → Set
+-- b ∈ᴿ p = ∃ (λ a → (a , b) ∈ p )
 
 -- ∈-∈ᴿ : ∀ {A B} {a b} {p : A ⇀ B} → (a , b) ∈ p → b ∈ᴿ p
 -- ∈-∈ᴿ {a = a} {b} {p} (just x y) = a , just x y
@@ -103,16 +103,19 @@ b ∈ᴿ p = ∃ (λ a → (a , b) ∈ p )
 -- ∈-∈ᴰ {a = a} {p} x with p a
 -- ∈-∈ᴰ {a = a} {p} (just px) | .(just _) = _ , refl
 
+_∈ᴰ_ : ∀ {A B} → A → A ⇀ B → Set
+a ∈ᴰ p = Is-just (p a)
+
 -- Proof that a is undefined in the map
-_∉_ : ∀ {A B} → A → A ⇀ B → Set
-a ∉ p = Is-nothing (p a)
+_∉ᴰ_ : ∀ {A B} → A → A ⇀ B → Set
+a ∉ᴰ p = Is-nothing (p a)
 
-infixr 4 _∉_
+infixr 4 _∉ᴰ_
 
-≡-∉ : ∀ {A B} a (p : A ⇀ B) → p a ≡ nothing → a ∉ p
+≡-∉ : ∀ {A B} a (p : A ⇀ B) → p a ≡ nothing → a ∉ᴰ p
 ≡-∉ _ _ eq rewrite eq = nothing
 
-∈-just : ∀ {A B} a b (p : A ⇀ B) → p a ≡ just b → Is-just (p a)
+∈-just : ∀ {A B} a b (p : A ⇀ B) → (a , b) ∈ p → Is-just (p a)
 ∈-just a b p eq rewrite eq = just tt
 
 -- TODO: it seems we have too many representations ... clean it up!

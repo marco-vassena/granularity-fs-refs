@@ -101,34 +101,41 @@ _∘_ {A} {B} {C} f g = record { to = to g >=> to f ; from = from f >=> from g ;
   where open Bij
         open RawMonad {L.zero} monad
 
-        -- {a b} → Back (from g) (from f)
-        aux : ∀ {a b} → (a , b) ∈ (to g) → ¬ a ∉ (to g)
-        aux x y = ⊥-elim {!!}
-
+        -- Not the prettiest proof, but still a proof :-)
         inv : (from f >=> from g) LeftInverseOfᴾ (to g >=> to f)
         inv {c} {a} x
           with   to g a | inspect (to g) a
                | from f c | inspect (from f) c
-               | back (from g) (from f) | back (to f) (to g)
-        inv {c} {a} x | just x₁ | [ eq ] | mb' | [ eq' ] | r | q = {!!}
-        inv {c} {a} x | nothing | [ eq ] | just b | [ eq' ] | r | q =
-          let bc∈f = left-inverse-of f eq'
-              ab∈g = left-inverse-of g x
+        inv {c} {a} x | just b₁ | [ ab∈g₁ ] | just b₂ | [ eq' ] =
+          let bc∈f₂ = left-inverse-of f eq'
+              ab∈g₂ = left-inverse-of g x in
+              trans (cong (to f) (just-injective (trans (sym ab∈g₁) ab∈g₂))) bc∈f₂
+        inv {x} {y} () | just x₁ | [ eq ] | nothing | [ eq' ]
+        inv {c} {a} x | nothing | [ eq ] | just b | [ eq' ] =
+          let ab∈g = left-inverse-of g x
               a∉g = ≡-∉ a (to g) eq in
-          ⊥-elim (just-or-nothing {B} {A} (to g a) (∈-just a b (to g) ab∈g) a∉g)
-        inv {x} {y} () | nothing | [ eq ] | nothing | [ eq' ] | r | q
-
--- -- Use composition of Injectionᴾ and Surjectionᴾ
+              ⊥-elim (just-or-nothing {B} {A} (to g a) (∈-just a b (to g) ab∈g) a∉g)
+        inv {x} {y} () | nothing | [ eq ] | nothing | [ eq' ]
 
 -- --------------------------------------------------------------------------------
 -- -- open import Function.Equality
 
--- -- Invert a bijection
--- -- Inverse.bijection (I.sym (fromBijection β))
--- _⁻¹ : ∀ {A : Set} {B : Set} → A ⤖ᴾ B → B ⤖ᴾ A
--- β ⁻¹ = {!!}
---   where open Bijectionᴾ β
--- --        open import Function.Inverse as I
+-- It doesn't seem we can prove this with what we have.
+foo : ∀ {A B : Set} {f : A ⇀ B} {g : B ⇀ A} → f LeftInverseOfᴾ g → g LeftInverseOfᴾ f
+foo {f = f} {g} p {b} {a} ba∈g with f a | inspect f a
+foo {f = f} {g} p {b} {a} ba∈g | just b' | [ ab∈f' ] =
+  let ba∈g' = p ab∈f' in {!!}
+--    trans (sym ab∈f') {!!}
+foo {f = f} {g} p {b} {a} ba∈g | nothing | [ eq ] = {!p !}
+
+-- Invert a bijection
+-- Inverse.bijection (I.sym (fromBijection β))
+_⁻¹ : ∀ {A : Set} {B : Set} → A ⤖ᴾ B → B ⤖ᴾ A
+β ⁻¹ = record { to = from ; from = to ; left-inverse-of = foo left-inverse-of }
+  where open Bij β
+--        open import Function.Inverse as I
+
+
 
 -- --------------------------------------------------------------------------------
 
