@@ -15,7 +15,7 @@ open import Data.Nat
 open import Data.Maybe
 -- open import Generic.Injection as I hiding (id ; _∘_)
 -- open import Generic.Surjection as S hiding (id ; _∘_)
-open import Generic.PMap as P hiding (∅ ) -- using (_⇀_)
+open import Generic.PMap as P renaming (∅ to ∅ᴾ) -- using (_⇀_)
 
 -- -- A partial bijection with restricted injectivity and surjectivity
 -- -- properties only where the codomain is defined.
@@ -69,131 +69,153 @@ open import Data.Product
 _LeftInverseOfᴾ_ : ∀ {A B} → A ⇀ B → B ⇀ A → Set
 _LeftInverseOfᴾ_ f g = ∀ {x y} → (x , y) ∈ f → (y , x) ∈ g
 
+_RightInverseOfᴾ_ : ∀ {A B} → A ⇀ B → B ⇀ A → Set
+_RightInverseOfᴾ_ f g = g LeftInverseOfᴾ f
+
+_InverseOfᴾ_ : ∀ {A B} → A ⇀ B → B ⇀ A → Set
+_InverseOfᴾ_ f g = ∀ {x y} → (x , y) ∈ f ⇔ (y , x) ∈ g
+
 -- Partial bijection
-record Bij (A B : Set) : Set where
+record Bijectionᴾ (A B : Set) : Set where
   field to : A ⇀ B
         from : B ⇀ A
-        left-inverse-of : from LeftInverseOfᴾ to
+        inverse-of : from InverseOfᴾ to
 
---        inverse-∉ :
+  left-inverse-of : from LeftInverseOfᴾ to
+  left-inverse-of = proj₁ inverse-of
+
+  right-inverse-of : from RightInverseOfᴾ to
+  right-inverse-of = proj₂ inverse-of
 
 infix 3 _⤖ᴾ_
 
 _⤖ᴾ_ : Set → Set → Set
-From ⤖ᴾ To = Bij From To
+From ⤖ᴾ To = Bijectionᴾ From To
 
-bijᴾ : ∀ {A B} (to : A ⇀ B) (from : B ⇀ A) → from LeftInverseOfᴾ to →
+bijᴾ : ∀ {A B} (to : A ⇀ B) (from : B ⇀ A) → from InverseOfᴾ to →
          A ⤖ᴾ B
-bijᴾ to from p = record { to = to ; from = from ; left-inverse-of = p }
+bijᴾ to from inv = record { to = to ; from = from ; inverse-of = inv }
 
 -- Empty partial bijection
 ∅ : ∀ {A B} → A ⤖ᴾ B
-∅ = bijᴾ (F.const nothing) (F.const nothing) (λ {x} {y} → λ ())
+∅ = bijᴾ ∅ᴾ ∅ᴾ ((λ ()) , (λ ()))
 
 -- Identity partial bijection
 id : ∀ {A} → A ⤖ᴾ A
-id = bijᴾ just just (λ { refl → refl })
+id = bijᴾ just just ((λ { refl → refl }) , (λ { refl → refl }))
 
+_∈ᵗ_ : ∀ {A B} → A × B → A ⤖ᴾ B → Set
+x ∈ᵗ β = x ∈ to
+  where open Bijectionᴾ β
+
+-- TODO: would it be more readable to have A × B and then swap the pair in the def?
+_∈ᶠ_ : ∀ {A B} → B × A → A ⤖ᴾ B → Set
+x ∈ᶠ β = x ∈ from
+  where open Bijectionᴾ β
 
 -- Composition
 _∘_ : ∀ {A B C} → B ⤖ᴾ C → A ⤖ᴾ B → A ⤖ᴾ C
-_∘_ {A} {B} {C} f g = record { to = to g >=> to f ; from = from f >=> from g ; left-inverse-of = inv }
-  where open Bij
+_∘_ {A} {B} {C} f g =
+  record { to = to g >=> to f
+         ; from = from f >=> from g
+         ; inverse-of = inv
+         }
+  where open Bijectionᴾ
         open RawMonad {L.zero} monad
 
         -- Not the prettiest proof, but still a proof :-)
-        inv : (from f >=> from g) LeftInverseOfᴾ (to g >=> to f)
-        inv {c} {a} x
-          with   to g a | inspect (to g) a
-               | from f c | inspect (from f) c
-        inv {c} {a} x | just b₁ | [ ab∈g₁ ] | just b₂ | [ eq' ] =
-          let bc∈f₂ = left-inverse-of f eq'
-              ab∈g₂ = left-inverse-of g x in
-              trans (cong (to f) (just-injective (trans (sym ab∈g₁) ab∈g₂))) bc∈f₂
-        inv {x} {y} () | just x₁ | [ eq ] | nothing | [ eq' ]
-        inv {c} {a} x | nothing | [ eq ] | just b | [ eq' ] =
-          let ab∈g = left-inverse-of g x
-              a∉g = ≡-∉ a (to g) eq in
-              ⊥-elim (just-or-nothing {B} {A} (to g a) (∈-just a b (to g) ab∈g) a∉g)
-        inv {x} {y} () | nothing | [ eq ] | nothing | [ eq' ]
+        inv : (from f >=> from g) InverseOfᴾ (to g >=> to f)
+        inv {c} {a} with to g a | inspect (to g) a | from f c | inspect (from f) c
+        inv {c} {a} | just b₁ | [ ab∈g₁ ] | just b₂ | [ cb∈f₂ ] = left , right
+          where left : (b₂ , a) ∈ (from g) → (b₁ , c) ∈ (to f)
+                left ba∈g₂ =
+                  let bc∈f₂ = left-inverse-of f cb∈f₂
+                      ab∈g₂ = left-inverse-of g ba∈g₂ in
+                      trans (cong (to f) (just-injective (trans (sym ab∈g₁) ab∈g₂))) bc∈f₂
 
--- --------------------------------------------------------------------------------
--- -- open import Function.Equality
+                right : (b₁ , c) ∈ᵗ f → (b₂ , a) ∈ᶠ g
+                right bc∈f =
+                  let cb∈f = right-inverse-of f bc∈f
+                      ab∈g = right-inverse-of g ab∈g₁ in
+                      trans (cong (from g) (just-injective (trans (sym cb∈f₂) cb∈f))) ab∈g
 
--- It doesn't seem we can prove this with what we have.
-foo : ∀ {A B : Set} {f : A ⇀ B} {g : B ⇀ A} → f LeftInverseOfᴾ g → g LeftInverseOfᴾ f
-foo {f = f} {g} p {b} {a} ba∈g with f a | inspect f a
-foo {f = f} {g} p {b} {a} ba∈g | just b' | [ ab∈f' ] =
-  let ba∈g' = p ab∈f' in {!!}
---    trans (sym ab∈f') {!!}
-foo {f = f} {g} p {b} {a} ba∈g | nothing | [ eq ] = {!p !}
+
+        inv {c} {a} | just b | [ eq ] | nothing | [ eq' ] = (λ ()) ,  ⊥-elim F.∘ ⊥-right-inverse
+          where ⊥-right-inverse : (b , c) ∈ (to f) → ⊥
+                ⊥-right-inverse bc∈f =
+                  let cb∈f = right-inverse-of f bc∈f
+                      c∉f = ≡-∉ c (from f) eq' in
+                        ⊥-elim (∈-or-∉ {p = from f} cb∈f c∉f)
+
+        inv {c} {a} | nothing | [ eq ] | just b | [ eq' ] = ⊥-elim F.∘ ⊥-left-inverse , (λ ())
+          where ⊥-left-inverse : (b , a) ∈ from g → ⊥
+                ⊥-left-inverse ba∈g =
+                  let ab∈g = left-inverse-of g ba∈g
+                      a∉g = ≡-∉ a (to g) eq in
+                      ⊥-elim (∈-or-∉ {p = to g} ab∈g a∉g)
+
+        inv {x} {y} | nothing | [ eq ] | nothing | [ eq' ] = (λ ()) , (λ ())
 
 -- Invert a bijection
--- Inverse.bijection (I.sym (fromBijection β))
 _⁻¹ : ∀ {A : Set} {B : Set} → A ⤖ᴾ B → B ⤖ᴾ A
-β ⁻¹ = record { to = from ; from = to ; left-inverse-of = foo left-inverse-of }
-  where open Bij β
---        open import Function.Inverse as I
+β ⁻¹ = record { to = from ; from = to ; inverse-of = right-inverse-of , left-inverse-of }
+  where open Bijectionᴾ β
 
 
 
--- --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
--- open import Data.Fin
--- open import Data.Product
+open import Data.Fin
+open import Data.Product
 
--- -- Bijection for heap addresses.  It restricts the domain and codomain
--- -- using the Fin type (Fin n contains addresses from 0 to n - 1).
--- -- This is useful to avoid partial bijections (for which the agda
--- -- library provides no support) and carrying extra assumptions about
--- -- domain and codomain.
--- Bij : ℕ → ℕ → Set
--- Bij n m = Fin n ⤖ᴾ Fin m
+-- Bijection for heap addresses.  It restricts the domain and codomain
+-- using the Fin type (Fin n contains addresses from 0 to n - 1).
+-- This is useful to avoid partial bijections (for which the agda
+-- library provides no support) and carrying extra assumptions about
+-- domain and codomain.
+Bij : ℕ → ℕ → Set
+Bij n m = Fin n ⤖ᴾ Fin m
 
--- -- Identity bijection.
--- ι : ∀ {n} → Bij n n
--- ι = {!!}
--- -- B.id
+-- Identity bijection.
+ι : ∀ {n} → Bij n n
+ι = id
 
--- -- TODO: rename ι′ n
--- ι⟨_⟩ : ∀ n → Bij n n
--- ι⟨ n ⟩ = {!!}
--- -- B.id
+-- Explicit size
+ι′ : ∀ n → Bij n n
+ι′ _ = ι
 
+-- TODO: do we need to lif the other memberships type?
 
--- _↦_∈ᴮ_ : ∀ {n m} → Fin n → Fin m → Bij n m → Set
--- x ↦ y ∈ᴮ β = {!!}
--- -- to ⟨$⟩ x ≡ y
--- --   where open Bijection β
+instance
+  _≟ᶠ_ : ∀ {n} → (x y : Fin n) → Dec (x ≡ y)
+  zero ≟ᶠ zero = yes refl
+  zero ≟ᶠ suc y = no (λ ())
+  suc x ≟ᶠ zero = no (λ ())
+  suc x ≟ᶠ suc y with x  ≟ᶠ y
+  suc x ≟ᶠ suc .x | yes refl = yes refl
+  suc x ≟ᶠ suc y | no ¬p = no λ { refl → ¬p refl }
 
--- instance
---   _≟ᶠ_ : ∀ {n} → (x y : Fin n) → Dec (x ≡ y)
---   zero ≟ᶠ zero = yes refl
---   zero ≟ᶠ suc y = no (λ ())
---   suc x ≟ᶠ zero = no (λ ())
---   suc x ≟ᶠ suc y with x  ≟ᶠ y
---   suc x ≟ᶠ suc .x | yes refl = yes refl
---   suc x ≟ᶠ suc y | no ¬p = no λ { refl → ¬p refl }
+-- Singleton bijection
+_↔_ : ∀ {n m} (x : Fin n) (y : Fin m) → Bij n m
+_↔_ {n} {m} x y  = bijᴾ (x ↦ y) (y ↦ x) inv
+  where
 
--- -- Singleton bijection
--- _↔_ : ∀ {n m} (x : Fin n) (y : Fin m) → Bij n m
--- _↔_ {n} {m} x y  = bijectionᴾ (x ↦ y) (y ↦ x) inj inv
---   where
---         inj : Injectiveᴾ (x ↦ y)
---         inj {x'} {y'} p q eq = trans (back↦ x' x y p) (sym (back↦ y' x y q))
+  inv : (y ↦ x) InverseOfᴾ (x ↦ y)
+  inv {y'} {x'} with x ≟ᶠ x' | inspect (x ≟ᶠ_) x'
+  inv {y'} {_} | yes p | [ eq ] with y ≟ᶠ y' | inspect (y ≟ᶠ_) y'
+  inv {_} {_} | yes refl | [ eq ] | yes refl | [ eq' ] = (λ _ → refl) , (λ _ → refl)
+  inv {y'} {x'} | yes refl | [ eq ] | no y≠y' | [ eq' ] = (λ ()) , (λ jy≡jy' → ⊥-elim (y≠y' (just-injective jy≡jy')))
+  inv {y'} {x} | no ¬p | [ eq ] with y ≟ᶠ y' | inspect (y ≟ᶠ_) y'
+  inv {_} {y} | no x≠x' | [ eq ] | yes refl | [ eq' ] = (λ jx≡jy' → ⊥-elim (x≠x' (just-injective jx≡jy'))) , (λ ())
+  inv {x} {y} | no ¬p | [ eq ] | no ¬p₁ | [ eq' ] = (λ ()) , (λ ())
 
---         inv : (y ↦ x) RightInverseOfᴾ (x ↦ y)
---         inv y' p with to-witness p | inspect to-witness p
---         ... | r | [ eq ] with x ≟ᶠ r | y ≟ᶠ y'
---         inv _ p | _ | [ eq ] | yes refl | yes refl = refl
---         inv y' () | _ | [ eq ] | yes refl | no ¬p
---         inv _ (just px) | r | [ eq ] | no ¬p | yes refl = ⊥-elim (¬p eq)
---         inv y' () | r | [ eq ] | no ¬p | no ¬p₁
+-- This weakening is used to match domain and codomain for composition.
+_↑¹ : ∀ {n m} → Bij n m → Bij (suc n) (suc m)
+β ↑¹ = record { to = {!!} ; from = {!!} ; inverse-of = {!!} }
+  where open Bijectionᴾ β
 
--- -- This weakening is used to match domain and codomain for composition.
--- _↑¹ : ∀ {n m} → Bij n m → Bij (suc n) (suc m)
--- β ↑¹ = {!!} -- bijection (λ x → inject₁ (to ⟨$⟩ x)) (λ y → from ⟨$⟩ {!!}) {!!} {!!}
---   -- where open Bijection β
+-- nothing for Fin (suc n). otherwise call to and then inject₁
+-- Use reduce≥ to decide if it is Fin (suc n) or not.
 
 -- -- The domain and the codomain should have the same size! n ≡ m
 -- -- add one entry to a bijection

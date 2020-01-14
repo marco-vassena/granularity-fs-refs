@@ -55,7 +55,7 @@ f # g = ∀ a → Is-just (f a) → Is-nothing (g a)
 
 infixr 2 _#_
 
-just-or-nothing : ∀ {A B : Set} → (x : Maybe A) → Is-just x → ¬ (Is-nothing x)
+just-or-nothing : ∀ {A : Set} → (x : Maybe A) → Is-just x → ¬ (Is-nothing x)
 just-or-nothing .(just _) (just px) (just ⊥) = ⊥
 
 -- Lemmas
@@ -118,6 +118,10 @@ infixr 4 _∉ᴰ_
 ∈-just : ∀ {A B} a b (p : A ⇀ B) → (a , b) ∈ p → Is-just (p a)
 ∈-just a b p eq rewrite eq = just tt
 
+∈-or-∉ : ∀ {A B} {a : A} {b : B} {p : A ⇀ B} →
+           (a , b) ∈ p → ¬ (a ∉ᴰ p)
+∈-or-∉ {a = a} {b} {p} x y = just-or-nothing (p a) (∈-just a b p x) y
+
 -- TODO: it seems we have too many representations ... clean it up!
 
 -- Shorthand
@@ -161,7 +165,7 @@ module Util {A B : Set} {{ _≟ᴬ_ : DecEq A }}  where
 --           aux eq (just px) y | .(just _) | b' = px
 --           aux () nothing (just px) | .nothing | .(just _)
 
--- open Util public
+open Util public
 
 -- -- Syntactic sugar when the DecEq instance is not found automatically
 -- -- _-⟨_⟩→_ : ∀ {A B : Set} →  A → DecEq A → B → A ⇀ B
