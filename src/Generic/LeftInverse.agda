@@ -38,8 +38,8 @@ record LeftInverseᴾ (A : Set) (B : Set) : Set  where
   -- fromᴰ : ∀ (b : B) → b ∈ᴰ from → A
   -- fromᴰ b (a , _) = a
 
-  from′′ : ∀ (b : B) → b ∈ᴿ to → A
-  from′′ b (a , eq) = a
+  -- from′′ : ∀ (b : B) → b ∈ᴿ to → A
+  -- from′′ b (a , eq) = a
 
 
   -- fromᴿ : ∀ (b : B) → (x : b ∈ᴿ to) → Σ A (λ a → a ≡ proj₁ x)
@@ -50,11 +50,11 @@ record LeftInverseᴾ (A : Set) (B : Set) : Set  where
   -- lemma-from′ {b} (a' , just {a' = a'''} x x₁) | a'' | [ eq ] = {!!}
 
 
-  toᴰ : ∀ (a : A) → a ∈ᴰ to → B
-  toᴰ a (b , eq) = {!!}
+  -- toᴰ : ∀ (a : A) → a ∈ᴰ to → B
+  -- toᴰ a (b , eq) = {!!}
 
-  ∈-≡₂ : ∀ {a : A} {b b' : B} {f} → (a , b) ∈ f → b ≡ b' → (a , b') ∈ f
-  ∈-≡₂ x refl = x
+  -- ∈-≡₂ : ∀ {a : A} {b b' : B} {f} → (a , b) ∈ f → b ≡ b' → (a , b') ∈ f
+  -- ∈-≡₂ x refl = x
 
   -- from∘to≡id : ∀ {a : A} (x : a ∈ᴰ to) (y : toᴰ a x ∈ᴿ to) → a ≡ proj₁ (fromᴿ (toᴰ a x) y)
   -- from∘to≡id (proj₃ , just refl x₁) (proj₅ , just refl x₃) = {!!}
@@ -85,16 +85,16 @@ record LeftInverseᴾ (A : Set) (B : Set) : Set  where
   --     from′′ b (a₁ , just x y) ∎
 
 
-  -- injectiveᴾ : Injectiveᴾ to
-  -- injectiveᴾ {a₁} {a₂} {b₁} {b₂} ∈₁ ∈₂ eq =
-  --   let b₁' = (toᴰ a₁ (∈-∈ᴰ {p = to} ∈₁))
-  --       ∈₁' = ∈-∈ᴿ {!∈₂!}
-  --       x = fromᴿ b₁' ∈₁'  in
-  --   begin
-  --     a₁ ≡⟨ sym {!!} ⟩
-  --     proj₁ (fromᴿ (toᴰ a₁ (∈-∈ᴰ {p = to} ∈₁)) (∈-∈ᴿ (∈-≡₂ ∈₂ (sym eq)))) ≡⟨ sym {!left-inverse-of ?!} ⟩
-  --     {!!} ≡⟨ {!!} ⟩
-  --     a₂ ∎
+  injectiveᴾ : Injectiveᴾ to
+  injectiveᴾ {a₁} {a₂} {b₁} {b₂} ∈₁ ∈₂ eq =
+    let b₁' = {!!} -- (toᴰ a₁ (∈-∈ᴰ {p = to} ∈₁))
+        ∈₁' = left-inverse-of {!!} -- ∈-∈ᴿ {!∈₂!}
+        x = {!!} in -- fromᴿ b₁' ∈₁'  in
+    begin
+      a₁ ≡⟨ just-injective {!!} ⟩
+--      proj₁ (fromᴿ (toᴰ a₁ (∈-∈ᴰ {p = to} ∈₁)) (∈-∈ᴿ (∈-≡₂ ∈₂ (sym eq)))) ≡⟨ sym {!left-inverse-of ?!} ⟩
+      {!!} ≡⟨ {!!} ⟩
+      a₂ ∎
 
   -- injective : Injective to
   -- injective {x} {y} eq = begin
@@ -121,8 +121,8 @@ record LeftInverseᴾ (A : Set) (B : Set) : Set  where
 
 -- The set of all right inverses between two setoids.
 
-RightInverse : (A B : Set) → Set
-RightInverse A B = LeftInverseᴾ A B
+RightInverseᴾ : (A B : Set) → Set
+RightInverseᴾ A B = LeftInverseᴾ A B
 
 -- The set of all left inverses from one set to another. (Read A ↞ B
 -- as "surjection from B to A".)

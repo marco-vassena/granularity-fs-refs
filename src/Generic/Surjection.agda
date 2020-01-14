@@ -28,7 +28,7 @@ record Surjectionᴾ (A B : Set) : Set where
     to : A ⇀ B
     surjectiveᴾ : Surjectiveᴾ to
 
-  right-inverse : RightInverse A B
+  right-inverse : RightInverseᴾ A B
   right-inverse = record
     { to              = from
     ; from            = to

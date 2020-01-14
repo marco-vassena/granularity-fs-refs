@@ -223,22 +223,21 @@ reduce¹ : ∀ {n} (x : Fin (suc n)) → toℕ x < n → Fin n
 reduce¹ zero (s≤s x<n) = zero
 reduce¹ (suc x) (s≤s x<n) = suc (reduce¹ x x<n)
 
-reduce∘inject-≡-id : ∀ {n} (x : Fin (suc n)) (x<n : toℕ x < n) → inject₁ (reduce¹ x x<n) ≡ x
-reduce∘inject-≡-id zero (s≤s x<n) = refl
-reduce∘inject-≡-id (suc x) (s≤s x<n) = cong suc (reduce∘inject-≡-id x x<n)
-
-fin-< : ∀ {n} (x : Fin n) → toℕ x < n
-fin-< zero = s≤s z≤n
-fin-< (suc x) = s≤s (fin-< x)
-
-
-
--- _<?_ : ∀ (x y : ℕ) → Dec (x < y)
--- x <? y = suc x ≤? y
+inj∘red-≡-id : ∀ {n} (x : Fin (suc n)) (x<n : toℕ x < n) → inject₁ (reduce¹ x x<n) ≡ x
+inj∘red-≡-id zero (s≤s x<n) = refl
+inj∘red-≡-id (suc x) (s≤s x<n) = cong suc (inj∘red-≡-id x x<n)
 
 toℕ-inject₁-≡ : ∀ {n} (x : Fin n) → toℕ x ≡ toℕ (inject₁ x)
 toℕ-inject₁-≡ zero = refl
 toℕ-inject₁-≡ (suc x) = cong suc (toℕ-inject₁-≡ x)
+
+red∘inj-≡-id : ∀ {n} (x : Fin n) (x<n : toℕ (inject₁ x) < n) → reduce¹ (inject₁ x) x<n ≡ x
+red∘inj-≡-id zero (s≤s z≤n) = refl
+red∘inj-≡-id (suc x) (s≤s x<n) = cong suc (red∘inj-≡-id x x<n)
+
+fin-< : ∀ {n} (x : Fin n) → toℕ x < n
+fin-< zero = s≤s z≤n
+fin-< (suc x) = s≤s (fin-< x)
 
 equal-< : ∀ {n m} → (p q : n < m) → p ≡ q
 equal-< (s≤s z≤n) (s≤s z≤n) = refl
@@ -248,7 +247,7 @@ equal-< (s≤s (s≤s p)) (s≤s (s≤s q)) = cong s≤s (equal-< (s≤s p) (s�
 
 -- This weakening is used to match domain and codomain for composition.
 _↑¹ : ∀ {n m} → Bij n m → Bij (suc n) (suc m)
-_↑¹ {n} {m} β = record { to = to¹ ; from = from¹ ; inverse-of = inv' }
+_↑¹ {n} {m} β = record { to = to¹ ; from = from¹ ; inverse-of = inv }
   where open Bijectionᴾ β
 
         to¹ : Fin (suc n) ⇀ Fin (suc m)
@@ -261,175 +260,93 @@ _↑¹ {n} {m} β = record { to = to¹ ; from = from¹ ; inverse-of = inv' }
         from¹ y | yes p = M.map inject₁ (from (reduce¹ y p))
         from¹ y | no ¬p = nothing
 
-        from¹′ : (y : Fin (suc m)) → y ∈ᴰ from¹ → Fin (suc n)
-        from¹′ y p with from¹ y
-        from¹′ y (just px) | (just x) = x
+        -- Fact about the domain (D) of from
+        from-<ᴰ : ∀ {y x} → (y , x) ∈ from¹ → toℕ y < m
+        from-<ᴰ {y} yx∈f with toℕ y <? m
+        from-<ᴰ {y} yx∈f | yes p = p
+        from-<ᴰ {y} () | no ¬p
 
-        to¹′ : (y : Fin (suc n)) → y ∈ᴰ to¹ → Fin (suc m)
-        to¹′ x p with to¹ x
-        to¹′ x (just px) | (just y) = y
+        -- Fact about the range (R) of from
+        from-<ᴿ : ∀ {y x} → (y , x) ∈ from¹ → toℕ x < n
+        from-<ᴿ {y} {x} yx∈f with toℕ y <? m
+        from-<ᴿ {y} {x} yx∈f | yes y<m with from (reduce¹ y y<m)
+        from-<ᴿ {y} {x} yx∈f | _ | just x' with fin-< x'
+        ... | x<n rewrite sym (just-injective yx∈f) | toℕ-inject₁-≡ x' = x<n
+        from-<ᴿ {y} {x} () | _ | nothing
+        from-<ᴿ {y} {x} () | no ¬p
 
+        -- Fact about the domain (D) of to
+        to-<ᴰ : ∀ {x y} → (x , y) ∈ to¹ → toℕ x < n
+        to-<ᴰ {x} xy∈t with toℕ x <? n
+        to-<ᴰ {x} xy∈t | yes p = p
+        to-<ᴰ {x} () | no ¬p
 
-        -- lemma : ∀ (y : Fin (suc n)) (x : Fin m) (p₁ : toℕ y < n) →
-        --         let y' = reduce¹ y p₁ in
-        --           (to y') ≡ just x → (x , y') ∈ from
-        -- lemma = {!!}
+        -- Fact about the range (R) of to
+        to-<ᴿ : ∀ {x y} → (x , y) ∈ to¹ → toℕ y < m
+        to-<ᴿ {x} {y} xy∈t with toℕ x <? n
+        to-<ᴿ {x} {y} xy∈t | yes x<n with to (reduce¹ x x<n)
+        to-<ᴿ {x} {y} xy∈t | _ | just y' with fin-< y'
+        ... | y<m rewrite sym (just-injective xy∈t) | toℕ-inject₁-≡ y' = y<m
+        to-<ᴿ {x} {y} () | _ | nothing
+        to-<ᴿ {x} {y} () | no ¬p
 
-        foo : ∀ {x y} (x<n : toℕ x < n) (y<m : toℕ y < m) →  (x , y) ∈ to¹ → (reduce¹ x x<n , reduce¹ y y<m) ∈ to
-        foo = {!!}
+        -- Definition of to¹ after the bounds test.
+        def-to¹ : ∀ {x} (x<n : toℕ x < n) → to¹ x ≡ M.map inject₁ (to (reduce¹ x x<n))
+        def-to¹ {x} x<n with toℕ x <? n
+        def-to¹ {x} x<n | yes x<n' rewrite equal-< x<n x<n' = refl
+        def-to¹ {x} x<n | no x≮n = ⊥-elim (x≮n x<n)
 
-        -- bar' : ∀ {y x} → (y , x) ∈  from ⇔ (inject₁ y , inject₁ x) ∈ from¹
-        -- bar' = {!!}
-
-        -- open import Relation.Binary.HeterogeneousEquality hiding (inspect ; cong)
-
-        -- egg : ∀ {x y} (y<m : toℕ y < m) (x<n : toℕ x < n) ->
-        --         (reduce¹ x x<n , reduce¹ y y<m) ∈ to →
-        --         (inject₁ (reduce¹ x x<n), y) ∈ to¹
-        -- egg = {!!}
-
-        -- aux' :  ∀ {A B : Set} {x} (f : A → B) y  → M.map f y ≡ just x → Σ (Is-just y) (λ p → f (to-witness p) ≡ x)
-        -- aux' f (just x) refl = (just _) , refl
-        -- aux' f nothing ()
-
-        -- aux :  ∀ {A B : Set} {x} (f : A → B) y  → M.map f y ≡ just x → Σ (Is-just y) (λ p → f (to-witness p) ≡ x)
-        -- aux f (just x) refl = (just _) , refl
-        -- aux f nothing ()
-
-        -- aux₁ : ∀ (y : Fin (suc m)) → toℕ y < m → y ∈ᴰ from¹
-        -- aux₁ y y<m with (toℕ y) <? m
-        -- aux₁ y y<m | yes p = {!!}
-        -- aux₁ y y<m | no y≮m = ⊥-elim (y≮m y<m)
-
-        -- aux₂ : ∀ (y : Fin (suc m)) (y∈f : y ∈ᴰ from¹) → from¹′ y y∈f  ∈ᴰ to¹
-        -- aux₂ = {!!}
-
-        aux₃ : ∀ {y x} → (y , x) ∈ from¹ → toℕ y < m
-        aux₃ {y} yx∈f with toℕ y <? m
-        aux₃ {y} yx∈f | yes p = p
-        aux₃ {y} () | no ¬p
-
-        aux : ∀ {n} (x : Fin (suc n)) (x' : Fin n) (x<n : toℕ x < n) → (inject₁ x') ≡ x → x' ≡ reduce¹ x x<n
-        aux zero zero (s≤s x<n) eq = refl
-        aux zero (suc x') x<n ()
-        aux (suc x) zero (s≤s x<n) ()
-        aux (suc x) (suc x') (s≤s x<n) eq = cong suc (aux x x' x<n (suc-injective eq))
-
-        aux⁷ : ∀ x y → M.map inject₁ (from y) ≡ just x → (x<n : toℕ x < n) → (y , reduce¹ x x<n) ∈ from
-        aux⁷ x y eq x<n with from y
-        aux⁷ x y () x<n | nothing
-        aux⁷ x y eq x<n | just x'
-          let a = left-inverse-of eq' in
-          begin
-            just x' ≡⟨ cong just (aux x x' x<n (just-injective eq)) ⟩
-            just (reduce¹ x x<n)
-          ∎
-          where open ≡-Reasoning
-
-        -- (y , x') ∈ from
-        aux₆ : ∀ x y → M.map inject₁ (from y) ≡ just x → ∃ (λ x' → inject₁ x' ≡  x)
-        aux₆ x y eq with from y
-        aux₆ x y eq | just x' = _ , just-injective eq
-        aux₆ x y () | nothing
-
-        aux₅ : ∀ y x → M.map inject₁ (from y) ≡ just x → toℕ x < n
-        aux₅ y x yx∈f¹ with aux₆ x y yx∈f¹
-        ... | (x' , eq) with fin-< x'
-        ... | x<n' rewrite E.sym eq | toℕ-inject₁-≡ x' = x<n'
-
-        aux₄ : ∀ {y x} → (y , x) ∈ from¹ → toℕ x < n
-        aux₄ {y} {x} yx∈f with toℕ x <? n
-        aux₄ {y} {x} yx∈f | yes x<n = x<n
-        aux₄ {y} {x} yx∈f | no ¬p with toℕ y <? m
-        aux₄ {y} {x} yx∈f | no ¬p | yes y<m = aux₅ (reduce¹ y y<m) x yx∈f
-        aux₄ {y} {x} () | no ¬p | no ¬p₁
-
-        def₁ : ∀ {x} (x<n : toℕ x < n) → to¹ x ≡ M.map inject₁ (to (reduce¹ x x<n))
-        def₁ {x} x<n with toℕ x <? n
-        def₁ {x} x<n | yes x<n' rewrite equal-< x<n x<n' = refl
-        def₁ {x} x<n | no x≮n = ⊥-elim (x≮n x<n)
-
+        -- Definition of from¹ after the bounds test.
         def-from¹ : ∀ {y} (y<m : toℕ y < m) → from¹ y ≡ M.map inject₁ (from (reduce¹ y y<m))
         def-from¹ {y} y<m with toℕ y <? m
         def-from¹ {y} y<m | yes y<m' rewrite equal-< y<m y<m' = refl
         def-from¹ {y} y<m | no y≮m = ⊥-elim (y≮m y<m)
 
+        -- If (y , x) are within the range before the extension, then they are defined in the original bijection (direction "from")
+        ∈¹-∈-from : ∀ {y x} (y<m : toℕ y < m) (x<n : toℕ x < n) → (y , x) ∈ from¹ → (reduce¹ y y<m , reduce¹ x x<n ) ∈ from
+        ∈¹-∈-from {y} {x} y<m x<n yx∈f¹ with toℕ y <? m
+        ∈¹-∈-from {y} {x} y<m x<n yx∈f¹ | no y≮m = ⊥-elim (y≮m y<m)
+        ∈¹-∈-from {y} {x} y<m x<n yx∈f¹ | yes y<m' rewrite sym (equal-< y<m y<m') with from (reduce¹ y y<m)
+        ∈¹-∈-from {y} {x} y<m x<n ()    | _ | nothing
+        ∈¹-∈-from {y} {x} y<m x<n yx∈f¹ | _ | just x'
+          rewrite sym (just-injective yx∈f¹) | toℕ-inject₁-≡ x' | red∘inj-≡-id x' x<n = refl
 
-        bar : ∀ {y x} (y<m : toℕ y < m) (x<n : toℕ x < n) → (y , x) ∈ from¹ → (reduce¹ y y<m , reduce¹ x x<n ) ∈ from
-        bar {y} {x} y<m x<n yx∈f¹ with toℕ y <? m
-        bar {y} {x} y<m x<n yx∈f¹ | no y≮m = ⊥-elim (y≮m y<m)
-        bar {y} {x} y<m x<n yx∈f¹ | yes y<m' rewrite sym (equal-< y<m y<m') =
--- rewrite sym (equal-< y<m y<m') with aux⁷ x (reduce¹ y y<m) yx∈f¹
---         ... | (x' , x≡x' , yx∈f') = {!!}
--- rewrite sym x≡x' | sym (reduce∘inject-≡-id (inject₁ x') x<n) = {!yx∈f'!}
---          let  (x' , x≡x' , yx∈f') = aux⁷ x (reduce¹ y y<m) yx∈f¹ in
-
-          begin
-            (from (reduce¹ y y<m)) ≡⟨ aux⁷ x (reduce¹ y y<m) yx∈f¹ x<n ⟩
-            (just (reduce¹ x x<n))
-          ∎
-          where open ≡-Reasoning
+        -- If (x , y) are within the range before the extension, then they are defined in the original bijection (direction "to").
+        ∈¹-∈-to : ∀ {x y} (x<n : toℕ x < n) (y<m : toℕ y < m) → (x , y) ∈ to¹ → (reduce¹ x x<n , reduce¹ y y<m) ∈ to
+        ∈¹-∈-to {x} {y} x<n y<m xy∈t¹ with toℕ x <? n
+        ∈¹-∈-to {x} {y} x<n y<m xy∈t¹ | no x≮n = ⊥-elim (x≮n x<n)
+        ∈¹-∈-to {x} {y} x<n y<m xy∈t¹ | yes x<n' rewrite sym (equal-< x<n x<n') with to (reduce¹ x x<n)
+        ∈¹-∈-to {x} {y} x<n y<m ()    | _ | nothing
+        ∈¹-∈-to {x} {y} x<n y<m xy∈t¹ | _ | just y'
+          rewrite sym (just-injective xy∈t¹) | toℕ-inject₁-≡ y' | red∘inj-≡-id y' y<m = refl
 
 
-        inv' : from¹ InverseOfᴾ to¹
-        inv' {y} {x} = left , {!!}
+        inv : from¹ InverseOfᴾ to¹
+        inv {y} {x} = left , right
           where open ≡-Reasoning
                 left : (y , x) ∈ from¹ → (x , y) ∈ to¹
                 left yx∈f =
-                  let y<m = aux₃ yx∈f
-                      x<n = aux₄ yx∈f
-                      xy∈f = left-inverse-of (bar y<m x<n yx∈f) in
+                  let y<m = from-<ᴰ yx∈f
+                      x<n = from-<ᴿ yx∈f
+                      xy∈f = left-inverse-of (∈¹-∈-from y<m x<n yx∈f) in
                   begin
-                    to¹ x ≡⟨ def₁ x<n ⟩
+                    to¹ x ≡⟨ def-to¹ x<n ⟩
                     M.map inject₁ (to (reduce¹ x x<n)) ≡⟨ cong (M.map inject₁) xy∈f ⟩
-                    just (inject₁ (reduce¹ y y<m )) ≡⟨ cong just (reduce∘inject-≡-id y y<m) ⟩
+                    just (inject₁ (reduce¹ y y<m )) ≡⟨ cong just (inj∘red-≡-id y y<m) ⟩
                     just y
                   ∎
 
-
---         inv : from¹ InverseOfᴾ to¹
---         inv {y} {x} with (suc (toℕ x)) ≤? n | inspect ((suc (toℕ x)) ≤?_) n | (suc (toℕ y)) ≤? m |  inspect ((suc (toℕ y)) ≤?_) m
---         inv {y} {x} | yes x<n | [ eq₁ ] | yes y<m | [ eq₂ ] =
---           let f = proj₁ (bar y<m x<n)
---               f' = proj₂ (bar y<m x<n)
---               g = proj₁ (foo x<n y<m)
---               g' = proj₁ (foo x<n y<m)
---               x' = reduce¹ x x<n
---               y' = reduce¹ y y<m
---               eq₃ = left-inverse-of (f' (proj₁ bar' {!!} )) in
---               left , {!!}
---               -- (λ x₁ →         ) , {!le!}
-
---           where open ≡-Reasoning
---                 -- left : (inject₁ (reduce¹ y y<m) , x) ∈ from¹ → (inject₁ (reduce¹ x x<n) , y) ∈ to¹
---                 -- left eq = {!!}
-
---                 left : M.map inject₁ (from (reduce¹ y y<m)) ≡ just x → M.map inject₁ (to (reduce¹ x x<n)) ≡ just y
---                 left eq =
---                   let (p , eq') = aux inject₁ (from (reduce¹ y y<m)) eq
---                       y' = to-witness p
---                       y∈f = aux₁ y y<m
---                       y∈f' = ≡-∈ᴰ y {!!} {!!} {!eq!} in
---                   begin
---                     M.map inject₁ (to (reduce¹ x x<n)) ≡⟨ {! eq'!} ⟩
---                     {!to-witness p (to¹ (inject₁ (reduce¹ x x<n)))!} ≡⟨ {!!} ⟩
---                     just (to¹′ (from¹′ y {!!}) (aux₂ y y∈f)) ≡⟨ {!!} ⟩
---                     just (inject₁ (reduce¹ y y<m)) ≡⟨ cong just (reduce∘inject-≡-id y y<m) ⟩
---                     just y ∎
--- --      M.map inject₁ (to (reduce¹ x x<n)) ≡ just y
-
--- -- with left-inverse-of {reduce¹ y y<m} {reduce¹ x x<n} {!!} | right-inverse-of {{!!}} {reduce¹ y y<m} {!!}
--- --         ... | r | q = {!!}
---           -- where x' = reduce¹ x x<n
---           --     y' =  reduce¹ y y<m
---           --     in {!foo x<n y<m!}
---               -- {!!} , (λ x₁ → {!lemma ? ? ?!})
---         inv {y} {x} | yes p | [ eq₁ ] | no ¬p | [ eq₂ ] = (λ ()) , {!!}
---         inv {y} {x} | no ¬p | [ eq₁ ] | yes p | [ eq₂ ] = {!!} , (λ ())
---         inv {y} {x} | no ¬p | [ eq₁ ] | no ¬p₁ | [ eq₂ ] = (λ ()) , (λ ())
-
--- nothing for Fin (suc n). otherwise call to and then inject₁
--- Use reduce≥ to decide if it is Fin (suc n) or not.
+                right : (x , y) ∈ to¹ → (y , x) ∈ from¹
+                right xy∈t =
+                  let x<n = to-<ᴰ xy∈t
+                      y<m = to-<ᴿ xy∈t
+                      xy∈f = right-inverse-of (∈¹-∈-to x<n y<m xy∈t) in
+                  begin
+                    from¹ y ≡⟨ def-from¹ y<m ⟩
+                    M.map inject₁ (from (reduce¹ y y<m)) ≡⟨ cong (M.map inject₁) xy∈f ⟩
+                    just (inject₁ (reduce¹ x x<n )) ≡⟨ cong just (inj∘red-≡-id x x<n) ⟩
+                    just x
+                  ∎
 
 -- -- The domain and the codomain should have the same size! n ≡ m
 -- -- add one entry to a bijection
