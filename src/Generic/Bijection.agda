@@ -15,15 +15,6 @@ open import Data.Nat.Properties hiding (suc-injective)
 open import Data.Product
 open import Generic.PMap renaming (∅ to ∅ᴾ)
 
-_LeftInverseOfᴾ_ : ∀ {A B} → A ⇀ B → B ⇀ A → Set
-_LeftInverseOfᴾ_ f g = ∀ {x y} → (x , y) ∈ f → (y , x) ∈ g
-
-_RightInverseOfᴾ_ : ∀ {A B} → A ⇀ B → B ⇀ A → Set
-_RightInverseOfᴾ_ f g = g LeftInverseOfᴾ f
-
-_InverseOfᴾ_ : ∀ {A B} → A ⇀ B → B ⇀ A → Set
-_InverseOfᴾ_ f g = ∀ {x y} → (x , y) ∈ f ⇔ (y , x) ∈ g
-
 -- Partial bijection
 record Bijectionᴾ (A B : Set) : Set where
   field to : A ⇀ B
@@ -36,9 +27,10 @@ record Bijectionᴾ (A B : Set) : Set where
   right-inverse-of : from RightInverseOfᴾ to
   right-inverse-of = proj₂ inverse-of
 
-  from′ : (b : B) → b ∈ᴰ from → A
-  from′ b x with from b
-  from′ b (just px) | (just x) = x
+  -- TODO: remove
+  -- from′ : (b : B) → b ∈ᴰ from → A
+  -- from′ b x with from b
+  -- from′ b (just px) | (just x) = x
 
 infix 3 _⤖ᴾ_
 
@@ -117,6 +109,7 @@ _⁻¹ : ∀ {A : Set} {B : Set} → A ⤖ᴾ B → B ⤖ᴾ A
 
 
 --------------------------------------------------------------------------------
+-- TODO: separate the general bijection from our address bijection
 
 suc-injective : ∀ {n} {x y : Fin n} → _≡_ {A = Fin (suc n)} (suc x) (suc y) → x ≡ y
 suc-injective refl = refl
@@ -136,8 +129,6 @@ Bij n m = Fin n ⤖ᴾ Fin m
 -- Explicit size
 ι′ : ∀ n → Bij n n
 ι′ _ = ι
-
--- TODO: do we need to lif the other memberships type?
 
 instance
   _≟ᶠ_ : ∀ {n} → (x y : Fin n) → Dec (x ≡ y)
@@ -292,8 +283,8 @@ _↑¹ {n} {m} β = record { to = to¹ ; from = from¹ ; inverse-of = inv }
                   ∎
 
 -- Extend a bijection with another
--- _▻_ : ∀ {n m} → Bij n m → Bij n m → Bij n m
--- _▻_
+_▻_ : ∀ {n m} → Bij n m → Bij n m → Bij n m
+β₁ ▻ β₂ = ?
 
 -- -- The domain and the codomain should have the same size! n ≡ m
 -- -- add one entry to a bijection

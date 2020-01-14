@@ -169,15 +169,20 @@ open RawMonadPlus {zero} {M = Maybe} monadPlus hiding (∅)
 _∣′_ : ∀ {A B} → A ⇀ B → A ⇀ B → A ⇀ B
 f ∣′ g = λ a → f a ∣ g a
 
--- Partial Inverse
-Inverse : ∀ {A B} (f : A ⇀ B) (g : B ⇀ A) → Set
-Inverse f g = ∀ {a b} → (a , b) ∈ f → (b , a) ∈ g
+_LeftInverseOfᴾ_ : ∀ {A B} → A ⇀ B → B ⇀ A → Set
+_LeftInverseOfᴾ_ f g = ∀ {x y} → (x , y) ∈ f → (y , x) ∈ g
+
+_RightInverseOfᴾ_ : ∀ {A B} → A ⇀ B → B ⇀ A → Set
+_RightInverseOfᴾ_ f g = g LeftInverseOfᴾ f
+
+_InverseOfᴾ_ : ∀ {A B} → A ⇀ B → B ⇀ A → Set
+_InverseOfᴾ_ f g = ∀ {x y} → (x , y) ∈ f ⇔ (y , x) ∈ g
 
 -- Disjoint invert partial maps compose and remain inverse.
 inverse-compose  : ∀ {A B : Set} {f₁ f₂ : A ⇀ B} {g₁ g₂ : B ⇀ A} →
-          Inverse f₁ g₁ → Inverse f₂ g₂ →
+          f₁ LeftInverseOfᴾ g₁ → f₂ LeftInverseOfᴾ g₂ →
           f₁ # f₂ → g₁ # g₂ →
-          Inverse (f₁ ∣′ f₂) (g₁ ∣′ g₂)
+          (f₁ ∣′ f₂) LeftInverseOfᴾ (g₁ ∣′ g₂)
 inverse-compose {_} {_} {f₁} {f₂} {g₁} {g₂} inv₁ inv₂ #₁ #₂ {a} {b} eq
   with f₁ a | f₂ a | g₁ b | g₂ b | inv₁ {a} {b} | inv₂ {a} {b} | #₁ a | #₂ b
 ... | just x | ma₂ | mb₁ | mb₂ | eq₁ | eq₂ | p₁ | p₂
