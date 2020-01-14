@@ -4,70 +4,16 @@ module Generic.Bijection where
 
 import Function as F
 open import Relation.Nullary
-open import Relation.Binary.PropositionalEquality as E
+open import Relation.Binary.PropositionalEquality
 import Level as L
 open import Category.Monad
-
--- open import Function.Bijection renaming (_∘_ to _∘ᴮ_) public   -- rexport composition
--- open import Function.Bijection as B
 open import Data.Empty
+open import Data.Maybe as M
+open import Data.Fin hiding (_≤?_ ; _≤_ ; _<_)
 open import Data.Nat renaming (_+_ to _+ᴺ_)
 open import Data.Nat.Properties hiding (suc-injective)
-open import Lattice
-
-open import Data.Maybe as M
--- open import Generic.Injection as I hiding (id ; _∘_)
--- open import Generic.Surjection as S hiding (id ; _∘_)
-open import Generic.PMap as P renaming (∅ to ∅ᴾ) -- using (_⇀_)
-
--- -- A partial bijection with restricted injectivity and surjectivity
--- -- properties only where the codomain is defined.
--- record Bijectiveᴾ {A B : Set} (to : A ⇀ B) : Set where
---   field injectiveᴾ : Injectiveᴾ to
---         surjectiveᴾ : Surjectiveᴾ to
-
--- -- The set of partial bijections.
--- record Bijectionᴾ (A B : Set) : Set where
---   field to : A ⇀ B
---         bijectiveᴾ : Bijectiveᴾ to
-
---   open Bijectiveᴾ bijectiveᴾ public
-
---   injectionᴾ : Injectionᴾ A B
---   injectionᴾ = record { to = to ; injectiveᴾ = injectiveᴾ }
-
---   surjectionᴾ : Surjectionᴾ A B
---   surjectionᴾ = record { to = to ; surjectiveᴾ = surjectiveᴾ }
-
---   open Surjectionᴾ surjectionᴾ public using ( right-inverse )
-
---   left-inverse : LeftInverse From To
---   left-inverse = record
---     { to              = to
---     ; from            = from
---     ; left-inverse-of = left-inverse-of
---     }
-
---   open LeftInverse left-inverse public using (to-from)
-
-
-
-
--- bijectionᴾ : {A B : Set} (to : A ⇀ B) (from : B ⇀ A) →
---              Injectiveᴾ to → from RightInverseOfᴾ to →
---              Bijectionᴾ A B
--- bijectionᴾ to from inj inv
---   = record { to = to
---            ; bijectiveᴾ = record
---              { injectiveᴾ = inj
---              ; surjectiveᴾ = record
---                { from = from
---                ; right-inverse-of = inv
---                }
---              }
---            }
-
 open import Data.Product
+open import Generic.PMap renaming (∅ to ∅ᴾ)
 
 _LeftInverseOfᴾ_ : ∀ {A B} → A ⇀ B → B ⇀ A → Set
 _LeftInverseOfᴾ_ f g = ∀ {x y} → (x , y) ∈ f → (y , x) ∈ g
@@ -171,9 +117,6 @@ _⁻¹ : ∀ {A : Set} {B : Set} → A ⤖ᴾ B → B ⤖ᴾ A
 
 
 --------------------------------------------------------------------------------
-
-open import Data.Fin hiding (_≤?_ ; _≤_ ; _<_)
-open import Data.Product
 
 suc-injective : ∀ {n} {x y : Fin n} → _≡_ {A = Fin (suc n)} (suc x) (suc y) → x ≡ y
 suc-injective refl = refl
@@ -347,6 +290,10 @@ _↑¹ {n} {m} β = record { to = to¹ ; from = from¹ ; inverse-of = inv }
                     just (inject₁ (reduce¹ x x<n )) ≡⟨ cong just (inj∘red-≡-id x x<n) ⟩
                     just x
                   ∎
+
+-- Extend a bijection with another
+-- _▻_ : ∀ {n m} → Bij n m → Bij n m → Bij n m
+-- _▻_
 
 -- -- The domain and the codomain should have the same size! n ≡ m
 -- -- add one entry to a bijection

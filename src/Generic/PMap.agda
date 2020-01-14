@@ -27,6 +27,7 @@ infix 1 _⇀_
 open import Level
 open RawMonad {zero} monad
 
+-- TODO: probably not needed.
 Back : ∀ {A B C} (f : B ⇀ C) (g : A ⇀ B) → Set
 Back {A} f g = ∀ (x : A) → Is-just ((g >=> f) x) → Is-just (g x)
 
@@ -40,7 +41,6 @@ back f g x () | nothing
 -- with f x
 -- back₂ f g p | just x₁ = just tt
 -- back₂ f g () | nothing
-
 
 -- Empty Map
 ∅ : ∀ {A B} → A ⇀ B
@@ -81,27 +81,6 @@ _∈_ : ∀ {A B} → A × B → A ⇀ B → Set
 (a , b) ∈ p = p a ≡ just b
 
 infixr 4 _∈_
-
--- _∈ᴰ_ : ∀ {A B} → A → A ⇀ B → Set
--- a ∈ᴰ p = ∃ (λ b → (a , b) ∈ p )
-
--- _∈ᴿ_ : ∀ {A B} → B → A ⇀ B → Set
--- b ∈ᴿ p = ∃ (λ a → (a , b) ∈ p )
-
--- ∈-∈ᴿ : ∀ {A B} {a b} {p : A ⇀ B} → (a , b) ∈ p → b ∈ᴿ p
--- ∈-∈ᴿ {a = a} {b} {p} (just x y) = a , just x y
-
--- ∈-∈ᴰ : ∀ {A B} {a b} {p : A ⇀ B} → (a , b) ∈ p → a ∈ᴰ p
--- ∈-∈ᴰ {a = a} {b} {p} x = b , x
-
-
--- -- Proof smth is defined in the map
--- _∈_ : ∀ {A B} → A →  A ⇀ B → Set
--- a ∈ p = Is-just (p a)
-
--- ∈-∈ᴰ : ∀ {A B} {a : A} {p : A ⇀ B} → a ∈ p → a ∈ᴰ p
--- ∈-∈ᴰ {a = a} {p} x with p a
--- ∈-∈ᴰ {a = a} {p} (just px) | .(just _) = _ , refl
 
 _∈ᴰ_ : ∀ {A B} → A → A ⇀ B → Set
 a ∈ᴰ p = Is-just (p a)
@@ -152,55 +131,56 @@ module Util {A B : Set} {{ _≟ᴬ_ : DecEq A }}  where
 
   infixr 1 _↦_
 
---   -- Only one mapping
---   only-one : ∀ a b a' b' → (a' , b') ∈ (a ↦ b) → a' ≡ a × b' ≡ b
---   only-one a b a' b' x with a ≟ᴬ a'
---   only-one a b .a .b refl | yes refl = refl , refl
---   only-one a b a' b' () | no ¬p
+  -- Only one mapping
+  only-one : ∀ a b a' b' → (a' , b') ∈ (a ↦ b) → a' ≡ a × b' ≡ b
+  only-one a b a' b' x with a ≟ᴬ a'
+  only-one a b .a .b refl | yes refl = refl , refl
+  only-one a b a' b' () | no ¬p
 
---   -- back↦ : ∀ x' x y → x' ∈ (x ↦ y) → x' ≡ x
---   -- back↦ x' x y p with x ≟ᴬ x'
---   -- back↦ _ _ _ p  | yes refl = refl
---   -- back↦ _ _ _ () | no ¬p
+  -- TODO: needed?
+  -- back↦ : ∀ x' x y → x' ∈ (x ↦ y) → x' ≡ x
+  -- back↦ x' x y p with x ≟ᴬ x'
+  -- back↦ _ _ _ p  | yes refl = refl
+  -- back↦ _ _ _ () | no ¬p
 
---   -- Not in the domain implies disjointness
---   ∉-# : ∀ {a : A} {b : B} → (f : A ⇀ B) → a ∉ f → f # (a ↦ b)
---   ∉-# {a} f x a' y  with a ≟ᴬ a'
---   ∉-# {a} {b} f x a' y | no ¬p = nothing
---   ∉-# {a} {b} f x a' y | yes p = ⊥-elim (aux (cong f p) x y)
---     where aux : f a ≡ f a' → Is-nothing (f a) → ¬ (Is-just (f a'))
---           aux eq x y with f a | f a'
---           aux eq (just px) y | .(just _) | b' = px
---           aux () nothing (just px) | .nothing | .(just _)
+  -- Not in the domain implies disjointness
+  ∉-# : ∀ {a : A} {b : B} → (f : A ⇀ B) → a ∉ᴰ f → f # (a ↦ b)
+  ∉-# {a} f x a' y  with a ≟ᴬ a'
+  ∉-# {a} {b} f x a' y | no ¬p = nothing
+  ∉-# {a} {b} f x a' y | yes p = ⊥-elim (aux (cong f p) x y)
+    where aux : f a ≡ f a' → Is-nothing (f a) → ¬ (Is-just (f a'))
+          aux eq x y with f a | f a'
+          aux eq (just px) y | .(just _) | b' = px
+          aux () nothing (just px) | .nothing | .(just _)
 
 open Util public
 
--- -- Syntactic sugar when the DecEq instance is not found automatically
--- -- _-⟨_⟩→_ : ∀ {A B : Set} →  A → DecEq A → B → A ⇀ B
--- -- _-⟨_⟩→_ {A} {B} a _≟_  b = a P.↦ b
--- --   where module P = Util {A} {B} {{_≟_}}
+-- Syntactic sugar when the DecEq instance is not found automatically
+_-⟨_⟩→_ : ∀ {A B : Set} →  A → DecEq A → B → A ⇀ B
+_-⟨_⟩→_ {A} {B} a _≟_  b = a P₁.↦ b
+  where module P₁ = Util {A} {B} {{_≟_}}
 
--- -------------------------------------------------------------------------------
--- open import Level
--- open import Category.Monad
--- open RawMonadPlus {zero} {M = Maybe} monadPlus hiding (∅)
+-------------------------------------------------------------------------------
+open import Level
+open import Category.Monad
+open RawMonadPlus {zero} {M = Maybe} monadPlus hiding (∅)
 
--- -- Pointwise _∣_ for readability
--- _∣′_ : ∀ {A B} → A ⇀ B → A ⇀ B → A ⇀ B
--- f ∣′ g = λ a → f a ∣ g a
+-- Pointwise _∣_ for readability
+_∣′_ : ∀ {A B} → A ⇀ B → A ⇀ B → A ⇀ B
+f ∣′ g = λ a → f a ∣ g a
 
--- -- Partial Inverse
--- Inverse : ∀ {A B} (f : A ⇀ B) (g : B ⇀ A) → Set
--- Inverse f g = ∀ {a b} → (a , b) ∈ f → (b , a) ∈ g
+-- Partial Inverse
+Inverse : ∀ {A B} (f : A ⇀ B) (g : B ⇀ A) → Set
+Inverse f g = ∀ {a b} → (a , b) ∈ f → (b , a) ∈ g
 
--- -- Disjoint invert partial maps compose and remain inverse.
--- inverse-compose  : ∀ {A B : Set} {f₁ f₂ : A ⇀ B} {g₁ g₂ : B ⇀ A} →
---           Inverse f₁ g₁ → Inverse f₂ g₂ →
---           f₁ # f₂ → g₁ # g₂ →
---           Inverse (f₁ ∣′ f₂) (g₁ ∣′ g₂)
--- inverse-compose {_} {_} {f₁} {f₂} {g₁} {g₂} inv₁ inv₂ #₁ #₂ {a} {b} eq
---   with f₁ a | f₂ a | g₁ b | g₂ b | inv₁ {a} {b} | inv₂ {a} {b} | #₁ a | #₂ b
--- ... | just x | ma₂ | mb₁ | mb₂ | eq₁ | eq₂ | p₁ | p₂
---   rewrite eq₁ eq = refl
--- ... | nothing | ma₂ | mb₁ | mb₂ | eq₁ | eq₂ | p₁ | p₂
---   rewrite eq₂ eq | is-just-nothing mb₁ p₂ = refl
+-- Disjoint invert partial maps compose and remain inverse.
+inverse-compose  : ∀ {A B : Set} {f₁ f₂ : A ⇀ B} {g₁ g₂ : B ⇀ A} →
+          Inverse f₁ g₁ → Inverse f₂ g₂ →
+          f₁ # f₂ → g₁ # g₂ →
+          Inverse (f₁ ∣′ f₂) (g₁ ∣′ g₂)
+inverse-compose {_} {_} {f₁} {f₂} {g₁} {g₂} inv₁ inv₂ #₁ #₂ {a} {b} eq
+  with f₁ a | f₂ a | g₁ b | g₂ b | inv₁ {a} {b} | inv₂ {a} {b} | #₁ a | #₂ b
+... | just x | ma₂ | mb₁ | mb₂ | eq₁ | eq₂ | p₁ | p₂
+  rewrite eq₁ eq = refl
+... | nothing | ma₂ | mb₁ | mb₂ | eq₁ | eq₂ | p₁ | p₂
+  rewrite eq₂ eq | is-just-nothing mb₁ p₂ = refl
