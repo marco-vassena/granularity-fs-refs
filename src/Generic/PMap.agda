@@ -112,8 +112,16 @@ a ∉ᴰ p = Is-nothing (p a)
 
 infixr 4 _∉ᴰ_
 
+∈ᴰ-∈ : ∀ {A B} {a : A} {p : A ⇀ B} → a ∈ᴰ p → ∃ (λ b → (a , b) ∈ p)
+∈ᴰ-∈ {a = a} {p} x with p a
+∈ᴰ-∈ {a = a} {p} (just px) | .(just _) = _ , refl
+
 ≡-∉ : ∀ {A B} a (p : A ⇀ B) → p a ≡ nothing → a ∉ᴰ p
 ≡-∉ _ _ eq rewrite eq = nothing
+
+≡-∈ᴰ : ∀ {A B} a b (p : A ⇀ B) → p a ≡ just b → a ∈ᴰ p
+≡-∈ᴰ _ _ _ eq rewrite eq = just tt
+
 
 ∈-just : ∀ {A B} a b (p : A ⇀ B) → (a , b) ∈ p → Is-just (p a)
 ∈-just a b p eq rewrite eq = just tt
