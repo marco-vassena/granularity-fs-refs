@@ -8,7 +8,7 @@ open import Data.Maybe as M
 open import Data.Nat renaming (_+_ to _+ᴺ_)
 open import Data.Nat.Properties hiding (suc-injective)
 open import Data.Product
-open import Generic.Partial.Bijection
+open import Generic.Partial.Bijection -- renaming (_▻_ to _▻ᴮ_)
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
 
@@ -170,7 +170,3 @@ _↑¹ {n} {m} β = record { to = to¹ ; from = from¹ ; inverse-of = inv }
                     just (inject₁ (reduce¹ x x<n )) ≡⟨ cong just (inj∘red-≡-id x x<n) ⟩
                     just x
                   ∎
-
--- Extend a bijection with another
--- _▻_ : ∀ {n m} → Bij n m → Bij n m → Bij n m
--- β₁ ▻ β₂ = ?
