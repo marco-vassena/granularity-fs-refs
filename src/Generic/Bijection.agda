@@ -2,114 +2,17 @@
 
 module Generic.Bijection where
 
-import Function as F
-open import Relation.Nullary
-open import Relation.Binary.PropositionalEquality
-import Level as L
-open import Category.Monad
 open import Data.Empty
-open import Data.Maybe as M
 open import Data.Fin hiding (_≤?_ ; _≤_ ; _<_)
+open import Data.Maybe as M
 open import Data.Nat renaming (_+_ to _+ᴺ_)
 open import Data.Nat.Properties hiding (suc-injective)
 open import Data.Product
-open import Generic.PMap renaming (∅ to ∅ᴾ)
-
--- Partial bijection
-record Bijectionᴾ (A B : Set) : Set where
-  field to : A ⇀ B
-        from : B ⇀ A
-        inverse-of : from InverseOfᴾ to
-
-  left-inverse-of : from LeftInverseOfᴾ to
-  left-inverse-of = proj₁ inverse-of
-
-  right-inverse-of : from RightInverseOfᴾ to
-  right-inverse-of = proj₂ inverse-of
-
-  -- TODO: remove
-  -- from′ : (b : B) → b ∈ᴰ from → A
-  -- from′ b x with from b
-  -- from′ b (just px) | (just x) = x
-
-infix 3 _⤖ᴾ_
-
-_⤖ᴾ_ : Set → Set → Set
-From ⤖ᴾ To = Bijectionᴾ From To
-
-bijᴾ : ∀ {A B} (to : A ⇀ B) (from : B ⇀ A) → from InverseOfᴾ to →
-         A ⤖ᴾ B
-bijᴾ to from inv = record { to = to ; from = from ; inverse-of = inv }
-
--- Empty partial bijection
-∅ : ∀ {A B} → A ⤖ᴾ B
-∅ = bijᴾ ∅ᴾ ∅ᴾ ((λ ()) , (λ ()))
-
--- Identity partial bijection
-id : ∀ {A} → A ⤖ᴾ A
-id = bijᴾ just just ((λ { refl → refl }) , (λ { refl → refl }))
-
-_∈ᵗ_ : ∀ {A B} → A × B → A ⤖ᴾ B → Set
-x ∈ᵗ β = x ∈ to
-  where open Bijectionᴾ β
-
--- TODO: would it be more readable to have A × B and then swap the pair in the def?
-_∈ᶠ_ : ∀ {A B} → B × A → A ⤖ᴾ B → Set
-x ∈ᶠ β = x ∈ from
-  where open Bijectionᴾ β
-
--- Composition
-_∘_ : ∀ {A B C} → B ⤖ᴾ C → A ⤖ᴾ B → A ⤖ᴾ C
-_∘_ {A} {B} {C} f g =
-  record { to = to g >=> to f
-         ; from = from f >=> from g
-         ; inverse-of = inv
-         }
-  where open Bijectionᴾ
-        open RawMonad {L.zero} monad
-
-        -- Not the prettiest proof, but still a proof :-)
-        inv : (from f >=> from g) InverseOfᴾ (to g >=> to f)
-        inv {c} {a} with to g a | inspect (to g) a | from f c | inspect (from f) c
-        inv {c} {a} | just b₁ | [ ab∈g₁ ] | just b₂ | [ cb∈f₂ ] = left , right
-          where left : (b₂ , a) ∈ (from g) → (b₁ , c) ∈ (to f)
-                left ba∈g₂ =
-                  let bc∈f₂ = left-inverse-of f cb∈f₂
-                      ab∈g₂ = left-inverse-of g ba∈g₂ in
-                      trans (cong (to f) (just-injective (trans (sym ab∈g₁) ab∈g₂))) bc∈f₂
-
-                right : (b₁ , c) ∈ᵗ f → (b₂ , a) ∈ᶠ g
-                right bc∈f =
-                  let cb∈f = right-inverse-of f bc∈f
-                      ab∈g = right-inverse-of g ab∈g₁ in
-                      trans (cong (from g) (just-injective (trans (sym cb∈f₂) cb∈f))) ab∈g
-
-
-        inv {c} {a} | just b | [ eq ] | nothing | [ eq' ] = (λ ()) ,  ⊥-elim F.∘ ⊥-right-inverse
-          where ⊥-right-inverse : (b , c) ∈ (to f) → ⊥
-                ⊥-right-inverse bc∈f =
-                  let cb∈f = right-inverse-of f bc∈f
-                      c∉f = ≡-∉ c (from f) eq' in
-                        ⊥-elim (∈-or-∉ {p = from f} cb∈f c∉f)
-
-        inv {c} {a} | nothing | [ eq ] | just b | [ eq' ] = ⊥-elim F.∘ ⊥-left-inverse , (λ ())
-          where ⊥-left-inverse : (b , a) ∈ from g → ⊥
-                ⊥-left-inverse ba∈g =
-                  let ab∈g = left-inverse-of g ba∈g
-                      a∉g = ≡-∉ a (to g) eq in
-                      ⊥-elim (∈-or-∉ {p = to g} ab∈g a∉g)
-
-        inv {x} {y} | nothing | [ eq ] | nothing | [ eq' ] = (λ ()) , (λ ())
-
--- Invert a bijection
-_⁻¹ : ∀ {A : Set} {B : Set} → A ⤖ᴾ B → B ⤖ᴾ A
-β ⁻¹ = record { to = from ; from = to ; inverse-of = right-inverse-of , left-inverse-of }
-  where open Bijectionᴾ β
-
-
+open import Generic.Partial.Bijection
+open import Relation.Binary.PropositionalEquality
+open import Relation.Nullary
 
 --------------------------------------------------------------------------------
--- TODO: separate the general bijection from our address bijection
 
 suc-injective : ∀ {n} {x y : Fin n} → _≡_ {A = Fin (suc n)} (suc x) (suc y) → x ≡ y
 suc-injective refl = refl
@@ -283,35 +186,92 @@ _↑¹ {n} {m} β = record { to = to¹ ; from = from¹ ; inverse-of = inv }
                   ∎
 
 -- Extend a bijection with another
-_▻_ : ∀ {n m} → Bij n m → Bij n m → Bij n m
-β₁ ▻ β₂ = ?
+-- _▻_ : ∀ {n m} → Bij n m → Bij n m → Bij n m
+-- β₁ ▻ β₂ = ?
 
--- -- The domain and the codomain should have the same size! n ≡ m
--- -- add one entry to a bijection
--- _▻_ : ∀ {n m} → Bij n m → (Fin (suc n)) × (Fin (suc m)) → Bij (suc n) (suc m)
--- _▻_ {n} {m} β (x , y) = record { to = B₁.to ∣′ B₂.to ; bijectiveᴾ = bij }
---   where module B₁ = Bijectionᴾ (β ↑¹)
---         module B₂ = Bijectionᴾ (x ↔ y)
+-- Disjoint bijections.
+-- β₁ # β₂ denotes that β₂ is disjoint from β₁, i.e., the
+-- maps of β₁ and β₂ are respectively disjoint.
+_#_ : ∀ {A B} → (β₁ β₂ : Bijectionᴾ A B) → Set
+_#_ {A} β₁ β₂ = (B₁.to #ᴾ B₂.to) × (B₁.from #ᴾ B₂.from)
+  where module B₁ = Bijectionᴾ β₁
+        module B₂ = Bijectionᴾ β₂
 
---         inj : Injectiveᴾ (B₁.to ∣′ B₂.to)
---         inj = {!!}
+-- Property that denotes that the composition of two bijections is a
+-- bijection.
+IsB-∘ : ∀ {A B} (β₁ β₂ : Bijectionᴾ A B) → Set
+IsB-∘ β₁ β₂ = (B₁.from ∣′ B₂.from) InverseOfᴾ (B₁.to ∣′ B₂.to)
+  where module B₁ = Bijectionᴾ β₁
+        module B₂ = Bijectionᴾ β₂
 
---         sur : Surjectiveᴾ (B₁.to ∣′ B₂.to)
---         sur = record { from = {!B₁.from ∣′ B₂.from!} ; right-inverse-of = {!!} }
+-- If two bijections are disjoint, then their composition is a
+-- bijection.
+isB-∘ : ∀ {A B} (β₁ β₂ : Bijectionᴾ A B) → β₁ # β₂ → IsB-∘ β₁ β₂
+isB-∘ {A} β₁ β₂ (to-# , from-#)
+  = inverse-compose B₁.left-inverse-of B₂.left-inverse-of from-# to-#
+  , inverse-compose B₁.right-inverse-of B₂.right-inverse-of to-# from-#
+  where module B₁ = Bijectionᴾ β₁
+        module B₂ = Bijectionᴾ β₂
+        module B₁′ = Bijectionᴾ (β₁ ⁻¹)
+        module B₂′ = Bijectionᴾ (β₂ ⁻¹)
 
---         bij : Bijectiveᴾ (B₁.to ∣′ B₂.to)
---         bij = record { injectiveᴾ = inj ; surjectiveᴾ = sur }
+-- Composition of disjoint bijections
+_▻_ : ∀ {A B} → (β₁ β₂ : Bijectionᴾ A B) {{β₁#β₂ : β₁ # β₂}} → Bijectionᴾ A B
+_▻_ {A} {B} β₁ β₂ {{ to-# , from-# }} =
+  record { to   = B₁.to ∣′ B₂.to ;
+           from = B₁.from ∣′ B₂.from ;
+           inverse-of = isB-∘ β₁ β₂ (to-# , from-#) }
+  where module B₁ = Bijectionᴾ β₁
+        module B₂ = Bijectionᴾ β₂
 
+open import Relation.Binary
 
--- -- Composition does not give me the type that i expect. Why?
--- -- should I write this as a primitive op?
+module Ops {A B : Set}
+  {{ _≟ᴬ_ : Decidable (_≡_ {A = A}) }}
+  {{ _≟ᴮ_ : Decidable (_≡_ {A = B}) }} where
 
---  -- {!β₁!} ∘ᴮ β'
---  --  where β₁ β' : Bij (suc n) (suc m)
---  --        β' = β ↑¹
+  -- These declarations just make agda aware of the decidable instances.
+  instance _ = _≟ᴬ_
+  instance _ = _≟ᴮ_
 
---  --        β₁ = bijection {!!} {!!} {!!} {!!}
+  -- When agda cannot figure out what instancies to use, we use qualified bindings.
+  module A = Util {A} {B} {{_≟ᴬ_}}
+  module B = Util {B} {A} {{_≟ᴮ_}}
 
---         -- to₁ :
--- -- record { to = {!to ⟨$⟩ !} ; bijective = {!!} }
--- --   where open Bijection β
+  -- Lemma defined with explicit instances so that we can reuse it for module A and B.
+  aux : ∀ {A B} {{_≟ᴬ_ : DecEq A}}  {{_≟ᴮ_ : DecEq B}} a b {a' b'} →
+           let f = a -⟨ _≟ᴬ_ ⟩→ b
+               g = b -⟨ _≟ᴮ_ ⟩→ a in (a' , b') ∈ f → (b' , a') ∈ g
+  aux {{_≟ᴬ_}} {{_≟ᴮ_}} a b {a'} {b'} x with a ≟ᴬ a' | b ≟ᴮ b'
+  aux {{_≟ᴬ_ = _≟ᴬ_}} {{_≟ᴮ_}} a b {.a} {.b} x | yes refl | yes refl = refl
+  aux {{_≟ᴬ_ = _≟ᴬ_}} {{_≟ᴮ_}} a b {.a} {.b} refl | yes refl | no ¬p = ⊥-elim (¬p refl)
+  aux {{_≟ᴬ_ = _≟ᴬ_}} {{_≟ᴮ_}} a b {a'} {b'} () | no ¬p | c
+
+  isB↔ : ∀ (a : A) (b : B) → {!!} -- (a ↦ b) ↔ (b ↦ a)
+  isB↔ a b = {!!} -- {a'} {b'} = ? -- aux a b , aux b a
+
+  -- Singleton bijection
+  ⟨_↔_⟩ : A → B → Bijectionᴾ A B
+  ⟨ a ↔ b ⟩ = record { to = a ↦ b ; from = b ↦ a ; inverse-of = {!!} } -- isB↔
+
+  -- Add a single pair to the right of a bijection
+  _▻′_ : (β : Bijectionᴾ A B) (x : A × B) →
+         let (a , b) = x in
+           {{∉ᴬ : a ∉ᴰ Bijectionᴾ.to β}}
+           {{∉ᴮ : b ∉ᴰ Bijectionᴾ.from β}} → Bijectionᴾ A B
+  _▻′_ β (a , b) {{ ∉ᴬ }} {{ ∉ᴮ }} = {!!} -- β ∘ ⟨ b ↔ a ⟩
+    where instance _ : β # ⟨ a ↔ b ⟩
+                   _ = ∉-# (Bijectionᴾ.to β) ∉ᴬ , ∉-# (Bijectionᴾ.from β) ∉ᴮ
+
+  -- Add a single pair to the left of a bijection
+  _◅_ : (x : A × B) (β : Bijectionᴾ A B) →
+         let (a , b) = x in
+           {{∉ᴬ : a ∉ᴰ Bijectionᴾ.to β}}
+           {{∉ᴮ : b ∉ᴰ Bijectionᴾ.from β}} → Bijectionᴾ A B
+  _◅_ (a , b) β {{ ∉ᴬ }} {{ ∉ᴮ }} = {!!} -- ⟨ a ↔ b ⟩ ∘ β
+    where instance _ : ⟨ a ↔ b ⟩ # β
+                   _ = sym-# (∉-# (Bijectionᴾ.to β) ∉ᴬ) , sym-# (∉-# (Bijectionᴾ.from β) ∉ᴮ)
+
+  -- open import Data.Sum
+  -- split↔ : ∀ {β₁ β₂ : Bijectionᴾ A B} {{β₁#β₂ : β₁ # β₂}} {a b} → a ↔ b ∈ (β₁ ∘ β₂) → a ↔ b ∈ β₁ ⊎ a ↔ b ∈ β₂
+  -- split↔ = {!!}

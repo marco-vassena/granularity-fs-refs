@@ -1,5 +1,4 @@
-module Generic.PMap where
-
+module Generic.Partial.Function where
 open import Data.Product
 open import Data.Empty
 open import Data.Unit
