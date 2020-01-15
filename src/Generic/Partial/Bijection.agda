@@ -103,7 +103,64 @@ _⁻¹ : ∀ {A : Set} {B : Set} → A ⤖ᴾ B → B ⤖ᴾ A
   where open Bijectionᴾ β
 
 -- Singleton bijection
-_↔_ : ∀ {A B} {{_≟ᴬ_ : DecEq A}}  {{_≟ᴮ_ : DecEq B}} (x : A) (y : B) → A ⤖ᴾ B
+_↔_ : ∀ {A B} {{_≟ᴬ_ : DecEq A}} {{_≟ᴮ_ : DecEq B}} (x : A) (y : B) → A ⤖ᴾ B
 _↔_ {A} {B} {{_≟ᴬ_}} {{_≟ᴮ_}} x y  = bijᴾ (x ↦ y) (y ↦ x) inverse-of-↦
   where instance _ = _≟ᴬ_
                  _ = _≟ᴮ_
+
+
+-- Disjoint bijections.
+-- β₁ # β₂ denotes that β₂ is disjoint from β₁, i.e., the
+-- maps of β₁ and β₂ are respectively disjoint.
+_#_ : ∀ {A B} → (β₁ β₂ : Bijectionᴾ A B) → Set
+_#_ {A} β₁ β₂ = (B₁.to #ᴾ B₂.to) × (B₁.from #ᴾ B₂.from)
+  where module B₁ = Bijectionᴾ β₁
+        module B₂ = Bijectionᴾ β₂
+
+infixr 2 _#_
+
+
+-- Parallel composition of from
+_∣ᶠ_ : ∀ {A B} → (β₁ β₂ : Bijectionᴾ A B) → B ⇀ A
+β₁ ∣ᶠ β₂ = from β₁ ∣ᴾ from β₂
+  where open Bijectionᴾ
+
+_∣ᵗ_ : ∀ {A B} → (β₁ β₂ : Bijectionᴾ A B) → A ⇀ B
+β₁ ∣ᵗ β₂ = to β₁ ∣ᴾ to β₂
+  where open Bijectionᴾ
+
+-- Parallel composition of disjoint bijections
+_∣ᴮ_ : ∀ {A B} → (β₁ β₂ : Bijectionᴾ A B) {{β₁#β₂ : β₁ # β₂}} → Bijectionᴾ A B
+_∣ᴮ_ {A} {B} β₁ β₂ {{ to-# , from-# }} =
+  record { to   = β₁ ∣ᵗ β₂
+         ; from = β₁ ∣ᶠ β₂
+         ; inverse-of = left , right
+         } -- isB-∘ β₁ β₂ (to-# , from-#) }
+  where module B₁ = Bijectionᴾ β₁
+        module B₂ = Bijectionᴾ β₂
+        module B₁′ = Bijectionᴾ (β₁ ⁻¹)
+        module B₂′ = Bijectionᴾ (β₂ ⁻¹)
+        left  = inverse-compose B₁.left-inverse-of B₂.left-inverse-of from-# to-#
+        right = inverse-compose B₁.right-inverse-of B₂.right-inverse-of to-# from-#
+
+-- Add a single pair to the right of a bijection
+_▻_ : ∀ {A B} (β : Bijectionᴾ A B) (x : A × B) →
+       let (a , b) = x in
+         {{∉ᴬ : a ∉ᴰ Bijectionᴾ.to β}} {{∉ᴮ : b ∉ᴰ Bijectionᴾ.from β}}
+         {{_≟ᴬ_ : DecEq A}} {{_≟ᴮ_ : DecEq B}} → Bijectionᴾ A B
+_▻_ β (a , b) {{ ∉ᴬ }} {{ ∉ᴮ }} {{_≟ᴬ_}} {{_≟ᴮ_}} = β ∣ᴮ (a ↔ b)
+  where instance _ = _≟ᴬ_
+                 _ = _≟ᴮ_
+                 _ : β # a ↔ b
+                 _ = ∉-# (Bijectionᴾ.to β) ∉ᴬ , ∉-# (Bijectionᴾ.from β) ∉ᴮ
+
+-- Add a single pair to the left of a bijection
+_◅_ : ∀ {A B} (x : A × B) (β : Bijectionᴾ A B) →
+       let (a , b) = x in
+         {{∉ᴬ : a ∉ᴰ Bijectionᴾ.to β}} {{∉ᴮ : b ∉ᴰ Bijectionᴾ.from β}}
+         {{_≟ᴬ_ : DecEq A}} {{_≟ᴮ_ : DecEq B}} → Bijectionᴾ A B
+_◅_ (a , b) β {{ ∉ᴬ }} {{ ∉ᴮ }} {{_≟ᴬ_}} {{_≟ᴮ_}} = (a ↔ b) ∣ᴮ β
+  where instance _ = _≟ᴬ_
+                 _ = _≟ᴮ_
+                 _ : (a ↔ b) # β
+                 _ = sym-# (∉-# (Bijectionᴾ.to β) ∉ᴬ) , sym-# (∉-# (Bijectionᴾ.from β) ∉ᴮ)
