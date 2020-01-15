@@ -49,9 +49,12 @@ x ∈ᵗ β = x ∈ to
   where open Bijectionᴾ β
 
 -- TODO: would it be more readable to have A × B and then swap the pair in the def?
-_∈ᶠ_ : ∀ {A B} → B × A → A ⤖ᴾ B → Set
-x ∈ᶠ β = x ∈ from
+_∈ᶠ_ : ∀ {A B} → A × B → A ⤖ᴾ B → Set
+x ∈ᶠ β = (swap x) ∈ from
   where open Bijectionᴾ β
+
+_∈ᴮ_ : ∀ {A B} → A × B → A ⤖ᴾ B → Set
+x ∈ᴮ β = (x ∈ᵗ β) × (x ∈ᶠ β)
 
 -- Composition
 _∘_ : ∀ {A B C} → B ⤖ᴾ C → A ⤖ᴾ B → A ⤖ᴾ C
@@ -74,7 +77,7 @@ _∘_ {A} {B} {C} f g =
                       ab∈g₂ = left-inverse-of g ba∈g₂ in
                       trans (cong (to f) (just-injective (trans (sym ab∈g₁) ab∈g₂))) bc∈f₂
 
-                right : (b₁ , c) ∈ᵗ f → (b₂ , a) ∈ᶠ g
+                right : (b₁ , c) ∈ᵗ f → (a , b₂) ∈ᶠ g
                 right bc∈f =
                   let cb∈f = right-inverse-of f bc∈f
                       ab∈g = right-inverse-of g ab∈g₁ in
@@ -164,3 +167,22 @@ _◅_ (a , b) β {{ ∉ᴬ }} {{ ∉ᴮ }} {{_≟ᴬ_}} {{_≟ᴮ_}} = (a ↔ b)
                  _ = _≟ᴮ_
                  _ : (a ↔ b) # β
                  _ = sym-# (∉-# (Bijectionᴾ.to β) ∉ᴬ) , sym-# (∉-# (Bijectionᴾ.from β) ∉ᴮ)
+
+split-∈ᵗ : ∀ {A B C : Set} {a c} {β₁ : A ⤖ᴾ B} {β₂ : B ⤖ᴾ C} →
+             (a , c) ∈ᵗ (β₂ ∘ β₁) →
+             ∃ (λ b → (a , b) ∈ᵗ β₁ × (b , c) ∈ᵗ β₂)
+split-∈ᵗ {a = a} {β₁ = β₁} {β₂} ac∈ with Bijectionᴾ.to β₁  a
+split-∈ᵗ {a = a} {β₁ = β₁} {β₂} ac∈ | just b with Bijectionᴾ.to β₂ b | inspect (Bijectionᴾ.to β₂) b
+... | just c' | [ eq ] rewrite just-injective ac∈ | eq = b , refl  , eq
+split-∈ᵗ {a = a} {β₁ = β₁} {β₂} () | just b | nothing | _
+split-∈ᵗ {a = a} {β₁ = β₁} {β₂} () | nothing
+  where module B₁ = Bijectionᴾ β₁
+        module B₂ = Bijectionᴾ β₂
+
+
+join-∈ᵗ : ∀ {A B C : Set} {a b c} {β₁ : A ⤖ᴾ B} {β₂ : B ⤖ᴾ C} →
+            (a , b) ∈ᵗ β₁ → (b , c) ∈ᵗ β₂ → (a , c) ∈ᵗ (β₂ ∘ β₁)
+join-∈ᵗ {a = a} {b} {c} {β₁} {β₂} x y with Bijectionᴾ.to β₁ a
+join-∈ᵗ {a = a} {b} {c} {β₁} {β₂} x y | just b' with just-injective x
+join-∈ᵗ {a = a} {.b} {c} {β₁} {β₂} x y | just b | refl = y
+join-∈ᵗ {a = a} {b} {c} {β₁} {β₂} () y | nothing

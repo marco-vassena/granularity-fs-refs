@@ -49,6 +49,3 @@ _[_]ᴴ : (μ : Heap) (x : Fin ∥ μ ∥ᴴ) →
 [] [ () ]ᴴ
 (v ∷ μ) [ zero ]ᴴ = _ , v , Here
 (v ∷ μ) [ suc x ]ᴴ = map id (map id There) (μ [ x ]ᴴ)
-
-open import Relation.Binary.PropositionalEquality
-open import Data.Nat
