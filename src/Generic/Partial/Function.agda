@@ -1,11 +1,12 @@
 module Generic.Partial.Function where
+
 open import Data.Product
 open import Data.Empty
 open import Data.Unit
 open import Data.Maybe
 open import Relation.Nullary
 open import Relation.Binary
-open import Relation.Binary.PropositionalEquality as P hiding ([_])
+open import Relation.Binary.PropositionalEquality as E hiding ([_])
 open import Category.Monad
 
 -- If and only if
@@ -110,6 +111,38 @@ infixr 4 _∉ᴰ_
 
 -- TODO: it seems we have too many representations ... clean it up!
 
+-------------------------------------------------------------------------------
+open import Level
+open import Category.Monad
+open RawMonadPlus {zero} {M = Maybe} monadPlus hiding (∅)
+
+-- Pointwise version of parallel composition (_∣_) for readability
+_∣′_ : ∀ {A B} → A ⇀ B → A ⇀ B → A ⇀ B
+f ∣′ g = λ a → f a ∣ g a
+
+_LeftInverseOfᴾ_ : ∀ {A B} → A ⇀ B → B ⇀ A → Set
+_LeftInverseOfᴾ_ f g = ∀ {x y} → (x , y) ∈ f → (y , x) ∈ g
+
+_RightInverseOfᴾ_ : ∀ {A B} → A ⇀ B → B ⇀ A → Set
+_RightInverseOfᴾ_ f g = g LeftInverseOfᴾ f
+
+_InverseOfᴾ_ : ∀ {A B} → A ⇀ B → B ⇀ A → Set
+_InverseOfᴾ_ f g = ∀ {x y} → (x , y) ∈ f ⇔ (y , x) ∈ g
+
+-- Disjoint invert partial maps compose and remain inverse.
+inverse-compose  : ∀ {A B : Set} {f₁ f₂ : A ⇀ B} {g₁ g₂ : B ⇀ A} →
+          f₁ LeftInverseOfᴾ g₁ → f₂ LeftInverseOfᴾ g₂ →
+          f₁ # f₂ → g₁ # g₂ →
+          (f₁ ∣′ f₂) LeftInverseOfᴾ (g₁ ∣′ g₂)
+inverse-compose {_} {_} {f₁} {f₂} {g₁} {g₂} inv₁ inv₂ #₁ #₂ {a} {b} eq
+  with f₁ a | f₂ a | g₁ b | g₂ b | inv₁ {a} {b} | inv₂ {a} {b} | #₁ a | #₂ b
+... | just x | ma₂ | mb₁ | mb₂ | eq₁ | eq₂ | p₁ | p₂
+  rewrite eq₁ eq = refl
+... | nothing | ma₂ | mb₁ | mb₂ | eq₁ | eq₂ | p₁ | p₂
+  rewrite eq₂ eq | is-just-nothing mb₁ p₂ = refl
+
+--------------------------------------------------------------------------------
+
 -- Shorthand
 DecEq : (A : Set) → Set
 DecEq A = Decidable (_≡_ {A = A})
@@ -136,6 +169,8 @@ module Util {A B : Set} {{ _≟ᴬ_ : DecEq A }}  where
   only-one a b .a .b refl | yes refl = refl , refl
   only-one a b a' b' () | no ¬p
 
+  postulate only-one′ : ∀ {a b a' b'} → (a' , b') ∈ (a ↦ b) → a' ≡ a × b' ≡ b
+
   -- TODO: needed?
   -- back↦ : ∀ x' x y → x' ∈ (x ↦ y) → x' ≡ x
   -- back↦ x' x y p with x ≟ᴬ x'
@@ -155,36 +190,25 @@ module Util {A B : Set} {{ _≟ᴬ_ : DecEq A }}  where
 open Util public
 
 -- Syntactic sugar when the DecEq instance is not found automatically
-_-⟨_⟩→_ : ∀ {A B : Set} →  A → DecEq A → B → A ⇀ B
-_-⟨_⟩→_ {A} {B} a _≟_  b = a P₁.↦ b
+_⟨_⟩↦_ : ∀ {A B : Set} →  A → DecEq A → B → A ⇀ B
+_⟨_⟩↦_ {A} {B} a _≟_  b = a P₁.↦ b
   where module P₁ = Util {A} {B} {{_≟_}}
 
--------------------------------------------------------------------------------
-open import Level
-open import Category.Monad
-open RawMonadPlus {zero} {M = Maybe} monadPlus hiding (∅)
+left-inverse-of-↦ : ∀ {A B} {{_≟ᴬ_ : DecEq A}}  {{_≟ᴮ_ : DecEq B}} {a b} →
+                    (a ⟨ _≟ᴬ_ ⟩↦ b) LeftInverseOfᴾ (b ⟨ _≟ᴮ_ ⟩↦ a)
+left-inverse-of-↦ {{_≟ᴬ_}} {{_≟ᴮ_}} {a} {b} {a'} {b'} x with a ≟ᴬ a' | b ≟ᴮ b'
+left-inverse-of-↦  x | yes refl | yes refl = refl
+left-inverse-of-↦ refl | yes refl | no ¬p = ⊥-elim (¬p refl)
+left-inverse-of-↦ () | no ¬p | _
 
--- Pointwise _∣_ for readability
-_∣′_ : ∀ {A B} → A ⇀ B → A ⇀ B → A ⇀ B
-f ∣′ g = λ a → f a ∣ g a
+right-inverse-of-↦ : ∀ {A B} {{_≟ᴬ_ : DecEq A}}  {{_≟ᴮ_ : DecEq B}} {a b} →
+                     (a ⟨ _≟ᴬ_ ⟩↦ b) RightInverseOfᴾ (b ⟨ _≟ᴮ_ ⟩↦ a)
+right-inverse-of-↦ {{_≟ᴬ_}} {{_≟ᴮ_}} = left-inverse-of-↦
+  where instance _ = _≟ᴬ_
+        instance _ = _≟ᴮ_
 
-_LeftInverseOfᴾ_ : ∀ {A B} → A ⇀ B → B ⇀ A → Set
-_LeftInverseOfᴾ_ f g = ∀ {x y} → (x , y) ∈ f → (y , x) ∈ g
-
-_RightInverseOfᴾ_ : ∀ {A B} → A ⇀ B → B ⇀ A → Set
-_RightInverseOfᴾ_ f g = g LeftInverseOfᴾ f
-
-_InverseOfᴾ_ : ∀ {A B} → A ⇀ B → B ⇀ A → Set
-_InverseOfᴾ_ f g = ∀ {x y} → (x , y) ∈ f ⇔ (y , x) ∈ g
-
--- Disjoint invert partial maps compose and remain inverse.
-inverse-compose  : ∀ {A B : Set} {f₁ f₂ : A ⇀ B} {g₁ g₂ : B ⇀ A} →
-          f₁ LeftInverseOfᴾ g₁ → f₂ LeftInverseOfᴾ g₂ →
-          f₁ # f₂ → g₁ # g₂ →
-          (f₁ ∣′ f₂) LeftInverseOfᴾ (g₁ ∣′ g₂)
-inverse-compose {_} {_} {f₁} {f₂} {g₁} {g₂} inv₁ inv₂ #₁ #₂ {a} {b} eq
-  with f₁ a | f₂ a | g₁ b | g₂ b | inv₁ {a} {b} | inv₂ {a} {b} | #₁ a | #₂ b
-... | just x | ma₂ | mb₁ | mb₂ | eq₁ | eq₂ | p₁ | p₂
-  rewrite eq₁ eq = refl
-... | nothing | ma₂ | mb₁ | mb₂ | eq₁ | eq₂ | p₁ | p₂
-  rewrite eq₂ eq | is-just-nothing mb₁ p₂ = refl
+inverse-of-↦ : ∀ {A B : Set} {{_≟ᴬ_ : DecEq A}}  {{_≟ᴮ_ : DecEq B}} {a : A} {b : B} →
+                 (b ⟨ _≟ᴮ_ ⟩↦ a) InverseOfᴾ (a ⟨ _≟ᴬ_ ⟩↦ b)
+inverse-of-↦ {A} {B} {{_≟ᴬ_}}  {{_≟ᴮ_}} {a} {b} = left-inverse-of-↦ , right-inverse-of-↦
+  where instance _ = _≟ᴬ_
+        instance _ = _≟ᴮ_

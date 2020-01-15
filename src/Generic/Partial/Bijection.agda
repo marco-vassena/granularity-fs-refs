@@ -8,7 +8,7 @@ open import Category.Monad
 open import Data.Empty
 open import Data.Maybe as M
 open import Data.Product
-open import Generic.Partial.Function renaming (∅ to ∅ᴾ ; _#_ to _#ᴾ_) public
+open import Generic.Partial.Function renaming (∅ to ∅ᴾ ; _#_ to _#ᴾ_ ; _∣′_ to _∣ᴾ_) public
 
 -- Partial bijection
 record Bijectionᴾ (A B : Set) : Set where
@@ -64,6 +64,7 @@ _∘_ {A} {B} {C} f g =
         open RawMonad {L.zero} monad
 
         -- Not the prettiest proof, but still a proof :-)
+        -- TODO: improve proof
         inv : (from f >=> from g) InverseOfᴾ (to g >=> to f)
         inv {c} {a} with to g a | inspect (to g) a | from f c | inspect (from f) c
         inv {c} {a} | just b₁ | [ ab∈g₁ ] | just b₂ | [ cb∈f₂ ] = left , right
@@ -100,3 +101,9 @@ _∘_ {A} {B} {C} f g =
 _⁻¹ : ∀ {A : Set} {B : Set} → A ⤖ᴾ B → B ⤖ᴾ A
 β ⁻¹ = record { to = from ; from = to ; inverse-of = right-inverse-of , left-inverse-of }
   where open Bijectionᴾ β
+
+-- Singleton bijection
+_↔_ : ∀ {A B} {{_≟ᴬ_ : DecEq A}}  {{_≟ᴮ_ : DecEq B}} (x : A) (y : B) → A ⤖ᴾ B
+_↔_ {A} {B} {{_≟ᴬ_}} {{_≟ᴮ_}} x y  = bijᴾ (x ↦ y) (y ↦ x) inverse-of-↦
+  where instance _ = _≟ᴬ_
+                 _ = _≟ᴮ_

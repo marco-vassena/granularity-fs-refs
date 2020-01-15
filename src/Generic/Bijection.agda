@@ -42,20 +42,6 @@ instance
   suc x ≟ᶠ suc .x | yes refl = yes refl
   suc x ≟ᶠ suc y | no ¬p = no λ { refl → ¬p refl }
 
--- Singleton bijection
-_↔_ : ∀ {n m} (x : Fin n) (y : Fin m) → Bij n m
-_↔_ {n} {m} x y  = bijᴾ (x ↦ y) (y ↦ x) inv
-  where
-
-  inv : (y ↦ x) InverseOfᴾ (x ↦ y)
-  inv {y'} {x'} with x ≟ᶠ x' | inspect (x ≟ᶠ_) x'
-  inv {y'} {_} | yes p | [ eq ] with y ≟ᶠ y' | inspect (y ≟ᶠ_) y'
-  inv {_} {_} | yes refl | [ eq ] | yes refl | [ eq' ] = (λ _ → refl) , (λ _ → refl)
-  inv {y'} {x'} | yes refl | [ eq ] | no y≠y' | [ eq' ] = (λ ()) , (λ jy≡jy' → ⊥-elim (y≠y' (just-injective jy≡jy')))
-  inv {y'} {x} | no ¬p | [ eq ] with y ≟ᶠ y' | inspect (y ≟ᶠ_) y'
-  inv {_} {y} | no x≠x' | [ eq ] | yes refl | [ eq' ] = (λ jx≡jy' → ⊥-elim (x≠x' (just-injective jx≡jy'))) , (λ ())
-  inv {x} {y} | no ¬p | [ eq ] | no ¬p₁ | [ eq' ] = (λ ()) , (λ ())
-
 reduce¹ : ∀ {n} (x : Fin (suc n)) → toℕ x < n → Fin n
 reduce¹ zero (s≤s x<n) = zero
 reduce¹ (suc x) (s≤s x<n) = suc (reduce¹ x x<n)
@@ -197,10 +183,19 @@ _#_ {A} β₁ β₂ = (B₁.to #ᴾ B₂.to) × (B₁.from #ᴾ B₂.from)
   where module B₁ = Bijectionᴾ β₁
         module B₂ = Bijectionᴾ β₂
 
+-- Parallel composition of from
+_∣ᶠ_ : ∀ {A B} → (β₁ β₂ : Bijectionᴾ A B) → B ⇀ A
+β₁ ∣ᶠ β₂ = from β₁ ∣ᴾ from β₂
+  where open Bijectionᴾ
+
+_∣ᵗ_ : ∀ {A B} → (β₁ β₂ : Bijectionᴾ A B) → A ⇀ B
+β₁ ∣ᵗ β₂ = to β₁ ∣ᴾ to β₂
+  where open Bijectionᴾ
+
 -- Property that denotes that the composition of two bijections is a
 -- bijection.
 IsB-∘ : ∀ {A B} (β₁ β₂ : Bijectionᴾ A B) → Set
-IsB-∘ β₁ β₂ = (B₁.from ∣′ B₂.from) InverseOfᴾ (B₁.to ∣′ B₂.to)
+IsB-∘ β₁ β₂ = (β₁ ∣ᶠ β₂) InverseOfᴾ (β₁ ∣ᵗ β₂)
   where module B₁ = Bijectionᴾ β₁
         module B₂ = Bijectionᴾ β₂
 
@@ -215,14 +210,19 @@ isB-∘ {A} β₁ β₂ (to-# , from-#)
         module B₁′ = Bijectionᴾ (β₁ ⁻¹)
         module B₂′ = Bijectionᴾ (β₂ ⁻¹)
 
--- Composition of disjoint bijections
-_▻_ : ∀ {A B} → (β₁ β₂ : Bijectionᴾ A B) {{β₁#β₂ : β₁ # β₂}} → Bijectionᴾ A B
-_▻_ {A} {B} β₁ β₂ {{ to-# , from-# }} =
-  record { to   = B₁.to ∣′ B₂.to ;
-           from = B₁.from ∣′ B₂.from ;
-           inverse-of = isB-∘ β₁ β₂ (to-# , from-#) }
+-- Parallel composition of disjoint bijections
+_∣ᴮ_ : ∀ {A B} → (β₁ β₂ : Bijectionᴾ A B) {{β₁#β₂ : β₁ # β₂}} → Bijectionᴾ A B
+_∣ᴮ_ {A} {B} β₁ β₂ {{ to-# , from-# }} =
+  record { to   = β₁ ∣ᵗ β₂
+         ; from = β₁ ∣ᶠ β₂
+         ; inverse-of = left , right
+         } -- isB-∘ β₁ β₂ (to-# , from-#) }
   where module B₁ = Bijectionᴾ β₁
         module B₂ = Bijectionᴾ β₂
+        module B₁′ = Bijectionᴾ (β₁ ⁻¹)
+        module B₂′ = Bijectionᴾ (β₂ ⁻¹)
+        left  = inverse-compose B₁.left-inverse-of B₂.left-inverse-of from-# to-#
+        right = inverse-compose B₁.right-inverse-of B₂.right-inverse-of to-# from-#
 
 open import Relation.Binary
 
@@ -235,42 +235,27 @@ module Ops {A B : Set}
   instance _ = _≟ᴮ_
 
   -- When agda cannot figure out what instancies to use, we use qualified bindings.
-  module A = Util {A} {B} {{_≟ᴬ_}}
+  module A = Util {A} {B} -- {{_≟ᴬ_}}
   module B = Util {B} {A} {{_≟ᴮ_}}
 
-  -- Lemma defined with explicit instances so that we can reuse it for module A and B.
-  aux : ∀ {A B} {{_≟ᴬ_ : DecEq A}}  {{_≟ᴮ_ : DecEq B}} a b {a' b'} →
-           let f = a -⟨ _≟ᴬ_ ⟩→ b
-               g = b -⟨ _≟ᴮ_ ⟩→ a in (a' , b') ∈ f → (b' , a') ∈ g
-  aux {{_≟ᴬ_}} {{_≟ᴮ_}} a b {a'} {b'} x with a ≟ᴬ a' | b ≟ᴮ b'
-  aux {{_≟ᴬ_ = _≟ᴬ_}} {{_≟ᴮ_}} a b {.a} {.b} x | yes refl | yes refl = refl
-  aux {{_≟ᴬ_ = _≟ᴬ_}} {{_≟ᴮ_}} a b {.a} {.b} refl | yes refl | no ¬p = ⊥-elim (¬p refl)
-  aux {{_≟ᴬ_ = _≟ᴬ_}} {{_≟ᴮ_}} a b {a'} {b'} () | no ¬p | c
 
-  isB↔ : ∀ (a : A) (b : B) → {!!} -- (a ↦ b) ↔ (b ↦ a)
-  isB↔ a b = {!!} -- {a'} {b'} = ? -- aux a b , aux b a
+  -- -- Add a single pair to the right of a bijection
+  -- _▻′_ : (β : Bijectionᴾ A B) (x : A × B) →
+  --        let (a , b) = x in
+  --          {{∉ᴬ : a ∉ᴰ Bijectionᴾ.to β}}
+  --          {{∉ᴮ : b ∉ᴰ Bijectionᴾ.from β}} → Bijectionᴾ A B
+  -- _▻′_ β (a , b) {{ ∉ᴬ }} {{ ∉ᴮ }} = {!!} -- β ∘ ⟨ b ↔ a ⟩
+  --   where instance _ : β # ⟨ a ↔ b ⟩
+  --                  _ = ∉-# (Bijectionᴾ.to β) ∉ᴬ , ∉-# (Bijectionᴾ.from β) ∉ᴮ
 
-  -- Singleton bijection
-  ⟨_↔_⟩ : A → B → Bijectionᴾ A B
-  ⟨ a ↔ b ⟩ = record { to = a ↦ b ; from = b ↦ a ; inverse-of = {!!} } -- isB↔
-
-  -- Add a single pair to the right of a bijection
-  _▻′_ : (β : Bijectionᴾ A B) (x : A × B) →
-         let (a , b) = x in
-           {{∉ᴬ : a ∉ᴰ Bijectionᴾ.to β}}
-           {{∉ᴮ : b ∉ᴰ Bijectionᴾ.from β}} → Bijectionᴾ A B
-  _▻′_ β (a , b) {{ ∉ᴬ }} {{ ∉ᴮ }} = {!!} -- β ∘ ⟨ b ↔ a ⟩
-    where instance _ : β # ⟨ a ↔ b ⟩
-                   _ = ∉-# (Bijectionᴾ.to β) ∉ᴬ , ∉-# (Bijectionᴾ.from β) ∉ᴮ
-
-  -- Add a single pair to the left of a bijection
-  _◅_ : (x : A × B) (β : Bijectionᴾ A B) →
-         let (a , b) = x in
-           {{∉ᴬ : a ∉ᴰ Bijectionᴾ.to β}}
-           {{∉ᴮ : b ∉ᴰ Bijectionᴾ.from β}} → Bijectionᴾ A B
-  _◅_ (a , b) β {{ ∉ᴬ }} {{ ∉ᴮ }} = {!!} -- ⟨ a ↔ b ⟩ ∘ β
-    where instance _ : ⟨ a ↔ b ⟩ # β
-                   _ = sym-# (∉-# (Bijectionᴾ.to β) ∉ᴬ) , sym-# (∉-# (Bijectionᴾ.from β) ∉ᴮ)
+  -- -- Add a single pair to the left of a bijection
+  -- _◅_ : (x : A × B) (β : Bijectionᴾ A B) →
+  --        let (a , b) = x in
+  --          {{∉ᴬ : a ∉ᴰ Bijectionᴾ.to β}}
+  --          {{∉ᴮ : b ∉ᴰ Bijectionᴾ.from β}} → Bijectionᴾ A B
+  -- _◅_ (a , b) β {{ ∉ᴬ }} {{ ∉ᴮ }} = {!!} -- ⟨ a ↔ b ⟩ ∘ β
+  --   where instance _ : ⟨ a ↔ b ⟩ # β
+  --                  _ = sym-# (∉-# (Bijectionᴾ.to β) ∉ᴬ) , sym-# (∉-# (Bijectionᴾ.from β) ∉ᴮ)
 
   -- open import Data.Sum
   -- split↔ : ∀ {β₁ β₂ : Bijectionᴾ A B} {{β₁#β₂ : β₁ # β₂}} {a b} → a ↔ b ∈ (β₁ ∘ β₂) → a ↔ b ∈ β₁ ⊎ a ↔ b ∈ β₂
