@@ -26,6 +26,35 @@ open import Data.Product renaming (_,_ to ⟨_,_⟩)
 
 mutual
 
+  -- "Size" of a value
+  ∣_∣ⱽ : ∀ {τ} → Value τ → ℕ
+  ∣ r ^ ℓ ∣ⱽ = ∣ r ∣ᴿ
+
+  ∣_∣ᴿ : ∀ {τ} → Raw τ → ℕ
+  ∣ （） ∣ᴿ = 0
+  ∣ ⟨ x , θ ⟩ᶜ ∣ᴿ = ∣ θ ∣ᴱ
+  ∣ inl x ∣ᴿ = ∣ x ∣ⱽ
+  ∣ inr x ∣ᴿ = ∣ x ∣ⱽ
+  ∣ ⟨ x , y ⟩ ∣ᴿ = ∣ x ∣ⱽ ⊔ᴺ ∣ y ∣ⱽ
+  ∣ Refᴵ x x₁ ∣ᴿ = 0
+  ∣ Refˢ n ∣ᴿ = ℕ.suc n
+  ∣ ⌞ x ⌟ ∣ᴿ = 0
+  ∣ Id x ∣ᴿ = ∣ x ∣ⱽ
+
+  ∣_∣ᴱ : ∀ {Γ} → Env Γ → ℕ
+  ∣ [] ∣ᴱ = 0
+  ∣ v ∷ θ ∣ᴱ = ∣ v ∣ⱽ ⊔ᴺ ∣ θ ∣ᴱ
+
+
+Bij⟨_,_⟩ⱽ : ∀ {τ} → Value τ → Value τ → Set
+Bij⟨ v₁ , v₂ ⟩ⱽ = Bij ∣ v₁ ∣ⱽ ∣ v₂ ∣ⱽ
+
+Bij⟨_,_⟩ᴿ : ∀ {τ} → Raw τ → Raw τ → Set
+Bij⟨ r₁ , r₂ ⟩ᴿ = Bij ∣ r₁ ∣ᴿ ∣ r₂ ∣ᴿ
+
+
+mutual
+
 -- Adding a bijection after the fact is a bit inconvenient.  Ideally,
 -- we would parametrize values, expressions and all the other
 -- categories with a number n to keep track of the minimum size of the
@@ -38,7 +67,19 @@ mutual
 -- low-equivalence relation without the need for pervasive changes to
 -- the syntax.
 
-  data _≈⟨_⟩ⱽ_ {τ n m} : Value τ → Bij n m → Value τ → Set where
+  -- This is not a good idea because it is too restrictive.  We need
+  -- at least a bijection that is "large" enough, but it can also be
+  -- larger.
+  -- data Value-≈ⱽ {τ} : (v₁ v₂ : Value τ) → Bij⟨ v₁ , v₂ ⟩ⱽ → Set where
+
+  -- data Raw-≈ᴿ : ∀ {τ} (r₁ r₂ : Raw τ) → Bij⟨ r₁ , r₂ ⟩ᴿ → Set where
+  --   Pair : ∀ {τ₁ τ₂} {v₁ v₁' : Value τ₁} {v₂ v₂' : Value τ₂}
+  --            {β : Bij (∣ v₁ ∣ⱽ ⊔ᴺ ∣ v₂ ∣ⱽ) (∣ v₁' ∣ⱽ ⊔ᴺ ∣ v₂' ∣ⱽ)}  →
+  --            Value-≈ⱽ v₁ v₁ β  →
+  --            Value-≈ⱽ v₂ v₂' β →
+  --            Raw-≈ᴿ ⟨ v₁ , v₂ ⟩ ⟨ v₁' , v₂' ⟩ β
+
+  data _≈⟨_⟩ⱽ_ {n m τ} : Value τ → Bij n m → Value τ → Set where
     Valueᴸ : ∀ {r₁ r₂ ℓ β} → (ℓ⊑A : ℓ ⊑ A) (r≈ : r₁ ≈⟨ β ⟩ᴿ r₂) → (r₁ ^ ℓ) ≈⟨ β ⟩ⱽ (r₂ ^ ℓ)
     Valueᴴ : ∀ {r₁ r₂ ℓ₁ ℓ₂ β} → (ℓ₁⋤A : ℓ₁ ⋤ A) (ℓ₂⋤A : ℓ₂ ⋤ A) → (r₁ ^ ℓ₁) ≈⟨ β ⟩ⱽ (r₂ ^ ℓ₂)
 
@@ -46,6 +87,7 @@ mutual
   -- v₁ ≈⟨ β ⟩ⱽ v₂ = Value-≈ β v₁ v₂
 
   -- Raw values
+  -- TODO: n m could be paramters
   data _≈⟨_⟩ᴿ_ : ∀ {τ n m} → Raw τ → Bij n m → Raw τ → Set where
 
     Unit : ∀ {n m} {β : Bij n m} → （） ≈⟨ β ⟩ᴿ （）
@@ -97,100 +139,59 @@ mutual
              (≈ᴱ : θ₁ ≈⟨ β ⟩ᴱ θ₂) →
              (v₁ ∷ θ₁) ≈⟨ β ⟩ᴱ (v₂ ∷ θ₂)
 
-  --------------------------------------------------------------------------------
-  -- TODO: remove old definitions.
-
-  -- Values
-  data _≈ⱽ_ {τ} : Value τ → Value τ → Set where
-    Valueᴸ : ∀ {r₁ r₂ ℓ} → (ℓ⊑A : ℓ ⊑ A) (r≈ : r₁ ≈ᴿ r₂) → (r₁ ^ ℓ) ≈ⱽ (r₂ ^ ℓ)
-    Valueᴴ : ∀ {r₁ r₂ ℓ₁ ℓ₂} → (ℓ₁⋤A : ℓ₁ ⋤ A) (ℓ₂⋤A : ℓ₂ ⋤ A) → (r₁ ^ ℓ₁) ≈ⱽ (r₂ ^ ℓ₂)
-
-  -- Raw values
-  data _≈ᴿ_ : ∀ {τ} → Raw τ → Raw τ → Set where
-    Unit : （） ≈ᴿ （）
-    Lbl : ∀ ℓ → ⌞ ℓ ⌟ ≈ᴿ ⌞ ℓ ⌟
-    Inl : ∀ {τ₁ τ₂} {v₁ v₂ : Value τ₁} → v₁ ≈ⱽ v₂ → inl {τ₂ = τ₂} v₁ ≈ᴿ inl v₂
-    Inr : ∀ {τ₁ τ₂} {v₁ v₂ : Value τ₂} → v₁ ≈ⱽ v₂ → inr {τ₁ = τ₁} v₁ ≈ᴿ inr v₂
-    Pair : ∀ {τ₁ τ₂} {v₁ v₁' : Value τ₁} {v₂ v₂' : Value τ₂} →
-             v₁ ≈ⱽ v₁' →
-             v₂ ≈ⱽ v₂' →
-             ⟨ v₁ , v₂ ⟩  ≈ᴿ ⟨ v₁' , v₂' ⟩
-
-    Fun : ∀ {τ' τ Γ} {e : Expr (τ' ∷ Γ) τ} {θ₁ : Env Γ} {θ₂ : Env Γ} →
-                θ₁ ≈ᴱ θ₂ →
-                ⟨ e , θ₁ ⟩ᶜ ≈ᴿ ⟨ e , θ₂ ⟩ᶜ
-
-    -- Flow-insensitive refs
-    Ref-Iᴸ : ∀ {ℓ τ} → (ℓ⊑A : ℓ ⊑ A) (n : ℕ) → Refᴵ {τ = τ} ℓ n ≈ᴿ Refᴵ ℓ n
-    Ref-Iᴴ : ∀ {ℓ₁ ℓ₂ n₁ n₂ τ} → (ℓ₁⋤A : ℓ₁ ⋤ A) (ℓ₂⋤A : ℓ₂ ⋤ A) → Refᴵ {τ = τ} ℓ₁ n₁ ≈ᴿ Refᴵ ℓ₂ n₂
-
-    -- Flow-sensitive refs
-    Ref-S : ∀ {n₁ n₂ τ} → Refˢ {τ = τ} n₁ ≈ᴿ Refˢ n₂
-
-    Id : ∀ {τ} {v₁ v₂ : Value τ} → v₁ ≈ⱽ v₂ → Id v₁ ≈ᴿ Id v₂
-
-  -- Environments.
-  data _≈ᴱ_  : ∀ {Γ} → Env Γ → Env Γ → Set where
-    [] : [] ≈ᴱ []
-    _∷_ : ∀ {τ Γ} {v₁ v₂ : Value τ} {θ₁ θ₂ : Env Γ} →
-             v₁ ≈ⱽ v₂ → θ₁ ≈ᴱ θ₂ → (v₁ ∷ θ₁) ≈ᴱ (v₂ ∷ θ₂)
-
 -- Shorthand
-Ref-Iᴸ′ : ∀ {τ ℓ n₁ n₂} → ℓ ⊑ A → n₁ ≡ n₂ → Refᴵ {τ = τ} ℓ n₁ ≈ᴿ Refᴵ ℓ n₂
+Ref-Iᴸ′ : ∀ {τ ℓ n₁ n₂ n m} {β : Bij n m} → ℓ ⊑ A → n₁ ≡ n₂ → Refᴵ {τ = τ} ℓ n₁ ≈⟨ β ⟩ᴿ Refᴵ ℓ n₂
 Ref-Iᴸ′ ℓ⊑A refl = Ref-Iᴸ ℓ⊑A _
 
-Trueᴸ : ∀ {ℓ} → ℓ ⊑ A → true ℓ ≈ᴿ true ℓ
+Trueᴸ : ∀ {ℓ n m} {β : Bij n m} → ℓ ⊑ A → true ℓ ≈⟨ β ⟩ᴿ true ℓ
 Trueᴸ ℓ⊑A = Inl (Valueᴸ ℓ⊑A Unit)
 
-Falseᴸ : ∀ {ℓ} → ℓ ⊑ A → false ℓ ≈ᴿ false ℓ
+Falseᴸ : ∀ {ℓ n m} {β : Bij n m} → ℓ ⊑ A → false ℓ ≈⟨ β ⟩ᴿ false ℓ
 Falseᴸ ℓ⊑A = Inr (Valueᴸ ℓ⊑A Unit)
 
+-- FIXME
 -- Lemma
-≈ⱽ-⊑ : ∀ {τ} {v₁ v₂ : Value τ} (pc : Label) →
-         let r₁ ^ ℓ₁ = v₁
-             r₂ ^ ℓ₂ = v₂ in
-             v₁ ≈ⱽ v₂ → (r₁ ^ (pc ⊔ ℓ₁)) ≈ⱽ (r₂ ^ (pc ⊔ ℓ₂))
-≈ⱽ-⊑ {v₁ = r₁ ^ ℓ} pc (Valueᴸ x x₁) with (pc ⊔ ℓ) ⊑? A
-... | yes p = Valueᴸ p x₁
-... | no ¬p = Valueᴴ ¬p ¬p
-≈ⱽ-⊑ pc (Valueᴴ x x₁) = Valueᴴ (trans-⋤ (join-⊑₂ _ _) x) (trans-⋤ (join-⊑₂ _ _) x₁)
+-- ≈ⱽ-⊑ : ∀ {τ} {v₁ v₂ : Value τ} (pc : Label) →
+--          let r₁ ^ ℓ₁ = v₁
+--              r₂ ^ ℓ₂ = v₂ in
+--              v₁ ≈ⱽ v₂ → (r₁ ^ (pc ⊔ ℓ₁)) ≈ⱽ (r₂ ^ (pc ⊔ ℓ₂))
+-- ≈ⱽ-⊑ {v₁ = r₁ ^ ℓ} pc (Valueᴸ x x₁) with (pc ⊔ ℓ) ⊑? A
+-- ... | yes p = Valueᴸ p x₁
+-- ... | no ¬p = Valueᴴ ¬p ¬p
+-- ≈ⱽ-⊑ pc (Valueᴴ x x₁) = Valueᴴ (trans-⋤ (join-⊑₂ _ _) x) (trans-⋤ (join-⊑₂ _ _) x₁)
 
 
 -- Derive L-equivalence for stores,
-open import Generic.Store.LowEq {Ty} {Raw} _≈ᴿ_ A as S using (_≈ˢ_) public
+-- open import Generic.Store.LowEq {Ty} {Raw} _≈ᴿ_ A as S using (_≈ˢ_) public
 
--- Derive L-equivalence for heaps
-open import Generic.Heap.LowEq {Ty} {Value} 𝑯 _≈ⱽ_ A as H using (_≈⟨_⟩ᴴ_ ; _≈ᴴ_ ; new-≈ᴴ ; Bij⟨_,_⟩)
+-- -- Derive L-equivalence for heaps
+-- open import Generic.Heap.LowEq {Ty} {Value} 𝑯 _≈ⱽ_ A as H using (_≈⟨_⟩ᴴ_ ; _≈ᴴ_ ; new-≈ᴴ ; Bij⟨_,_⟩)
 
--- Lift low-equivalence to configurations
-open Conf
+-- -- Lift low-equivalence to configurations
+-- open Conf
 
-open import Generic.Bijection as B
+-- open import Generic.Bijection as B
 
-record _≈⟨_⟩ᴬ_ {B : Set} (c₁ : Conf B) (R : B → B → Set) (c₂ : Conf B) : Set where
-  constructor ⟨_,_,_,_⟩
-  field
-    bij : Bij ∥ heap c₁ ∥ᴴ ∥ heap c₂ ∥ᴴ
-    store-≈ˢ : store c₁ ≈ˢ store c₂
-    heap-≈ᴴ : heap c₁ ≈⟨ bij ⟩ᴴ heap c₂
-    term-≈ : R (term c₁) (term c₂)
+-- record _≈⟨_⟩ᴬ_ {B : Set} (c₁ : Conf B) (R : B → B → Set) (c₂ : Conf B) : Set where
+--   constructor ⟨_,_,_,_⟩
+--   field
+--     bij : Bij ∥ heap c₁ ∥ᴴ ∥ heap c₂ ∥ᴴ
+--     store-≈ˢ : store c₁ ≈ˢ store c₂
+--     heap-≈ᴴ : heap c₁ ≈⟨ bij ⟩ᴴ heap c₂
+--     term-≈ : R (term c₁) (term c₂)
 
-open _≈⟨_⟩ᴬ_ {{ ... }}
+-- open _≈⟨_⟩ᴬ_ {{ ... }}
 
--- Initial configurations
-_≈ᴵ_ : ∀ {Γ τ} → IConf Γ τ → IConf Γ τ → Set
-_≈ᴵ_ = _≈⟨ _≡_ ⟩ᴬ_
+-- -- Initial configurations
+-- _≈ᴵ_ : ∀ {Γ τ} → IConf Γ τ → IConf Γ τ → Set
+-- _≈ᴵ_ = _≈⟨ _≡_ ⟩ᴬ_
 
--- Final configurations.
-_≈ᶜ_ : ∀ {τ} → FConf τ → FConf τ → Set
-_≈ᶜ_ = _≈⟨ _≈ⱽ_ ⟩ᴬ_
+-- -- Final configurations.
+-- _≈ᶜ_ : ∀ {τ} → FConf τ → FConf τ → Set
+-- _≈ᶜ_ = _≈⟨ _≈ⱽ_ ⟩ᴬ_
 
 --------------------------------------------------------------------------------
 -- Properties: L-equivalence is an equivalence relation.
-
--- For testing, remove
-postulate lift-≈ⱽ : ∀ {τ n m} {v : Value τ} → v ≈ⱽ v → (β : Bij n m) → v ≈⟨ β ⟩ⱽ v
-postulate unlift-≈ᴿ : ∀ {τ n m} {r₁ r₂ : Raw τ} (β : Bij n m) → r₁ ≈⟨ β ⟩ᴿ r₂ → r₁ ≈ᴿ r₂
 
 mutual
 
@@ -217,134 +218,95 @@ mutual
   ... | refl = Ref-S (≤-trans n< n≤m) (≤-trans m< n≤m) refl
   wken-≈ᴿ n≤m (Id x) = Id (wken-≈ⱽ n≤m x)
 
+--------------------------------------------------------------------------------
+
   -- Reflexive
-  refl-≈ⱽ′ : ∀ {τ} (v : Value τ) → ∃ (λ n → v ≈⟨ ι′ n ⟩ⱽ v)
+  refl-≈ⱽ′ : ∀ {τ} (v : Value τ) → v ≈⟨ ι′ ∣ v ∣ⱽ ⟩ⱽ v
   refl-≈ⱽ′ (r ^ ℓ) with ℓ ⊑? A
-  refl-≈ⱽ′ (r ^ ℓ) | yes ℓ⊑A = map F.id (Valueᴸ ℓ⊑A) (refl-≈ᴿ′ r)
-  refl-≈ⱽ′ (r ^ ℓ) | no ℓ⋤A = ⟨ 0 , Valueᴴ ℓ⋤A ℓ⋤A ⟩
+  refl-≈ⱽ′ (r ^ ℓ) | yes ℓ⊑A = Valueᴸ ℓ⊑A (refl-≈ᴿ′ r)
+  refl-≈ⱽ′ (r ^ ℓ) | no ℓ⋤A = Valueᴴ ℓ⋤A ℓ⋤A
 
-  refl-≈ᴿ′ : ∀ {τ} (r : Raw τ) → ∃ (λ n → r ≈⟨ ι′ n ⟩ᴿ r)
-  refl-≈ᴿ′ （） = ⟨ 0 , Unit ⟩
-  refl-≈ᴿ′ ⟨ x , θ ⟩ᶜ = map F.id Fun (refl-≈ᴱ′ θ)
-  refl-≈ᴿ′ (inl v) = map F.id Inl (refl-≈ⱽ′ v)
-  refl-≈ᴿ′ (inr v) = map F.id Inr (refl-≈ⱽ′ v)
-  refl-≈ᴿ′ ⟨ v₁ , v₂ ⟩ with refl-≈ⱽ′ v₁ |  refl-≈ⱽ′ v₂
-  ... | ⟨ n₁ , ≈₁ ⟩ | ⟨ n₂ , ≈₂ ⟩ =
-    let ≈₁′ = wken-≈ⱽ (m≤m⊔n n₁ n₂) ≈₁
-        ≈₂′ = wken-≈ⱽ (n≤m⊔n n₁ n₂) ≈₂
-    in ⟨ n₁ ⊔ᴺ n₂ , Pair ≈₁′ ≈₂′ ⟩
+  refl-≈ᴿ′ : ∀ {τ} (r : Raw τ) → r ≈⟨ ι′ ∣ r ∣ᴿ ⟩ᴿ r
+  refl-≈ᴿ′ （） = Unit
+  refl-≈ᴿ′ ⟨ x , θ ⟩ᶜ = Fun (refl-≈ᴱ′ θ)
+  refl-≈ᴿ′ (inl v) = Inl (refl-≈ⱽ′ v)
+  refl-≈ᴿ′ (inr v) = Inr (refl-≈ⱽ′ v)
+  refl-≈ᴿ′ ⟨ v₁ , v₂ ⟩ = Pair ≈₁′ ≈₂′
+    where ≈₁′ = wken-≈ⱽ (m≤m⊔n ∣ v₁ ∣ⱽ ∣ v₂ ∣ⱽ) (refl-≈ⱽ′ v₁)
+          ≈₂′ = wken-≈ⱽ (n≤m⊔n ∣ v₁ ∣ⱽ ∣ v₂ ∣ⱽ) (refl-≈ⱽ′ v₂)
   refl-≈ᴿ′ (Refᴵ ℓ n) with ℓ ⊑? A
-  ... | yes ℓ⊑A = ⟨ 0 , Ref-Iᴸ ℓ⊑A n ⟩
-  ... | no ℓ⋤A = ⟨ 0 , Ref-Iᴴ ℓ⋤A ℓ⋤A ⟩
-  refl-≈ᴿ′ (Refˢ n) = ⟨ ℕ.suc n , Ref-S ≤-refl ≤-refl refl ⟩
-  refl-≈ᴿ′ ⌞ ℓ ⌟ = ⟨ 0 , Lbl ℓ ⟩
-  refl-≈ᴿ′ (Id v) = map F.id Id (refl-≈ⱽ′ v)
+  ... | yes ℓ⊑A = Ref-Iᴸ ℓ⊑A n
+  ... | no ℓ⋤A = Ref-Iᴴ ℓ⋤A ℓ⋤A
+  refl-≈ᴿ′ (Refˢ n) = Ref-S ≤-refl ≤-refl refl
+  refl-≈ᴿ′ ⌞ ℓ ⌟ = Lbl ℓ
+  refl-≈ᴿ′ (Id v) = Id (refl-≈ⱽ′ v)
 
-  refl-≈ᴱ′ : ∀ {Γ} (θ : Env Γ) → ∃ (λ n → θ ≈⟨ ι′ n ⟩ᴱ θ)
-  refl-≈ᴱ′ [] = ⟨ 0 , [] ⟩
-  refl-≈ᴱ′ (v ∷ θ) with refl-≈ⱽ′ v | refl-≈ᴱ′ θ
-  ... | ⟨ n₁ , ≈ⱽ ⟩ | ⟨ n₂ , ≈ᴱ ⟩ =
-    let ≈₁′ = wken-≈ⱽ (m≤m⊔n n₁ n₂) ≈ⱽ
-        ≈₂′ = wken-≈ᴱ (n≤m⊔n n₁ n₂) ≈ᴱ
-    in ⟨ n₁ ⊔ᴺ n₂ , ≈₁′ ∷ ≈₂′ ⟩
+  refl-≈ᴱ′ : ∀ {Γ} (θ : Env Γ) → θ ≈⟨ ι′ ∣ θ ∣ᴱ ⟩ᴱ θ
+  refl-≈ᴱ′ [] = []
+  refl-≈ᴱ′ (v ∷ θ) = ≈₁ ∷ ≈₂
+    where ≈₁ = wken-≈ⱽ (m≤m⊔n ∣ v ∣ⱽ ∣ θ ∣ᴱ) (refl-≈ⱽ′ v)
+          ≈₂ = wken-≈ᴱ (n≤m⊔n ∣ v ∣ⱽ ∣ θ ∣ᴱ) (refl-≈ᴱ′ θ)
 
-  -- Symmetric
-  sym-≈ⱽ′ : ∀ {n m τ} {v₁ v₂ : Value τ} {β : Bij n m} → v₁ ≈⟨ β ⟩ⱽ v₂ → v₂ ≈⟨ β ⁻¹ ⟩ⱽ v₁
-  sym-≈ⱽ′ (Valueᴸ ℓ⊑A r≈) = Valueᴸ ℓ⊑A (sym-≈ᴿ′ r≈)
-  sym-≈ⱽ′ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = Valueᴴ ℓ₂⋤A ℓ₁⋤A
-
-  sym-≈ᴿ′ : ∀ {n m τ} {r₁ r₂ : Raw τ} {β : Bij n m} → r₁ ≈⟨ β ⟩ᴿ r₂ → r₂ ≈⟨ β ⁻¹ ⟩ᴿ r₁
-  sym-≈ᴿ′ Unit = Unit
-  sym-≈ᴿ′ (Lbl ℓ) = Lbl ℓ
-  sym-≈ᴿ′ (Inl x) = Inl (sym-≈ⱽ′ x)
-  sym-≈ᴿ′ (Inr x) = Inr (sym-≈ⱽ′ x)
-  sym-≈ᴿ′ (Pair x y) = Pair (sym-≈ⱽ′ x) (sym-≈ⱽ′ y)
-  sym-≈ᴿ′ (Fun x) = Fun (sym-≈ᴱ′ x)
-  sym-≈ᴿ′ (Ref-Iᴸ ℓ⊑A n) = Ref-Iᴸ ℓ⊑A n
-  sym-≈ᴿ′ (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = Ref-Iᴴ ℓ₂⋤A ℓ₁⋤A
-  sym-≈ᴿ′ {β = β} (Ref-S n<n' m<m' x) = Ref-S m<m' n<n' (Bijectionᴾ.right-inverse-of β x)
-  sym-≈ᴿ′ (Id x) = Id (sym-≈ⱽ′ x)
-
-  sym-≈ᴱ′ : ∀ {n m Γ} {θ₁ θ₂ : Env Γ} {β : Bij n m} → θ₁ ≈⟨ β ⟩ᴱ θ₂ → θ₂ ≈⟨ β ⁻¹ ⟩ᴱ θ₁
-  sym-≈ᴱ′ [] = []
-  sym-≈ᴱ′ (≈ⱽ ∷ ≈ᴱ) = sym-≈ⱽ′ ≈ⱽ ∷ sym-≈ᴱ′ ≈ᴱ
-
-  -- Transitive
-  trans-≈ᴿ′ : ∀ {n₁ n₂ n₃ τ} {β₁ : Bij n₁ n₂} {β₂ : Bij n₂ n₃} {r₁ r₂ r₃ : Raw τ} →
-               r₁ ≈⟨ β₁ ⟩ᴿ r₂ → r₂ ≈⟨ β₂ ⟩ᴿ r₃ → r₁ ≈⟨ β₂ ∘ᴮ β₁ ⟩ᴿ r₃
-  trans-≈ᴿ′ Unit Unit = Unit
-  trans-≈ᴿ′ (Lbl ℓ) (Lbl .ℓ) = Lbl ℓ
-  trans-≈ᴿ′ (Inl x) (Inl y) = Inl (trans-≈ⱽ′ x y)
-  trans-≈ᴿ′ (Inr x) (Inr y) = Inr (trans-≈ⱽ′ x y)
-  trans-≈ᴿ′ (Pair x₁ y₁) (Pair x₂ y₂) = Pair (trans-≈ⱽ′ x₁ x₂) (trans-≈ⱽ′ y₁ y₂)
-  trans-≈ᴿ′ (Fun x) (Fun y) = Fun (trans-≈ᴱ′ x y)
-  trans-≈ᴿ′ (Ref-Iᴸ ℓ⊑A n) (Ref-Iᴸ ℓ⊑A₁ .n) = Ref-Iᴸ ℓ⊑A₁ n
-  trans-≈ᴿ′ (Ref-Iᴸ ℓ⊑A n) (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = ⊥-elim (ℓ₁⋤A ℓ⊑A)
-  trans-≈ᴿ′ (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) (Ref-Iᴸ ℓ⊑A n) = ⊥-elim (ℓ₂⋤A ℓ⊑A)
-  trans-≈ᴿ′ (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) (Ref-Iᴴ ℓ₁⋤A₁ ℓ₂⋤A₁) = Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A₁
-  trans-≈ᴿ′ {β₁ = β₁} {β₂} (Ref-S n<n' m<m' x) (Ref-S n<n'' m<m'' y)
-    rewrite ≤-irrelevance m<m' n<n'' = Ref-S n<n' m<m'' (join-∈ᵗ {β₁ = β₁} {β₂} x y)
-  trans-≈ᴿ′ (Id x) (Id y) = Id (trans-≈ⱽ′ x y)
-
-  trans-≈ⱽ′ : ∀ {n₁ n₂ n₃ τ} {β₁ : Bij n₁ n₂} {β₂ : Bij n₂ n₃} {v₁ v₂ v₃ : Value τ} →
-               v₁ ≈⟨ β₁ ⟩ⱽ v₂ → v₂ ≈⟨ β₂ ⟩ⱽ v₃ → v₁ ≈⟨ β₂ ∘ᴮ β₁ ⟩ⱽ v₃
-  trans-≈ⱽ′ (Valueᴸ ℓ⊑A r≈) (Valueᴸ ℓ⊑A₁ r≈₁) = Valueᴸ ℓ⊑A₁ (trans-≈ᴿ′ r≈ r≈₁)
-  trans-≈ⱽ′ (Valueᴸ ℓ⊑A r≈) (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = ⊥-elim (ℓ₁⋤A ℓ⊑A)
-  trans-≈ⱽ′ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) (Valueᴸ ℓ⊑A r≈) = ⊥-elim (ℓ₂⋤A ℓ⊑A)
-  trans-≈ⱽ′ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) (Valueᴴ ℓ₁⋤A₁ ℓ₂⋤A₁) = Valueᴴ ℓ₁⋤A ℓ₂⋤A₁
-
-  trans-≈ᴱ′ : ∀ {n₁ n₂ n₃ Γ} {β₁ : Bij n₁ n₂} {β₂ : Bij n₂ n₃} {θ₁ θ₂ θ₃ : Env Γ} →
-               θ₁ ≈⟨ β₁ ⟩ᴱ θ₂ → θ₂ ≈⟨ β₂ ⟩ᴱ θ₃ → θ₁ ≈⟨ β₂ ∘ᴮ β₁ ⟩ᴱ θ₃
-  trans-≈ᴱ′ [] [] = []
-  trans-≈ᴱ′ (≈ⱽ₁ ∷ ≈ᴱ₁) (≈ⱽ₂ ∷ ≈ᴱ₂) = trans-≈ⱽ′ ≈ⱽ₁ ≈ⱽ₂ ∷ trans-≈ᴱ′ ≈ᴱ₁ ≈ᴱ₂
+----------------------------------------------------------------------------------
 
   -- Symmetric
-  sym-≈ⱽ : ∀ {τ} {v₁ v₂ : Value τ} → v₁ ≈ⱽ v₂ → v₂ ≈ⱽ v₁
+  sym-≈ⱽ : ∀ {n m τ} {v₁ v₂ : Value τ} {β : Bij n m} → v₁ ≈⟨ β ⟩ⱽ v₂ → v₂ ≈⟨ β ⁻¹ ⟩ⱽ v₁
   sym-≈ⱽ (Valueᴸ ℓ⊑A r≈) = Valueᴸ ℓ⊑A (sym-≈ᴿ r≈)
   sym-≈ⱽ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = Valueᴴ ℓ₂⋤A ℓ₁⋤A
 
-  postulate sym-≈ᴿ : ∀ {τ} {r₁ r₂ : Raw τ} → r₁ ≈ᴿ r₂ → r₂ ≈ᴿ r₁
-  -- sym-≈ᴿ Unit = Unit
-  -- sym-≈ᴿ (Lbl ℓ) = Lbl ℓ
-  -- sym-≈ᴿ (Inl v₁≈v₂) = Inl (sym-≈ⱽ v₁≈v₂)
-  -- sym-≈ᴿ (Inr v₁≈v₂) = Inr (sym-≈ⱽ v₁≈v₂)
-  -- sym-≈ᴿ (Pair v₁≈v₂ v₁≈v₂') = Pair (sym-≈ⱽ v₁≈v₂) (sym-≈ⱽ v₁≈v₂')
-  -- sym-≈ᴿ (Fun θ₁≈θ₂) = Fun (sym-≈ᴱ θ₁≈θ₂)
-  -- sym-≈ᴿ (Ref-Iᴸ ℓ⊑A n) = Ref-Iᴸ ℓ⊑A n
-  -- sym-≈ᴿ (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = Ref-Iᴴ ℓ₂⋤A ℓ₁⋤A
-  -- sym-≈ᴿ (Id v₁≈v₂) = Id (sym-≈ⱽ v₁≈v₂)
+  sym-≈ᴿ : ∀ {n m τ} {r₁ r₂ : Raw τ} {β : Bij n m} → r₁ ≈⟨ β ⟩ᴿ r₂ → r₂ ≈⟨ β ⁻¹ ⟩ᴿ r₁
+  sym-≈ᴿ Unit = Unit
+  sym-≈ᴿ (Lbl ℓ) = Lbl ℓ
+  sym-≈ᴿ (Inl x) = Inl (sym-≈ⱽ x)
+  sym-≈ᴿ (Inr x) = Inr (sym-≈ⱽ x)
+  sym-≈ᴿ (Pair x y) = Pair (sym-≈ⱽ x) (sym-≈ⱽ y)
+  sym-≈ᴿ (Fun x) = Fun (sym-≈ᴱ x)
+  sym-≈ᴿ (Ref-Iᴸ ℓ⊑A n) = Ref-Iᴸ ℓ⊑A n
+  sym-≈ᴿ (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = Ref-Iᴴ ℓ₂⋤A ℓ₁⋤A
+  sym-≈ᴿ {β = β} (Ref-S n<n' m<m' x) = Ref-S m<m' n<n' (Bijectionᴾ.right-inverse-of β x)
+  sym-≈ᴿ (Id x) = Id (sym-≈ⱽ x)
 
-  postulate sym-≈ᴱ : ∀ {Γ} {θ₁ θ₂ : Env Γ} → θ₁ ≈ᴱ θ₂ → θ₂ ≈ᴱ θ₁
-  -- sym-≈ᴱ [] = []
-  -- sym-≈ᴱ (v₁≈v₂ ∷ θ₁≈θ₂) = sym-≈ⱽ v₁≈v₂ ∷ sym-≈ᴱ θ₁≈θ₂
+  sym-≈ᴱ : ∀ {n m Γ} {θ₁ θ₂ : Env Γ} {β : Bij n m} → θ₁ ≈⟨ β ⟩ᴱ θ₂ → θ₂ ≈⟨ β ⁻¹ ⟩ᴱ θ₁
+  sym-≈ᴱ [] = []
+  sym-≈ᴱ (≈ⱽ ∷ ≈ᴱ) = sym-≈ⱽ ≈ⱽ ∷ sym-≈ᴱ ≈ᴱ
 
   -- Transitive
-  postulate trans-≈ᴿ : ∀ {τ} {r₁ r₂ r₃ : Raw τ} → r₁ ≈ᴿ r₂ → r₂ ≈ᴿ r₃ → r₁ ≈ᴿ r₃
-  -- trans-≈ᴿ Unit Unit = Unit
-  -- trans-≈ᴿ (Lbl ℓ) (Lbl .ℓ) = Lbl ℓ
-  -- trans-≈ᴿ (Inl v₁≈v₂) (Inl v₂≈v₃) = Inl (trans-≈ⱽ v₁≈v₂ v₂≈v₃)
-  -- trans-≈ᴿ (Inr v₁≈v₂) (Inr v₂≈v₃) = Inr (trans-≈ⱽ v₁≈v₂ v₂≈v₃)
-  -- trans-≈ᴿ (Pair v₁≈v₂ v₁≈v₃) (Pair v₂≈v₃ v₂≈v₄) = Pair (trans-≈ⱽ v₁≈v₂ v₂≈v₃) (trans-≈ⱽ v₁≈v₃ v₂≈v₄)
-  -- trans-≈ᴿ (Fun θ₁≈θ₂) (Fun θ₂≈θ₃) = Fun (trans-≈ᴱ θ₁≈θ₂ θ₂≈θ₃)
-  -- trans-≈ᴿ (Ref-Iᴸ ℓ⊑A n) (Ref-Iᴸ ℓ⊑A₁ .n) = Ref-Iᴸ ℓ⊑A₁ n
-  -- trans-≈ᴿ (Ref-Iᴸ ℓ⊑A n) (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = ⊥-elim (ℓ₁⋤A ℓ⊑A)
-  -- trans-≈ᴿ (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) (Ref-Iᴸ ℓ⊑A n) = ⊥-elim (ℓ₂⋤A ℓ⊑A)
-  -- trans-≈ᴿ (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) (Ref-Iᴴ ℓ₁⋤A₁ ℓ₂⋤A₁) = Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A₁
-  -- trans-≈ᴿ (Id v₁≈v₂) (Id v₂≈v₃) = Id (trans-≈ⱽ v₁≈v₂ v₂≈v₃)
+  trans-≈ᴿ : ∀ {n₁ n₂ n₃ τ} {β₁ : Bij n₁ n₂} {β₂ : Bij n₂ n₃} {r₁ r₂ r₃ : Raw τ} →
+               r₁ ≈⟨ β₁ ⟩ᴿ r₂ → r₂ ≈⟨ β₂ ⟩ᴿ r₃ → r₁ ≈⟨ β₂ ∘ᴮ β₁ ⟩ᴿ r₃
+  trans-≈ᴿ Unit Unit = Unit
+  trans-≈ᴿ (Lbl ℓ) (Lbl .ℓ) = Lbl ℓ
+  trans-≈ᴿ (Inl x) (Inl y) = Inl (trans-≈ⱽ x y)
+  trans-≈ᴿ (Inr x) (Inr y) = Inr (trans-≈ⱽ x y)
+  trans-≈ᴿ (Pair x₁ y₁) (Pair x₂ y₂) = Pair (trans-≈ⱽ x₁ x₂) (trans-≈ⱽ y₁ y₂)
+  trans-≈ᴿ (Fun x) (Fun y) = Fun (trans-≈ᴱ x y)
+  trans-≈ᴿ (Ref-Iᴸ ℓ⊑A n) (Ref-Iᴸ ℓ⊑A₁ .n) = Ref-Iᴸ ℓ⊑A₁ n
+  trans-≈ᴿ (Ref-Iᴸ ℓ⊑A n) (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = ⊥-elim (ℓ₁⋤A ℓ⊑A)
+  trans-≈ᴿ (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) (Ref-Iᴸ ℓ⊑A n) = ⊥-elim (ℓ₂⋤A ℓ⊑A)
+  trans-≈ᴿ (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) (Ref-Iᴴ ℓ₁⋤A₁ ℓ₂⋤A₁) = Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A₁
+  trans-≈ᴿ {β₁ = β₁} {β₂} (Ref-S n<n' m<m' x) (Ref-S n<n'' m<m'' y)
+    rewrite ≤-irrelevance m<m' n<n'' = Ref-S n<n' m<m'' (join-∈ᵗ {β₁ = β₁} {β₂} x y)
+  trans-≈ᴿ (Id x) (Id y) = Id (trans-≈ⱽ x y)
 
-  postulate trans-≈ⱽ : ∀ {τ} {v₁ v₂ v₃ : Value τ} → v₁ ≈ⱽ v₂ → v₂ ≈ⱽ v₃ → v₁ ≈ⱽ v₃
-  -- trans-≈ⱽ (Valueᴸ ℓ⊑A r≈) (Valueᴸ ℓ⊑A₁ r≈₁) = Valueᴸ ℓ⊑A₁ (trans-≈ᴿ r≈ r≈₁)
-  -- trans-≈ⱽ (Valueᴸ ℓ⊑A r≈) (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = ⊥-elim (ℓ₁⋤A ℓ⊑A)
-  -- trans-≈ⱽ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) (Valueᴸ ℓ⊑A r≈) = ⊥-elim (ℓ₂⋤A ℓ⊑A)
-  -- trans-≈ⱽ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) (Valueᴴ ℓ₁⋤A₁ ℓ₂⋤A₁) = Valueᴴ ℓ₁⋤A ℓ₂⋤A₁
+  trans-≈ⱽ : ∀ {n₁ n₂ n₃ τ} {β₁ : Bij n₁ n₂} {β₂ : Bij n₂ n₃} {v₁ v₂ v₃ : Value τ} →
+               v₁ ≈⟨ β₁ ⟩ⱽ v₂ → v₂ ≈⟨ β₂ ⟩ⱽ v₃ → v₁ ≈⟨ β₂ ∘ᴮ β₁ ⟩ⱽ v₃
+  trans-≈ⱽ (Valueᴸ ℓ⊑A r≈) (Valueᴸ ℓ⊑A₁ r≈₁) = Valueᴸ ℓ⊑A₁ (trans-≈ᴿ r≈ r≈₁)
+  trans-≈ⱽ (Valueᴸ ℓ⊑A r≈) (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = ⊥-elim (ℓ₁⋤A ℓ⊑A)
+  trans-≈ⱽ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) (Valueᴸ ℓ⊑A r≈) = ⊥-elim (ℓ₂⋤A ℓ⊑A)
+  trans-≈ⱽ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) (Valueᴴ ℓ₁⋤A₁ ℓ₂⋤A₁) = Valueᴴ ℓ₁⋤A ℓ₂⋤A₁
 
-  postulate trans-≈ᴱ : ∀ {Γ} {θ₁ θ₂ θ₃ : Env Γ} → θ₁ ≈ᴱ θ₂ → θ₂ ≈ᴱ θ₃ → θ₁ ≈ᴱ θ₃
-  -- trans-≈ᴱ [] [] = []
-  -- trans-≈ᴱ (v₁≈v₂ ∷ θ₁≈θ₂) (v₂≈v₃ ∷ θ₂≈θ₃) = trans-≈ⱽ v₁≈v₂ v₂≈v₃ ∷ trans-≈ᴱ θ₁≈θ₂ θ₂≈θ₃
+  trans-≈ᴱ : ∀ {n₁ n₂ n₃ Γ} {β₁ : Bij n₁ n₂} {β₂ : Bij n₂ n₃} {θ₁ θ₂ θ₃ : Env Γ} →
+               θ₁ ≈⟨ β₁ ⟩ᴱ θ₂ → θ₂ ≈⟨ β₂ ⟩ᴱ θ₃ → θ₁ ≈⟨ β₂ ∘ᴮ β₁ ⟩ᴱ θ₃
+  trans-≈ᴱ [] [] = []
+  trans-≈ᴱ (≈ⱽ₁ ∷ ≈ᴱ₁) (≈ⱽ₂ ∷ ≈ᴱ₂) = trans-≈ⱽ ≈ⱽ₁ ≈ⱽ₂ ∷ trans-≈ᴱ ≈ᴱ₁ ≈ᴱ₂
 
+-- Not sure why is yellow. Figure it out!
+𝑹 : IsEquivalenceᴮ (λ v₁ v₂ β → v₁ ≈⟨ β ⟩ⱽ v₂)
+𝑹 = {!!}
+
+  -- Make them instance of my own Equivalence bijection-indexed relation
 -- instance
---   ≈ᴿ-isEquivalence : ∀ {τ} → IsEquivalence (_≈ᴿ_ {τ})
---   ≈ᴿ-isEquivalence = record { refl = refl-≈ᴿ ; sym = sym-≈ᴿ ; trans = trans-≈ᴿ }
+  -- ≈ᴿ-isEquivalence : ∀ {τ} → IsEquivalence (_≈ᴿ_ {τ})
+  -- ≈ᴿ-isEquivalence = {!!} -- record { refl = ? refl-≈ᴿ ; sym = sym-≈ᴿ ; trans = trans-≈ᴿ }
 
 --   ≈ⱽ-isEquivalence : ∀ {τ} → IsEquivalence (_≈ⱽ_ {τ})
 --   ≈ⱽ-isEquivalence = record { refl = refl-≈ⱽ ; sym = sym-≈ⱽ ; trans = trans-≈ⱽ }

@@ -158,3 +158,17 @@ _↑ : ∀ {n m} → Bij n m → Bij (suc n) (suc m)
     | toℕ-inject₁-≡ y'' | red∘inj-≡-id y'' y<m = y<m , (cong just (sym (red∘inj-≡-id y'' y<m)))
 ↑ᴿ-∈ {β = β} {x} xy∈βᴿ | just y' | [ () ] | nothing
 ↑ᴿ-∈ {β = β} {x} () | nothing | w
+
+--------------------------------------------------------------------------------
+-- Equivalence class up to bijection.
+
+-- I could define Rel : ∀ x y → Bij (Dom x) (Dom y), however this is
+-- to restrictive. Definitions for values typically require at least
+-- (Dom x) but that is too restrictive when values contain composite
+-- values with different domains.
+record IsEquivalenceᴮ {Ty : Set} {V : Ty → Set} (Rel : ∀ {n m τ} (x y : V τ) → Bij n m → Set) : Set where
+  field Dom : ∀ {τ} → V τ → ℕ
+        reflᴮ : ∀ {τ} {x : V τ} → Rel x x (ι′ (Dom x))
+        symᴮ : ∀ {τ} {x y : V τ} {n m} {β : Bij n m} → Rel x y β → Rel y x (β ⁻¹)
+        transᴮ : ∀ {τ} {x y z : V τ} {n₁ n₂ n₃} {β₁ : Bij n₁ n₂} {β₂ : Bij n₂ n₃} →
+                   Rel x y β₁ → Rel y z β₂ → Rel x z (β₂ ∘ β₁)
