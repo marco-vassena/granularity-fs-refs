@@ -17,21 +17,23 @@ open import FG.LowEq A as E public
 open import Data.Empty
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
+open import Generic.Bijection hiding (_∈_)
 
 --------------------------------------------------------------------------------
 -- Lemmas on L-equivalent environments.
 
 -- Lookup in L-equivalent envs gives L-equivalent values
-lookup-≈ⱽ : ∀ {τ Γ θ₁ θ₂} → (τ∈Γ : τ ∈ Γ) → θ₁ ≈ᴱ θ₂ → (θ₁ !! τ∈Γ) ≈ⱽ (θ₂ !! τ∈Γ)
+lookup-≈ⱽ : ∀ {τ Γ θ₁ θ₂ n m} {β : Bij n m} →
+              (τ∈Γ : τ ∈ Γ) → θ₁ ≈⟨ β ⟩ᴱ θ₂ → (θ₁ !! τ∈Γ) ≈⟨ β ⟩ⱽ (θ₂ !! τ∈Γ)
 lookup-≈ⱽ here (v₁≈v₂ ∷ θ₁≈θ₂) = v₁≈v₂
 lookup-≈ⱽ (there τ∈Γ) (v₁≈v₂ ∷ θ₁≈θ₂) = lookup-≈ⱽ τ∈Γ θ₁≈θ₂
 
 
 -- Slicing L-equivalent envs gives gives L-equivalent envs.
-slice-≈ᴱ : ∀ {Γ₁ Γ₂} {θ₁ θ₂ : Env Γ₂} →
-                 θ₁ ≈ᴱ θ₂ →
+slice-≈ᴱ : ∀ {Γ₁ Γ₂ n m} {θ₁ θ₂ : Env Γ₂} {β : Bij n m} →
+                 θ₁ ≈⟨ β ⟩ᴱ θ₂ →
                  (Γ₁⊆Γ₂ : Γ₁ ⊆ Γ₂) →
-                 slice θ₁ Γ₁⊆Γ₂ ≈ᴱ slice θ₂ Γ₁⊆Γ₂
+                 slice θ₁ Γ₁⊆Γ₂ ≈⟨ β ⟩ᴱ slice θ₂ Γ₁⊆Γ₂
 slice-≈ᴱ [] base = []
 slice-≈ᴱ (v₁≈v₂ ∷ θ₁≈θ₂) (cons p) = v₁≈v₂ ∷ slice-≈ᴱ θ₁≈θ₂ p
 slice-≈ᴱ (v₁≈v₂ ∷ θ₁≈θ₂) (drop p) = slice-≈ᴱ θ₁≈θ₂ p
@@ -39,7 +41,8 @@ slice-≈ᴱ (v₁≈v₂ ∷ θ₁≈θ₂) (drop p) = slice-≈ᴱ θ₁≈θ�
 --------------------------------------------------------------------------------
 
 open import Data.Product renaming (_×_ to _∧_ ; _,_ to ⟨_,_⟩)
-open import Generic.Bijection
+
+open import Generic.Heap.LowEq {Ty} {Value} 𝑯 {!!} A
 
 -- TODO: Ideally combined with the lemma below
 postulate step-≈ᴴ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
@@ -91,7 +94,7 @@ postulate step-≈ˢ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
                  ⟨ Σ' , μ' , _ ⟩ = c' in
                c ⇓⟨ θ , pc ⟩ c' →
                pc ⋤ A →
-                 (Σ ≈ˢ Σ')
+                 (Σ ∼ˢ Σ')
 
 -- step-≈ˢ (Var τ∈Γ x) pc⋤A = refl-≈ˢ
 -- step-≈ˢ Unit pc⋤A = refl-≈ˢ
@@ -152,56 +155,56 @@ open HasLabel 𝑯 -- import Generic.LValue as H
 mutual
 
   -- TINI for low steps
-  tiniᴸ : ∀ {pc τ Γ Σ₁ Σ₂ μ₁ μ₂ e} {θ₁ θ₂ : Env Γ} {c₁' c₂' : FConf τ} →
-                    let c₁ = ⟨ Σ₁ , μ₁ , e ⟩
-                        c₂ = ⟨ Σ₂ , μ₂ , e ⟩ in
-                    c₁ ⇓⟨ θ₁ , pc ⟩ c₁' →
-                    c₂ ⇓⟨ θ₂ , pc ⟩ c₂' →
-                    (β : Bij⟨ μ₁ , μ₂ ⟩) →
-                    Σ₁ ≈ˢ Σ₂ →
-                    μ₁ ≈⟨ β ⟩ᴴ μ₂ →
-                    θ₁ ≈ᴱ θ₂ →
-                    pc ⊑ A →
-                    c₁' ≈ᶜ c₂'
-  tiniᴸ (Var τ∈Γ x) (Var .τ∈Γ x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ Unit Unit β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (Lbl ℓ) (Lbl .ℓ) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (Test₁ x x₁ x₂ x₃) (Test₁ x₄ x₅ x₆ x₇) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (Test₁ x x₁ x₂ x₃) (Test₂ x₄ x₅ x₆ x₇) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (Test₂ x x₁ x₂ x₃) (Test₁ x₄ x₅ x₆ x₇) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (Test₂ x x₁ x₂ x₃) (Test₂ x₄ x₅ x₆ x₇) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ Fun Fun β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (App x x₁ x₂ x₃) (App x₄ x₅ x₆ x₇) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (Wken p x) (Wken .p x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (Inl x) (Inl x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (Inr x) (Inr x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (Case₁ x x₁ x₂) (Case₁ x₃ x₄ x₅) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (Case₁ x x₁ x₂) (Case₂ x₃ x₄ x₅) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (Case₂ x x₁ x₂) (Case₁ x₃ x₄ x₅) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (Case₂ x x₁ x₂) (Case₂ x₃ x₄ x₅) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (Pair x x₁) (Pair x₂ x₃) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (Fst x x₁) (Fst x₂ x₃) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (Snd x x₁) (Snd x₂ x₃) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (LabelOf x) (LabelOf x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ GetLabel GetLabel β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (Taint eq x x₁ pc'⊑pc'') (Taint eq₁ y y₁ pc'⊑pc''') β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (LabelOfRef x eq) (LabelOfRef x₁ eq₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (New x) (New x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (Read x x₁ eq) (Read x₂ x₃ eq₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (Write x x₁ x₂ ℓ₂⊑ℓ x₃) (Write x₄ x₅ x₆ ℓ₂⊑ℓ₁ x₇) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (LabelOfRef-FS x x₁ eq) (LabelOfRef-FS x₂ x₃ eq₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (New-FS x) (New-FS y) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A
-    with tiniᴸ x y β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A
-  ... | E.⟨ β' , store-≈ˢ , heap-≈ᴴ , v≈ ⟩
-    = ⟨ {!!} , store-≈ˢ , {!!} , Valueᴸ pc⊑A (unlift-≈ᴿ {!? ∘ᴮ β' !} (Ref-S {!!})) ⟩
---    where open import Generic.Container.Base ⊤ Ty LValue
-  -- ... | E.⟨ bij , store-≈ˢ , heap-≈ᴴ , Valueᴸ ℓ⊑A r≈ ⟩ = {!!} -- ⟨ {!!} , {!!} , {!!} , {!!} ⟩
-  -- ... | E.⟨ bij , store-≈ˢ , heap-≈ᴴ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = {!!} -- ⟨ {!!} , {!!} , {!!} , {!!} ⟩
+--   tiniᴸ : ∀ {pc τ Γ Σ₁ Σ₂ μ₁ μ₂ e} {θ₁ θ₂ : Env Γ} {c₁' c₂' : FConf τ} →
+--                     let c₁ = ⟨ Σ₁ , μ₁ , e ⟩
+--                         c₂ = ⟨ Σ₂ , μ₂ , e ⟩ in
+--                     c₁ ⇓⟨ θ₁ , pc ⟩ c₁' →
+--                     c₂ ⇓⟨ θ₂ , pc ⟩ c₂' →
+--                     (β : Bij⟨ μ₁ , μ₂ ⟩) →
+--                     Σ₁ ≈ˢ Σ₂ →
+--                     μ₁ ≈⟨ β ⟩ᴴ μ₂ →
+--                     θ₁ ≈ᴱ θ₂ →
+--                     pc ⊑ A →
+--                     c₁' ≈ᶜ c₂'
+--   tiniᴸ (Var τ∈Γ x) (Var .τ∈Γ x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ Unit Unit β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Lbl ℓ) (Lbl .ℓ) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Test₁ x x₁ x₂ x₃) (Test₁ x₄ x₅ x₆ x₇) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Test₁ x x₁ x₂ x₃) (Test₂ x₄ x₅ x₆ x₇) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Test₂ x x₁ x₂ x₃) (Test₁ x₄ x₅ x₆ x₇) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Test₂ x x₁ x₂ x₃) (Test₂ x₄ x₅ x₆ x₇) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ Fun Fun β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (App x x₁ x₂ x₃) (App x₄ x₅ x₆ x₇) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Wken p x) (Wken .p x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Inl x) (Inl x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Inr x) (Inr x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Case₁ x x₁ x₂) (Case₁ x₃ x₄ x₅) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Case₁ x x₁ x₂) (Case₂ x₃ x₄ x₅) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Case₂ x x₁ x₂) (Case₁ x₃ x₄ x₅) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Case₂ x x₁ x₂) (Case₂ x₃ x₄ x₅) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Pair x x₁) (Pair x₂ x₃) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Fst x x₁) (Fst x₂ x₃) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Snd x x₁) (Snd x₂ x₃) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (LabelOf x) (LabelOf x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ GetLabel GetLabel β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Taint eq x x₁ pc'⊑pc'') (Taint eq₁ y y₁ pc'⊑pc''') β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (LabelOfRef x eq) (LabelOfRef x₁ eq₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (New x) (New x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Read x x₁ eq) (Read x₂ x₃ eq₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Write x x₁ x₂ ℓ₂⊑ℓ x₃) (Write x₄ x₅ x₆ ℓ₂⊑ℓ₁ x₇) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (LabelOfRef-FS x x₁ eq) (LabelOfRef-FS x₂ x₃ eq₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (New-FS x) (New-FS y) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A
+--     with tiniᴸ x y β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A
+--   ... | E.⟨ β' , store-≈ˢ , heap-≈ᴴ , v≈ ⟩
+--     = ⟨ {!!} , store-≈ˢ , {!!} , Valueᴸ pc⊑A (unlift-≈ᴿ {!? ∘ᴮ β' !} (Ref-S {!!})) ⟩
+-- --    where open import Generic.Container.Base ⊤ Ty LValue
+--   -- ... | E.⟨ bij , store-≈ˢ , heap-≈ᴴ , Valueᴸ ℓ⊑A r≈ ⟩ = {!!} -- ⟨ {!!} , {!!} , {!!} , {!!} ⟩
+--   -- ... | E.⟨ bij , store-≈ˢ , heap-≈ᴴ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = {!!} -- ⟨ {!!} , {!!} , {!!} , {!!} ⟩
 
-  tiniᴸ (Read-FS x x₁ eq) (Read-FS x₂ x₃ eq₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (Write-FS x x₁ x₂ x₃ eq x₄) (Write-FS x₅ x₆ x₇ x₈ eq₁ x₉) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (Id x) (Id x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
-  tiniᴸ (UnId x eq) (UnId x₁ eq₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Read-FS x x₁ eq) (Read-FS x₂ x₃ eq₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Write-FS x x₁ x₂ x₃ eq x₄) (Write-FS x₅ x₆ x₇ x₈ eq₁ x₉) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (Id x) (Id x₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
+--   tiniᴸ (UnId x eq) (UnId x₁ eq₁) β Σ₁≈Σ₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A = {!!}
 
   -- tiniᴸ (Var τ∈Γ refl) (Var .τ∈Γ refl) Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A = ⟨ Σ₁≈Σ₂ , ≈ⱽ-⊑ _ v₁≈v₂ ⟩
   --   where v₁≈v₂ = lookup-≈ⱽ τ∈Γ θ₁≈θ₂
@@ -405,9 +408,10 @@ mutual
   -- using transitivity and symmetry of ≈ˢ
   -- TODO: do the same for FS-Store
   tiniᴴ : ∀ {τ Γ₁ Γ₂ θ₁ θ₂ pc₁ pc₂} {c₁ : IConf Γ₁ τ} {c₂ : IConf Γ₂ τ} {c₁' c₂' : FConf τ} →
-           let ⟨ Σ₁ , _ , _ ⟩ = c₁
-               ⟨ Σ₂ , _ , _ ⟩ = c₂ in
-           Σ₁ ≈ˢ Σ₂ →
+           let ⟨ Σ₁ , μ₁ , _ ⟩ = c₁
+               ⟨ Σ₂ , μ₂ , _ ⟩ = c₂ in
+           {β : Bij FG.Syntax.∥ μ₁ ∥ᴴ FG.Syntax.∥ μ₂ ∥ᴴ} →
+           Σ₁ ≈⟨ β ⟩ˢ Σ₂ →
            c₁ ⇓⟨ θ₁ , pc₁ ⟩ c₁' →
            c₂ ⇓⟨ θ₂ , pc₂ ⟩ c₂' →
            pc₁ ⋤ A → pc₂ ⋤ A →
@@ -415,15 +419,16 @@ mutual
   tiniᴴ Σ₁≈Σ₂ x₁ x₂ pc₁⋤A pc₂⋤A = {!!} -- ⟨ Σ₁'≈Σ₂' , v≈ ⟩
     where Σ₁≈Σ₁' = step-≈ˢ x₁ pc₁⋤A
           Σ₂≈Σ₂' = step-≈ˢ x₂ pc₂⋤A
-          Σ₁'≈Σ₂' = square-≈ˢ Σ₁≈Σ₂ Σ₁≈Σ₁' Σ₂≈Σ₂'
+          Σ₁'≈Σ₂' = {!!} -- square-≈ˢ Σ₁≈Σ₂ Σ₁≈Σ₁' Σ₂≈Σ₂'
           v≈ = Valueᴴ (trans-⋤ (step-⊑ x₁) pc₁⋤A) (trans-⋤ (step-⊑ x₂) pc₂⋤A)
 
   -- TINI: top level theorem
   tini : ∀ {τ Γ θ₁ θ₂ pc} {c₁ c₂ : IConf Γ τ} {c₁' c₂' : FConf τ} →
            c₁ ⇓⟨ θ₁ , pc ⟩ c₁' →
            c₂ ⇓⟨ θ₂ , pc ⟩ c₂' →
-           c₁ ≈ᴵ c₂ →
-           θ₁ ≈ᴱ θ₂ →
+           (≈ᴵ : c₁ ≈ᴵ c₂) →
+           let ⟨ β , _ , _ , _ ⟩ = ≈ᴵ in
+           θ₁ ≈⟨ β ⟩ᴱ θ₂ →
            c₁' ≈ᶜ c₂'
   tini = {!!}
   -- {pc = pc} x₁ x₂ ⟨ Σ₁≈Σ₂ , refl ⟩  θ₁≈θ₂ with pc ⊑? A

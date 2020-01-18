@@ -162,13 +162,30 @@ _↑ : ∀ {n m} → Bij n m → Bij (suc n) (suc m)
 --------------------------------------------------------------------------------
 -- Equivalence class up to bijection.
 
+-- Relᴮ : {Ty : Set} → (Ty → Set) → Set₁
+-- Relᴮ V = ∀ {n m τ} → V τ → Bij n m → V τ → Set
+
 -- I could define Rel : ∀ x y → Bij (Dom x) (Dom y), however this is
 -- to restrictive. Definitions for values typically require at least
 -- (Dom x) but that is too restrictive when values contain composite
 -- values with different domains.
-record IsEquivalenceᴮ {Ty : Set} {V : Ty → Set} (Rel : ∀ {n m τ} (x y : V τ) → Bij n m → Set) : Set where
-  field Dom : ∀ {τ} → V τ → ℕ
-        reflᴮ : ∀ {τ} {x : V τ} → Rel x x (ι′ (Dom x))
-        symᴮ : ∀ {τ} {x y : V τ} {n m} {β : Bij n m} → Rel x y β → Rel y x (β ⁻¹)
-        transᴮ : ∀ {τ} {x y z : V τ} {n₁ n₂ n₃} {β₁ : Bij n₁ n₂} {β₂ : Bij n₂ n₃} →
-                   Rel x y β₁ → Rel y z β₂ → Rel x z (β₂ ∘ β₁)
+-- record IsEquivalenceᴮ {Ty : Set} {V : Ty → Set} (R : Relᴮ V) : Set where
+--   field Dom : ∀ {τ} → V τ → ℕ
+--         reflᴮ : ∀ {τ} {x : V τ} → R x (ι′ (Dom x)) x
+--         symᴮ : ∀ {τ} {x y : V τ} {n m} {β : Bij n m} → R x β y → R y (β ⁻¹) x
+--         transᴮ : ∀ {τ} {x y z : V τ} {n₁ n₂ n₃} {β₁ : Bij n₁ n₂} {β₂ : Bij n₂ n₃} →
+--                    R x β₁ y → R y β₂ z → R x (β₂ ∘ β₁) z
+
+
+--------------------------------------------------------------------------------
+-- version without indexes
+
+Relᴮ : Set → Set₁
+Relᴮ A = ∀ {n m} → A → Bij n m → A → Set
+
+record IsEquivalenceᴮ {A : Set} (R : Relᴮ A) : Set where
+  field Dom : A → ℕ
+        reflᴮ : {x : A} → R x (ι′ (Dom x)) x
+        symᴮ : ∀ {n m} {x y : A} {β : Bij n m} → R x β y → R y (β ⁻¹) x
+        transᴮ : ∀ {n₁ n₂ n₃} {x y z : A} {β₁ : Bij n₁ n₂} {β₂ : Bij n₂ n₃} →
+                   R x β₁ y → R y β₂ z → R x (β₂ ∘ β₁) z

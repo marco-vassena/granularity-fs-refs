@@ -1,4 +1,6 @@
--- {-# OPTIONS --allow-unsolved-metas #-}
+-- remove indexes from bijection
+
+{-# OPTIONS --allow-unsolved-metas #-}
 
 -- This module defines a L-equivalence relation for all the categoris
 -- of the calculus.  L-equivalence relates terms that are
@@ -163,32 +165,42 @@ Falseᴸ ℓ⊑A = Inr (Valueᴸ ℓ⊑A Unit)
 
 -- Derive L-equivalence for stores,
 -- open import Generic.Store.LowEq {Ty} {Raw} _≈ᴿ_ A as S using (_≈ˢ_) public
+_≈⟨_⟩ˢ_ : ∀ {n m} → Store → Bij n m → Store → Set
+Σ₁ ≈⟨ β ⟩ˢ Σ₂ = Σ₁ ≈ˢ Σ₂
+  where open import Generic.Store.LowEq {Ty} {Raw} (λ r₁ r₂ → r₁ ≈⟨ β ⟩ᴿ r₂) A
 
--- -- Derive L-equivalence for heaps
--- open import Generic.Heap.LowEq {Ty} {Value} 𝑯 _≈ⱽ_ A as H using (_≈⟨_⟩ᴴ_ ; _≈ᴴ_ ; new-≈ᴴ ; Bij⟨_,_⟩)
+-- Derive L-equivalence for heaps
+_≈⟨_⟩ᴴ_ : ∀ {m} → (μ₁ : Heap) → Bij ∥ μ₁ ∥ᴴ m → (μ₂ : Heap) → {{eq : m ≡ ∥ μ₂ ∥ᴴ}} → Set
+μ₁ ≈⟨ β ⟩ᴴ μ₂ = μ₁ H.≈⟨ β ⟩ᴴ μ₂
+  where open import Generic.Heap.LowEq {Ty} {Value} 𝑯 (λ v₁ v₂ → v₁ ≈⟨ β ⟩ⱽ v₂) A as H
+--
+-- using (_≈⟨_⟩ᴴ_ ; _≈ᴴ_ ; new-≈ᴴ ; Bij⟨_,_⟩)
+
+
 
 -- -- Lift low-equivalence to configurations
--- open Conf
+open Conf
 
 -- open import Generic.Bijection as B
 
--- record _≈⟨_⟩ᴬ_ {B : Set} (c₁ : Conf B) (R : B → B → Set) (c₂ : Conf B) : Set where
---   constructor ⟨_,_,_,_⟩
---   field
---     bij : Bij ∥ heap c₁ ∥ᴴ ∥ heap c₂ ∥ᴴ
---     store-≈ˢ : store c₁ ≈ˢ store c₂
---     heap-≈ᴴ : heap c₁ ≈⟨ bij ⟩ᴴ heap c₂
---     term-≈ : R (term c₁) (term c₂)
+record _≈⟨_⟩ᴬ_ {V : Set} (c₁ : Conf V) (R : ∀ {n m} → V → Bij n m → V → Set) (c₂ : Conf V) : Set where
+  constructor ⟨_,_,_,_⟩
+  field
+    bij : Bij ∥ heap c₁ ∥ᴴ ∥ heap c₂ ∥ᴴ
+    store-≈ˢ : store c₁ ≈⟨ bij ⟩ˢ store c₂
+    heap-≈ᴴ : heap c₁ ≈⟨ bij ⟩ᴴ heap c₂
+    term-≈ : R (term c₁) bij (term c₂)
 
 -- open _≈⟨_⟩ᴬ_ {{ ... }}
 
--- -- Initial configurations
--- _≈ᴵ_ : ∀ {Γ τ} → IConf Γ τ → IConf Γ τ → Set
--- _≈ᴵ_ = _≈⟨ _≡_ ⟩ᴬ_
+-- L-Equivalence for initial configurations.  For terms we do not use
+-- the bijection but simply require syntactic equivalence.
+_≈ᴵ_ : ∀ {Γ τ} → IConf Γ τ → IConf Γ τ → Set
+_≈ᴵ_ = _≈⟨ (λ e₁ β e₂ → e₁ ≡ e₂) ⟩ᴬ_
 
--- -- Final configurations.
--- _≈ᶜ_ : ∀ {τ} → FConf τ → FConf τ → Set
--- _≈ᶜ_ = _≈⟨ _≈ⱽ_ ⟩ᴬ_
+-- Final configurations.
+_≈ᶜ_ : ∀ {τ} → FConf τ → FConf τ → Set
+_≈ᶜ_ = _≈⟨ _≈⟨_⟩ⱽ_ ⟩ᴬ_
 
 --------------------------------------------------------------------------------
 -- Properties: L-equivalence is an equivalence relation.
@@ -221,31 +233,31 @@ mutual
 --------------------------------------------------------------------------------
 
   -- Reflexive
-  refl-≈ⱽ′ : ∀ {τ} (v : Value τ) → v ≈⟨ ι′ ∣ v ∣ⱽ ⟩ⱽ v
-  refl-≈ⱽ′ (r ^ ℓ) with ℓ ⊑? A
-  refl-≈ⱽ′ (r ^ ℓ) | yes ℓ⊑A = Valueᴸ ℓ⊑A (refl-≈ᴿ′ r)
-  refl-≈ⱽ′ (r ^ ℓ) | no ℓ⋤A = Valueᴴ ℓ⋤A ℓ⋤A
+  refl-≈ⱽ : ∀ {τ} (v : Value τ) → v ≈⟨ ι′ ∣ v ∣ⱽ ⟩ⱽ v
+  refl-≈ⱽ (r ^ ℓ) with ℓ ⊑? A
+  refl-≈ⱽ (r ^ ℓ) | yes ℓ⊑A = Valueᴸ ℓ⊑A (refl-≈ᴿ r)
+  refl-≈ⱽ (r ^ ℓ) | no ℓ⋤A = Valueᴴ ℓ⋤A ℓ⋤A
 
-  refl-≈ᴿ′ : ∀ {τ} (r : Raw τ) → r ≈⟨ ι′ ∣ r ∣ᴿ ⟩ᴿ r
-  refl-≈ᴿ′ （） = Unit
-  refl-≈ᴿ′ ⟨ x , θ ⟩ᶜ = Fun (refl-≈ᴱ′ θ)
-  refl-≈ᴿ′ (inl v) = Inl (refl-≈ⱽ′ v)
-  refl-≈ᴿ′ (inr v) = Inr (refl-≈ⱽ′ v)
-  refl-≈ᴿ′ ⟨ v₁ , v₂ ⟩ = Pair ≈₁′ ≈₂′
-    where ≈₁′ = wken-≈ⱽ (m≤m⊔n ∣ v₁ ∣ⱽ ∣ v₂ ∣ⱽ) (refl-≈ⱽ′ v₁)
-          ≈₂′ = wken-≈ⱽ (n≤m⊔n ∣ v₁ ∣ⱽ ∣ v₂ ∣ⱽ) (refl-≈ⱽ′ v₂)
-  refl-≈ᴿ′ (Refᴵ ℓ n) with ℓ ⊑? A
+  refl-≈ᴿ : ∀ {τ} (r : Raw τ) → r ≈⟨ ι′ ∣ r ∣ᴿ ⟩ᴿ r
+  refl-≈ᴿ （） = Unit
+  refl-≈ᴿ ⟨ x , θ ⟩ᶜ = Fun (refl-≈ᴱ θ)
+  refl-≈ᴿ (inl v) = Inl (refl-≈ⱽ v)
+  refl-≈ᴿ (inr v) = Inr (refl-≈ⱽ v)
+  refl-≈ᴿ ⟨ v₁ , v₂ ⟩ = Pair ≈₁′ ≈₂′
+    where ≈₁′ = wken-≈ⱽ (m≤m⊔n ∣ v₁ ∣ⱽ ∣ v₂ ∣ⱽ) (refl-≈ⱽ v₁)
+          ≈₂′ = wken-≈ⱽ (n≤m⊔n ∣ v₁ ∣ⱽ ∣ v₂ ∣ⱽ) (refl-≈ⱽ v₂)
+  refl-≈ᴿ (Refᴵ ℓ n) with ℓ ⊑? A
   ... | yes ℓ⊑A = Ref-Iᴸ ℓ⊑A n
   ... | no ℓ⋤A = Ref-Iᴴ ℓ⋤A ℓ⋤A
-  refl-≈ᴿ′ (Refˢ n) = Ref-S ≤-refl ≤-refl refl
-  refl-≈ᴿ′ ⌞ ℓ ⌟ = Lbl ℓ
-  refl-≈ᴿ′ (Id v) = Id (refl-≈ⱽ′ v)
+  refl-≈ᴿ (Refˢ n) = Ref-S ≤-refl ≤-refl refl
+  refl-≈ᴿ ⌞ ℓ ⌟ = Lbl ℓ
+  refl-≈ᴿ (Id v) = Id (refl-≈ⱽ v)
 
-  refl-≈ᴱ′ : ∀ {Γ} (θ : Env Γ) → θ ≈⟨ ι′ ∣ θ ∣ᴱ ⟩ᴱ θ
-  refl-≈ᴱ′ [] = []
-  refl-≈ᴱ′ (v ∷ θ) = ≈₁ ∷ ≈₂
-    where ≈₁ = wken-≈ⱽ (m≤m⊔n ∣ v ∣ⱽ ∣ θ ∣ᴱ) (refl-≈ⱽ′ v)
-          ≈₂ = wken-≈ᴱ (n≤m⊔n ∣ v ∣ⱽ ∣ θ ∣ᴱ) (refl-≈ᴱ′ θ)
+  refl-≈ᴱ : ∀ {Γ} (θ : Env Γ) → θ ≈⟨ ι′ ∣ θ ∣ᴱ ⟩ᴱ θ
+  refl-≈ᴱ [] = []
+  refl-≈ᴱ (v ∷ θ) = ≈₁ ∷ ≈₂
+    where ≈₁ = wken-≈ⱽ (m≤m⊔n ∣ v ∣ⱽ ∣ θ ∣ᴱ) (refl-≈ⱽ v)
+          ≈₂ = wken-≈ᴱ (n≤m⊔n ∣ v ∣ⱽ ∣ θ ∣ᴱ) (refl-≈ᴱ θ)
 
 ----------------------------------------------------------------------------------
 
@@ -299,9 +311,12 @@ mutual
   trans-≈ᴱ [] [] = []
   trans-≈ᴱ (≈ⱽ₁ ∷ ≈ᴱ₁) (≈ⱽ₂ ∷ ≈ᴱ₂) = trans-≈ⱽ ≈ⱽ₁ ≈ⱽ₂ ∷ trans-≈ᴱ ≈ᴱ₁ ≈ᴱ₂
 
--- Not sure why is yellow. Figure it out!
-𝑹 : IsEquivalenceᴮ (λ v₁ v₂ β → v₁ ≈⟨ β ⟩ⱽ v₂)
-𝑹 = {!!}
+--------------------------------------------------------------------------------
+-- Do we even use these instances?
+
+-- Why do we need this?
+𝑹 : ∀ {τ} → IsEquivalenceᴮ {A = Value τ}  _≈⟨_⟩ⱽ_
+𝑹 = record { Dom = ∣_∣ⱽ ; reflᴮ = refl-≈ⱽ _ ; symᴮ = sym-≈ⱽ ; transᴮ = trans-≈ⱽ }
 
   -- Make them instance of my own Equivalence bijection-indexed relation
 -- instance
@@ -317,11 +332,53 @@ mutual
 --   ≡-isEquivalence : ∀ {A : Set} → IsEquivalence (_≡_ {_} {A})
 --   ≡-isEquivalence = record { refl = refl ; sym = sym ; trans = trans }
 
--- open S.Props ≈ᴿ-isEquivalence public
+
 -- open H.Props ≈ⱽ-isEquivalence public
 
--- refl-≈ᴬ : ∀ {A} {R : A → A → Set} {{𝑹 : IsEquivalence R}} {c} → c ≈⟨ R ⟩ᴬ c
--- refl-≈ᴬ {{𝑹}}  = ⟨ ι , refl-≈ˢ , refl-≈ᴴ , IsEquivalence.refl 𝑹 ⟩
+data _∼ˢ_ (Σ₁ Σ₂ : Store) : Set where
+  ⌞_⌟ˢ : ∀ {n m} {β : Bij n m} → Σ₁ ≈⟨ β ⟩ˢ Σ₂ → Σ₁ ∼ˢ Σ₂
+
+
+refl-≈ˢ : ∀ {Σ} → Σ ∼ˢ Σ
+refl-≈ˢ {Σ} = ⌞ (λ ℓ → refl-≈ᴹ) ⌟ˢ  -- Still not clear how to instantiate the size of the bijection here.
+
+   where _≈ᴿ_ : ∀ {τ} → Raw τ → Raw τ → Set
+         _≈ᴿ_ = _≈⟨ ι ⟩ᴿ_
+         open import Generic.Store.LowEq {Ty} {Raw} _≈ᴿ_ A
+--         open import Generic.Memory.LowEq {Ty} {Raw} ? A as
+         postulate refl-≈ᴹ : ∀ {ℓ} {M : FG.Syntax.Memory ℓ} → M ≈⟨ ℓ ⊑? A ⟩ᴹ M
+
+-- sym-≈ˢ : ∀ {Σ} → Σ₁ ∼ˢ Σ₂
+
+
+-- These are the property that we need.
+refl-≈ˢ' : ∀ {Σ} → ∃ (λ n → Σ ≈⟨ ι′ n ⟩ˢ Σ)
+refl-≈ˢ' {Σ} = ⟨ {!!} , (λ ℓ → {!!}) ⟩
+
+   where _≈ᴿ_ : ∀ {τ} → Raw τ → Raw τ → Set
+         _≈ᴿ_ = _≈⟨ {!!} ⟩ᴿ_
+         open import Generic.Store.LowEq {Ty} {Raw} _≈ᴿ_ A
+
+𝑺 : ∀ {n m} → (β : Bij n m) → IsEquivalence _≈⟨ β ⟩ˢ_
+𝑺 β = {!!}
+   where _≈ᴿ_ : ∀ {τ} → Raw τ → Raw τ → Set
+         _≈ᴿ_ = _≈⟨ β ⟩ᴿ_
+
+         𝑹' : ∀ {τ} → IsEquivalence {A = Raw τ} _≈ᴿ_
+         𝑹' = record { refl = {!!} ; sym = {!!} ; trans = {!!} }
+
+         open import Generic.Store.LowEq {Ty} {Raw} _≈ᴿ_ A
+         open Props {!!}
+
+-- It doesn't seem we use this. Let's leave it out for now.
+-- refl-≈ᴬ : ∀ {A} {R : Relᴮ A} {{𝑹 : IsEquivalenceᴮ R}} {c} → c ≈⟨ R ⟩ᴬ c
+-- refl-≈ᴬ {{𝑹}} {c = ⟨ _ , μ , _ ⟩} = ⟨ ι , {!!} , {!!} , {!refl-≈ᴬ!} ⟩ -- refl-≈ˢ , refl-≈ᴴ
+--   where _≈ᴿ_ : ∀ {τ} → Raw τ → Raw τ → Set
+--         _≈ᴿ_ = _≈⟨ ι′ ∥ μ ∥ᴴ ⟩ᴿ_
+
+--         open IsEquivalenceᴮ 𝑹
+--         open import Generic.Store.LowEq {Ty} {Raw} _≈ᴿ_ A
+--         open Props {!!}
 
 -- sym-≈ᴬ : ∀ {A} {R : A → A → Set} {{𝑹 : IsEquivalence R}} {c₁ c₂} →
 --            c₁ ≈⟨ R ⟩ᴬ c₂ →
