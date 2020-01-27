@@ -23,14 +23,14 @@ open import Generic.Bijection hiding (_∈_)
 -- Lemmas on L-equivalent environments.
 
 -- Lookup in L-equivalent envs gives L-equivalent values
-lookup-≈ⱽ : ∀ {τ Γ θ₁ θ₂ n m} {β : Bij n m} →
-              (τ∈Γ : τ ∈ Γ) → θ₁ ≈⟨ β ⟩ᴱ θ₂ → (θ₁ !! τ∈Γ) ≈⟨ β ⟩ⱽ (θ₂ !! τ∈Γ)
+lookup-≈ⱽ : ∀ {τ Γ θ₁ θ₂ β} → (τ∈Γ : τ ∈ Γ) →
+              θ₁ ≈⟨ β ⟩ᴱ θ₂ → (θ₁ !! τ∈Γ) ≈⟨ β ⟩ⱽ (θ₂ !! τ∈Γ)
 lookup-≈ⱽ here (v₁≈v₂ ∷ θ₁≈θ₂) = v₁≈v₂
 lookup-≈ⱽ (there τ∈Γ) (v₁≈v₂ ∷ θ₁≈θ₂) = lookup-≈ⱽ τ∈Γ θ₁≈θ₂
 
 
 -- Slicing L-equivalent envs gives gives L-equivalent envs.
-slice-≈ᴱ : ∀ {Γ₁ Γ₂ n m} {θ₁ θ₂ : Env Γ₂} {β : Bij n m} →
+slice-≈ᴱ : ∀ {Γ₁ Γ₂ β} {θ₁ θ₂ : Env Γ₂} →
                  θ₁ ≈⟨ β ⟩ᴱ θ₂ →
                  (Γ₁⊆Γ₂ : Γ₁ ⊆ Γ₂) →
                  slice θ₁ Γ₁⊆Γ₂ ≈⟨ β ⟩ᴱ slice θ₂ Γ₁⊆Γ₂
@@ -42,15 +42,42 @@ slice-≈ᴱ (v₁≈v₂ ∷ θ₁≈θ₂) (drop p) = slice-≈ᴱ θ₁≈θ�
 
 open import Data.Product renaming (_×_ to _∧_ ; _,_ to ⟨_,_⟩)
 
-open import Generic.Heap.LowEq {Ty} {Value} 𝑯 {!!} A
-
 -- TODO: Ideally combined with the lemma below
-postulate step-≈ᴴ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
+step-≈ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
              let ⟨ Σ , μ , _ ⟩ = c
                  ⟨ Σ' , μ' , _ ⟩ = c' in
                c ⇓⟨ θ , pc ⟩ c' →
                pc ⋤ A →
-               μ ≈ᴴ μ'
+               ∃ (λ β → Σ ≈⟨ β ⟩ˢ Σ' ∧ μ ≈⟨ β ⟩ᴴ μ')
+step-≈ (Var τ∈Γ x) pc⋤A = ⟨ {!!} , ⟨ ? , ? ⟩ ⟩
+step-≈ Unit pc⋤A = {!!}
+step-≈ (Lbl ℓ) pc⋤A = {!!}
+step-≈ (Test₁ x x₁ x₂ x₃) pc⋤A = {!!}
+step-≈ (Test₂ x x₁ x₂ x₃) pc⋤A = {!!}
+step-≈ Fun pc⋤A = {!!}
+step-≈ (App x x₁ x₂ x₃) pc⋤A = {!!}
+step-≈ (Wken p x) pc⋤A = {!!}
+step-≈ (Inl x) pc⋤A = {!!}
+step-≈ (Inr x) pc⋤A = {!!}
+step-≈ (Case₁ x x₁ x₂) pc⋤A = {!!}
+step-≈ (Case₂ x x₁ x₂) pc⋤A = {!!}
+step-≈ (Pair x x₁) pc⋤A = {!!}
+step-≈ (Fst x x₁) pc⋤A = {!!}
+step-≈ (Snd x x₁) pc⋤A = {!!}
+step-≈ (LabelOf x) pc⋤A = {!!}
+step-≈ GetLabel pc⋤A = {!!}
+step-≈ (Taint eq c⇓ c⇓₁ pc'⊑pc'') pc⋤A = {!!}
+step-≈ (LabelOfRef x eq) pc⋤A = {!!}
+step-≈ (New x) pc⋤A = {!!}
+step-≈ (Read x x₁ eq) pc⋤A = {!!}
+step-≈ (Write x x₁ x₂ ℓ₂⊑ℓ x₃) pc⋤A = {!!}
+step-≈ (LabelOfRef-FS x x₁ eq) pc⋤A = {!!}
+step-≈ (New-FS x) pc⋤A = {!!}
+step-≈ (Read-FS x x₁ eq) pc⋤A = {!!}
+step-≈ (Write-FS x x₁ x₂ x₃ eq x₄) pc⋤A = {!!}
+step-≈ (Id x) pc⋤A = {!!}
+step-≈ (UnId x eq) pc⋤A = {!!}
+
 -- step-≈ᴴ {c = c} (Var τ∈Γ x) pc⋤A = ⟨ ι , refl-≈ᴴ {μ = Conf.heap c} ⟩
 -- step-≈ᴴ Unit pc⋤A = {!!}
 -- step-≈ᴴ (Lbl ℓ) pc⋤A = {!!}
@@ -89,12 +116,12 @@ postulate step-≈ᴴ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
 
 -- TODO: add FS-Store to this lemma
 -- High steps preserve low-equivalence of stores
-postulate step-≈ˢ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
-             let ⟨ Σ , μ , _ ⟩ = c
-                 ⟨ Σ' , μ' , _ ⟩ = c' in
-               c ⇓⟨ θ , pc ⟩ c' →
-               pc ⋤ A →
-                 (Σ ∼ˢ Σ')
+-- postulate step-≈ˢ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
+--              let ⟨ Σ , μ , _ ⟩ = c
+--                  ⟨ Σ' , μ' , _ ⟩ = c' in
+--                c ⇓⟨ θ , pc ⟩ c' →
+--                pc ⋤ A →
+--                  (Σ ∼ˢ Σ')
 
 -- step-≈ˢ (Var τ∈Γ x) pc⋤A = refl-≈ˢ
 -- step-≈ˢ Unit pc⋤A = refl-≈ˢ
@@ -407,18 +434,17 @@ mutual
   --
   -- using transitivity and symmetry of ≈ˢ
   -- TODO: do the same for FS-Store
-  tiniᴴ : ∀ {τ Γ₁ Γ₂ θ₁ θ₂ pc₁ pc₂} {c₁ : IConf Γ₁ τ} {c₂ : IConf Γ₂ τ} {c₁' c₂' : FConf τ} →
+  tiniᴴ : ∀ {τ Γ₁ Γ₂ θ₁ θ₂ pc₁ pc₂ β} {c₁ : IConf Γ₁ τ} {c₂ : IConf Γ₂ τ} {c₁' c₂' : FConf τ} →
            let ⟨ Σ₁ , μ₁ , _ ⟩ = c₁
                ⟨ Σ₂ , μ₂ , _ ⟩ = c₂ in
-           {β : Bij FG.Syntax.∥ μ₁ ∥ᴴ FG.Syntax.∥ μ₂ ∥ᴴ} →
            Σ₁ ≈⟨ β ⟩ˢ Σ₂ →
            c₁ ⇓⟨ θ₁ , pc₁ ⟩ c₁' →
            c₂ ⇓⟨ θ₂ , pc₂ ⟩ c₂' →
            pc₁ ⋤ A → pc₂ ⋤ A →
            c₁' ≈ᶜ c₂'
   tiniᴴ Σ₁≈Σ₂ x₁ x₂ pc₁⋤A pc₂⋤A = {!!} -- ⟨ Σ₁'≈Σ₂' , v≈ ⟩
-    where Σ₁≈Σ₁' = step-≈ˢ x₁ pc₁⋤A
-          Σ₂≈Σ₂' = step-≈ˢ x₂ pc₂⋤A
+    where Σ₁≈Σ₁' = {!!} -- step-≈ˢ x₁ pc₁⋤A
+          Σ₂≈Σ₂' = {!!} -- step-≈ˢ x₂ pc₂⋤A
           Σ₁'≈Σ₂' = {!!} -- square-≈ˢ Σ₁≈Σ₂ Σ₁≈Σ₁' Σ₂≈Σ₂'
           v≈ = Valueᴴ (trans-⋤ (step-⊑ x₁) pc₁⋤A) (trans-⋤ (step-⊑ x₂) pc₂⋤A)
 
@@ -427,8 +453,8 @@ mutual
            c₁ ⇓⟨ θ₁ , pc ⟩ c₁' →
            c₂ ⇓⟨ θ₂ , pc ⟩ c₂' →
            (≈ᴵ : c₁ ≈ᴵ c₂) →
-           let ⟨ β , _ , _ , _ ⟩ = ≈ᴵ in
-           θ₁ ≈⟨ β ⟩ᴱ θ₂ →
+--           let ⟨ β , _ , _ , _ ⟩ = ≈ᴵ in
+           θ₁ ≈⟨ bij ≈ᴵ ⟩ᴱ θ₂ →
            c₁' ≈ᶜ c₂'
   tini = {!!}
   -- {pc = pc} x₁ x₂ ⟨ Σ₁≈Σ₂ , refl ⟩  θ₁≈θ₂ with pc ⊑? A

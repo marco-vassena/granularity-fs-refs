@@ -157,7 +157,7 @@ open import Generic.LValue
 
 -- Generic store and flow-sensitive heap
 open import Generic.Store.Base Ty Raw public
-open import Generic.Heap 𝑯 public
+open import Generic.Heap 𝑯 hiding (_∈_) public
 
 -- Generic configuration container.
 record Conf (A : Set) : Set where

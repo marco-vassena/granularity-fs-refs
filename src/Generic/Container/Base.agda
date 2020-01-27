@@ -24,6 +24,11 @@ data Lookup {ℓ τ} (v : Value τ) : ℕ → Container ℓ → Set where
 _↦_∈_ : ∀ {ℓ τ} → ℕ → Value τ → Container ℓ → Set
 _↦_∈_ n v C = Lookup v n C
 
+_∈_ : ∀ {ℓ} → ℕ → Container ℓ → Set
+n ∈ C = ∃ (λ τ →
+          Σ (Value τ) (λ v → n ↦ v ∈ C))
+  where open import Data.Product
+
 -- Write v n C₁ C₂ is the proof that updating container C₁ with v at
 -- position n gives container C₂: C₂ ≔ C₁ [ n ↦ v ]
 data Write {ℓ τ} (v : Value τ) : ℕ → Container ℓ → Container ℓ → Set where

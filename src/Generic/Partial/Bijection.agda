@@ -8,7 +8,9 @@ open import Category.Monad
 open import Data.Empty
 open import Data.Maybe as M
 open import Data.Product
-open import Generic.Partial.Function renaming (∅ to ∅ᴾ ; _#_ to _#ᴾ_ ; _∣′_ to _∣ᴾ_) public
+open import Generic.Partial.Function renaming (
+  ∅ to ∅ᴾ ; _#_ to _#ᴾ_ ; _∣′_ to _∣ᴾ_) hiding (
+  _∈ᴰ_ ) public
 
 -- Partial bijection
 record Bijectionᴾ (A B : Set) : Set where
@@ -53,8 +55,21 @@ _∈ᶠ_ : ∀ {A B} → A × B → A ⤖ᴾ B → Set
 x ∈ᶠ β = (swap x) ∈ from
   where open Bijectionᴾ β
 
+-- Don't think we have use ∈ᶠ maybe we can export ᵗ as just ∈ᴮ
 _∈ᴮ_ : ∀ {A B} → A × B → A ⤖ᴾ B → Set
 x ∈ᴮ β = (x ∈ᵗ β) × (x ∈ᶠ β)
+
+_∈ᴰ_ : ∀ {A B} → A → A ⤖ᴾ B → Set
+a ∈ᴰ β = ∃ (λ b → (a , b) ∈ᵗ β)
+
+_∈ᴿ_ : ∀ {A B} → B → A ⤖ᴾ B → Set
+b ∈ᴿ β = ∃ (λ a → (a , b) ∈ᵗ β)
+
+∈-∈ᴰ : ∀ {A B} {x : A × B} {β : A ⤖ᴾ B} → x ∈ᵗ β → (proj₁ x) ∈ᴰ β
+∈-∈ᴰ p = _ , p
+
+∈-∈ᴿ : ∀ {A B} {x : A × B} {β : A ⤖ᴾ B} → x ∈ᵗ β → (proj₂ x) ∈ᴿ β
+∈-∈ᴿ p = _ , p
 
 -- Composition
 _∘_ : ∀ {A B C} → B ⤖ᴾ C → A ⤖ᴾ B → A ⤖ᴾ C

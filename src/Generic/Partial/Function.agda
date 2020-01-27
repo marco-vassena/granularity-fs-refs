@@ -111,7 +111,8 @@ infixr 4 _∉ᴰ_
 
 -- TODO: it seems we have too many representations ... clean it up!
 
--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
 open import Level
 open import Category.Monad
 open RawMonadPlus {zero} {M = Maybe} monadPlus hiding (∅)
@@ -212,3 +213,44 @@ inverse-of-↦ : ∀ {A B : Set} {{_≟ᴬ_ : DecEq A}}  {{_≟ᴮ_ : DecEq B}} 
 inverse-of-↦ {A} {B} {{_≟ᴬ_}}  {{_≟ᴮ_}} {a} {b} = left-inverse-of-↦ , right-inverse-of-↦
   where instance _ = _≟ᴬ_
         instance _ = _≟ᴮ_
+
+--------------------------------------------------------------------------------
+
+-- Partial Identity for Fin n
+open import Data.Nat
+
+module Id (n : ℕ) where
+
+  open import Data.Nat.Properties
+
+  idᴾ : ℕ ⇀ ℕ
+  idᴾ m with m <? n
+  idᴾ m | yes p = just m
+  idᴾ m | no ¬p = nothing
+
+  lemma : ∀ {x y} → (x , y) ∈ idᴾ → x ≡ y × y < n
+  lemma {x} {y} ∈ with x <? n
+  lemma {x} {.x} refl | yes p = refl , p
+  lemma {x} {y} () | no ¬p
+
+  idᴾ-≡ : ∀ {x y} → (x , y) ∈ idᴾ → x ≡ y
+  idᴾ-≡ p = proj₁ (lemma p)
+
+  idᴾ-<ᴿ : ∀ {x y} → (x , y) ∈ idᴾ → y < n
+  idᴾ-<ᴿ p = proj₂ (lemma p)
+
+  idᴾ-<ᴰ : ∀ {x y} → (x , y) ∈ idᴾ → x < n
+  idᴾ-<ᴰ p with lemma p
+  ... | x≡y , y<n rewrite x≡y = y<n
+
+  step-idᴾ : ∀ {x} → x < n → idᴾ x ≡ just x
+  step-idᴾ {x} x<n with x <? n
+  step-idᴾ {x} x<n | yes p = refl
+  step-idᴾ {x} x<n | no x≮n = ⊥-elim (x≮n x<n)
+
+  inv : idᴾ LeftInverseOfᴾ idᴾ
+  inv {x} {y} p =
+    let x≡y , y<n = lemma p in
+      trans (step-idᴾ y<n) (sym (cong just x≡y))
+
+-------------------------------------------------------------------------------

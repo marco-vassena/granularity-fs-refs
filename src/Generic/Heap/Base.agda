@@ -27,6 +27,8 @@ open import Generic.Container ⊤ Ty LValue
            ; ∥_∥ to ∥_∥ᴴ
            ) public
 
+open import Generic.Container.Base ⊤ Ty LValue using (_∈_) public
+
 Heap : Set
 Heap = Container tt
 

@@ -4,6 +4,7 @@ open import Generic.Container.Base Label Ty Value
 
 open import Relation.Binary.PropositionalEquality
 open import Data.Product
+open import Function
 
 -- For heterogeneous values.
 inj-∈′ : ∀ {ℓ n τ₁ τ₂} {C : Container ℓ} {v₁ : Value τ₁} {v₂ : Value τ₂} →
@@ -26,3 +27,8 @@ open import Data.Nat
 ∥snoc∥ (x ∷ C) v = cong suc (∥snoc∥ C v)
 
 {-# REWRITE ∥snoc∥ #-}
+
+<-∈ : ∀ {n ℓ} {C : Container ℓ} → n < ∥ C ∥ → n ∈ C
+<-∈ {C = []} ()
+<-∈ {zero} {C = v ∷ C} (s≤s x) = _ , v , Here
+<-∈ {suc n} {C = v ∷ C} (s≤s x) = map id (map id There) (<-∈ x)
