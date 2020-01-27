@@ -188,5 +188,3 @@ join-∈ᵗ {a = a} {.b} {c} {β₁} {β₂} x y | just b | refl = y
 join-∈ᵗ {a = a} {b} {c} {β₁} {β₂} () y | nothing
 
 --------------------------------------------------------------------------------
-
--- Equivalence class up to bijection.

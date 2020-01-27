@@ -88,7 +88,7 @@ record LeftInverseᴾ (A : Set) (B : Set) : Set  where
   injectiveᴾ : Injectiveᴾ to
   injectiveᴾ {a₁} {a₂} {b₁} {b₂} ∈₁ ∈₂ eq =
     let b₁' = {!!} -- (toᴰ a₁ (∈-∈ᴰ {p = to} ∈₁))
-        ∈₁' = left-inverse-of {!!} -- ∈-∈ᴿ {!∈₂!}
+        ∈₁' = left-inverse-of {!∈₁!} -- ∈-∈ᴿ {!∈₂!}
         x = {!!} in -- fromᴿ b₁' ∈₁'  in
     begin
       a₁ ≡⟨ just-injective {!!} ⟩
