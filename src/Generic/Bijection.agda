@@ -29,10 +29,6 @@ Bij = ℕ ⤖ᴾ ℕ
   -- ∈-dom : ∀ {n} → n ≤ dom → ?
   -- ∈-dom : ∀ {n} → n ≤ dom → ?
 
--- Identity bijection.
--- ι : Bij
--- ι = id
-
 -- ι-≡ : ∀ {x y} → (x , y) ∈ᵗ ι → x ≡ y
 -- ι-≡ refl = refl
 
@@ -200,13 +196,49 @@ irr-< (s≤s (s≤s p)) (s≤s (s≤s q)) = cong s≤s (irr-< (s≤s p) (s≤s q
 
 --------------------------------------------------------------------------------
 -- version without indexes
-
 -- Relᴮ : Set → Set₁
--- Relᴮ A = ∀ {n m} → A → Bij n m → A → Set
+-- Relᴮ A = A → Bij → A → Set
+
+-- Wkenᴮ : {A : Set} (R : Relᴮ A) → Set
+-- Wkenᴮ R = ∀ {n m x} → n ≤ m → R x (ι n) x → R x (ι m) x
+
+-- Reflexiveᴮ : {A : Set} (R : Relᴮ A) (Dom : A → ℕ) → Set
+-- Reflexiveᴮ R Dom = ∀ {x} → R x (ι (Dom x)) x
+
+-- Symmetricᴮ : {A : Set} (R : Relᴮ A) → Set
+-- Symmetricᴮ R =  ∀ {x y β} → R x β y → R y (β ⁻¹) x
+
+-- Transitiveᴮ : {A : Set} (R : Relᴮ A) → Set
+-- Transitiveᴮ R = ∀ {x y z β₁ β₂} → R x β₁ y → R y β₂ z → R x (β₂ ∘ β₁) z
 
 -- record IsEquivalenceᴮ {A : Set} (R : Relᴮ A) : Set where
 --   field Dom : A → ℕ
---         reflᴮ : {x : A} → R x (ι′ (Dom x)) x
---         symᴮ : ∀ {n m} {x y : A} {β : Bij n m} → R x β y → R y (β ⁻¹) x
---         transᴮ : ∀ {n₁ n₂ n₃} {x y z : A} {β₁ : Bij n₁ n₂} {β₂ : Bij n₂ n₃} →
---                    R x β₁ y → R y β₂ z → R x (β₂ ∘ β₁) z
+--         wkenᴮ : Wkenᴮ R
+--         reflᴮ : Reflexiveᴮ R Dom
+--         symᴮ : Symmetricᴮ R
+--         transᴮ : Transitiveᴮ R
+
+--------------------------------------------------------------------------------
+-- Explicitly indexed
+
+Relᴮ : {A : Set} → (A → Set) → Set₁
+Relᴮ F = ∀ {a} → F a → Bij → F a → Set
+
+Wkenᴮ : {A : Set} {F : A → Set} (R : Relᴮ F) → Set
+Wkenᴮ {F = F}  R = ∀ {a n m} {x : F a} → n ≤ m → R x (ι n) x → R x (ι m) x
+
+Reflexiveᴮ : {A : Set} {F : A → Set} (R : Relᴮ F) (Dom : ∀ {a} → F a → ℕ) → Set
+Reflexiveᴮ {F = F} R Dom = ∀ {a} {x : F a} → R x (ι (Dom x)) x
+
+Symmetricᴮ : {A : Set} {F : A → Set} (R : Relᴮ F) → Set
+Symmetricᴮ {F = F} R =  ∀ {a β} {x y : F a} → R x β y → R y (β ⁻¹) x
+
+Transitiveᴮ : {A : Set} {F : A → Set} (R : Relᴮ F) → Set
+Transitiveᴮ {F = F} R = ∀ {a β₁ β₂} {x y z : F a} → R x β₁ y → R y β₂ z → R x (β₂ ∘ β₁) z
+
+record IsEquivalenceᴮ {A : Set} {F : A → Set} (R : Relᴮ F) : Set where
+  field Dom : ∀ {a} → F a → ℕ
+        wkenᴮ : Wkenᴮ {A} {F} R
+        reflᴮ : Reflexiveᴮ {A} {F} R Dom
+        symᴮ : Symmetricᴮ {A} {F} R
+        transᴮ : Transitiveᴮ {A} {F} R

@@ -3,20 +3,20 @@
 open import Lattice
 open import Relation.Binary
 open import Generic.LValue as L
+open import Generic.Bijection
 
 module Generic.Heap.LowEq
   {Ty : Set}
   {Value : Ty → Set}
   {{𝑳 : Lattice}}
   (𝑯 : HasLabel Ty Value)
-  (_≈ⱽ_ :  ∀ {τ} → Value τ → Value τ → Set)
+  (_≈⟨_⟩ⱽ_ :  Relᴮ {Ty} Value)
   (A : Label) where
 
 open import Data.Product
 open import Data.Fin hiding (_<_ ; _≤_)
 open import Data.Nat
 open import Data.Maybe
-open import Generic.Bijection
 open import Generic.Heap.Base 𝑯 as H
 
 open import Relation.Binary.PropositionalEquality as P
@@ -40,7 +40,7 @@ _⊆ᴿ_ : Bij → Heap → Set
 Lift-≈ : Heap → Heap → Bij → Set
 Lift-≈ μ₁ μ₂ β =  ∀ {n₁ n₂ τ} {v₁ v₂ : LValue τ} → (n₁ , n₂) ∈ᵗ β →
             n₁ ↦ v₁ ∈ᴴ μ₁ → n₂ ↦ v₂ ∈ᴴ μ₂ →
-            v₁ ≈ⱽ v₂
+            v₁ ≈⟨ β ⟩ⱽ v₂
 
 -- For proving properties (cf. transitivity) heterogeneous L-equivalence
 -- is more convenient.
@@ -48,8 +48,8 @@ Lift-≅ : Heap → Heap → Bij → Set
 Lift-≅ μ₁ μ₂ β =  ∀ {n₁ n₂ τ₁ τ₂} {v₁ : LValue τ₁} {v₂ : LValue τ₂} →
            (n₁ , n₂) ∈ᵗ β →
             n₁ ↦ v₁ ∈ᴴ μ₁ → n₂ ↦ v₂ ∈ᴴ μ₂ →
-            v₁ ≅ⱽ v₂
-  where open import Generic.Value.HLowEq {Ty} {Value} _≈ⱽ_
+            v₁ ≅⟨ β ⟩ⱽ v₂
+  where open import Generic.Value.HLowEq {Ty} {Value} _≈⟨_⟩ⱽ_
 
 -- TODO: update
 -- Two heaps are A-equivalent up to bijection β iff the low addresses
@@ -68,7 +68,7 @@ record _≈⟨_⟩ᴴ_ (μ₁ : Heap) (β : Bij) (μ₂ : Heap) : Set where
         rng-⊆ : β ⊆ᴿ μ₂
         lift-≅ : Lift-≅ μ₁ μ₂ β
 
-  open import Generic.Value.HLowEq {Ty} {Value} _≈ⱽ_
+  open import Generic.Value.HLowEq {Ty} {Value} _≈⟨_⟩ⱽ_
 
   -- Homogeneous (same type) lifting is implied by the heterogenous lifting.
   lift-≈ : Lift-≈ μ₁ μ₂ β
@@ -78,19 +78,22 @@ record _≈⟨_⟩ᴴ_ (μ₁ : Heap) (β : Bij) (μ₂ : Heap) : Set where
 -- _≈ᴴ_ : Heap → Heap → Set
 -- μ₁ ≈ᴴ μ₂ = Σ Bij⟨ μ₁ , μ₂ ⟩ (λ β → μ₁ ≈⟨ β ⟩ᴴ μ₂)
 
-module Props (𝑽 : ∀ {τ} → IsEquivalence (_≈ⱽ_ {τ})) where
+module Props (𝑽 : IsEquivalenceᴮ {Ty} {Value} _≈⟨_⟩ⱽ_ ) where
 
   open import Data.Unit
   open import Generic.LValue Ty Value
   open L.HasLabel 𝑯
-  open import Generic.Value.HLowEq {Ty} {Value} _≈ⱽ_
+  open import Generic.Value.HLowEq {Ty} {Value} _≈⟨_⟩ⱽ_
   open import Generic.Heap.Lemmas 𝑯
   open Props 𝑽
+  open IsEquivalenceᴮ 𝑽
   open import Relation.Binary.PropositionalEquality
   import Function as F
 
-  refl-≈ᴴ : ∀ {μ} → μ ≈⟨ ι ∥ μ ∥ᴴ ⟩ᴴ μ
-  refl-≈ᴴ {μ} =
+  open import Generic.Heap.Valid {Ty} {Value} 𝑯 Dom
+
+  refl-≈ᴴ : ∀ {μ} {{validᴴ : Validᴴ μ}} → μ ≈⟨ ι ∥ μ ∥ᴴ ⟩ᴴ μ
+  refl-≈ᴴ {μ} {{validᴴ}}  =
     record { dom-⊆ = dom-⊆
            ; rng-⊆ = rng-⊆
            ; lift-≅ = lift-≅ }
@@ -104,16 +107,24 @@ module Props (𝑽 : ∀ {τ} → IsEquivalence (_≈ⱽ_ {τ})) where
           rng-⊆ (n , ∈ᴮ) with lemma ∈ᴮ
           ... | refl , n< = <-∈ n<
 
+          -- Here I need to know that references in the heap are valid
+          -- (point to the heap) to prove that they are related by the
+          -- finite identity bijection of size ∥ μ ∥ᴴ.  Intuitively if
+          -- μ = [ 0 ↦ Refˢ L 1 ] I cannot prove that μ ≈⟨ ι 1 ⟩ μ,
+          -- because Refˢ L 1 ≈⟨ ι 1 ⟩ Refˢ L 1, because ι 1 = 0 ↔ 0,
+          -- i.e., 1 is not defined in the bijection.
           lift-≅ : Lift-≅ μ μ (ι ∥ μ ∥ᴴ)
-          lift-≅ x ∈₁ ∈₂ rewrite idᴾ-≡ x with inj-∈′ ∈₁ ∈₂
-          ... | refl , refl = refl-≅ⱽ
-
+          lift-≅ {_} {_} {τ₁} {τ₂} {v₁} {v₂} x ∈₁ ∈₂ rewrite idᴾ-≡ x with inj-∈′ ∈₁ ∈₂
+          ... | refl , refl = ⌞ wkenᴮ (validᴴ ∈₁) refl-≈ⱽ ⌟
+            where import Generic.Value.LowEq {Ty} {Value} _≈⟨_⟩ⱽ_ as V
+                  open V.Props 𝑽
 
   sym-≈ᴴ : ∀ {β μ₁ μ₂} → μ₁ ≈⟨ β ⟩ᴴ μ₂ → μ₂ ≈⟨ β ⁻¹ ⟩ᴴ μ₁
   sym-≈ᴴ {β} {μ₁} {μ₂} ≈ =
     record { dom-⊆ = ⊆ᴿ-⊆ᴰ {β} rng-⊆
            ; rng-⊆ = ⊆ᴰ-⊆ᴿ {β} dom-⊆
-           ; lift-≅ = λ ∈ᴮ ∈₁ ∈₂ → sym-≅ⱽ (lift-≅ (right-inverse-of ∈ᴮ) ∈₂ ∈₁) }
+           ; lift-≅ = λ ∈ᴮ ∈₁ ∈₂ → sym-≅ⱽ (lift-≅ (right-inverse-of ∈ᴮ) ∈₂ ∈₁)
+           }
     where open _≈⟨_⟩ᴴ_ ≈
           open Bijectionᴾ (β ⁻¹)
 

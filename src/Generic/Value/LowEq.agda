@@ -1,20 +1,19 @@
 open import Relation.Binary
+open import Generic.Bijection
 
 module Generic.Value.LowEq
   {Ty : Set} {Value : Ty → Set}
-  (_≈ⱽ_ :  ∀ {τ} → Value τ → Value τ → Set) where
+  (_≈⟨_⟩ⱽ_ : Relᴮ {Ty} Value) where
 
-module Props (𝑽 : ∀ {τ} → IsEquivalence (_≈ⱽ_ {τ})) where
+module Props (𝑽 : IsEquivalenceᴮ {Ty} {Value} _≈⟨_⟩ⱽ_) where
 
-  open import Relation.Binary renaming (IsEquivalence to R)
+  open IsEquivalenceᴮ 𝑽
 
-  refl-≈ⱽ : ∀ {τ} → {v : Value τ} → v ≈ⱽ v
-  refl-≈ⱽ = R.refl 𝑽
+  refl-≈ⱽ : Reflexiveᴮ {F = Value} _≈⟨_⟩ⱽ_ Dom
+  refl-≈ⱽ = reflᴮ
 
-  sym-≈ⱽ : ∀ {τ} {v₁ v₂ : Value τ} → v₁ ≈ⱽ v₂ → v₂ ≈ⱽ v₁
-  sym-≈ⱽ = R.sym 𝑽
+  sym-≈ⱽ : Symmetricᴮ {F = Value} _≈⟨_⟩ⱽ_
+  sym-≈ⱽ = symᴮ
 
-  trans-≈ⱽ : ∀ {τ} {v₁ v₂ v₃ : Value τ} → v₁ ≈ⱽ v₂ → v₂ ≈ⱽ v₃ → v₁ ≈ⱽ v₃
-  trans-≈ⱽ = R.trans 𝑽
-
---------------------------------------------------------------------------------
+  trans-≈ⱽ : Transitiveᴮ {F = Value} _≈⟨_⟩ⱽ_
+  trans-≈ⱽ = transᴮ

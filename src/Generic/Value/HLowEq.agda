@@ -1,24 +1,57 @@
 open import Relation.Binary
+open import Generic.Bijection
 
 module Generic.Value.HLowEq
   {Ty : Set} {Value : Ty → Set}
-  (_≈ⱽ_ :  ∀ {τ} → Value τ → Value τ → Set) where
+  (_≈⟨_⟩ⱽ_ :  Relᴮ Value) where
 
 -- Heterogeneous version of low-equivlence (accepts values with different types).
-data _≅ⱽ_ {τ} (v : Value τ) : ∀ {τ} → Value τ → Set where
-  ⌞_⌟ : ∀ {v' : Value τ} → v ≈ⱽ v' → v ≅ⱽ v'
+data _≅⟨_⟩ⱽ_ {τ} (v : Value τ) (β : Bij) : ∀ {τ} → Value τ → Set where
+  ⌞_⌟ : ∀ {v' : Value τ} → v ≈⟨ β ⟩ⱽ v' → v ≅⟨ β ⟩ⱽ v'
 
-module Props (𝑽 : ∀ {τ} → IsEquivalence (_≈ⱽ_ {τ})) where
-  open import Generic.Value.LowEq {Ty} {Value} _≈ⱽ_
-  open Props 𝑽
-  open import Relation.Binary renaming (IsEquivalence to R)
+module Props (𝑽 : IsEquivalenceᴮ {F = Value} _≈⟨_⟩ⱽ_) where
+  open IsEquivalenceᴮ 𝑽
+  open import Data.Nat
 
-  refl-≅ⱽ : ∀ {τ} {v : Value τ} → v ≅ⱽ v
-  refl-≅ⱽ = ⌞ R.refl 𝑽 ⌟
+  Dom′ : ∀ {τ} → Value τ → ℕ
+  Dom′ = IsEquivalenceᴮ.Dom 𝑽
 
-  sym-≅ⱽ : ∀ {τ₁ τ₂} {v₁ : Value τ₁} {v₂ : Value τ₂} → v₁ ≅ⱽ v₂ → v₂ ≅ⱽ v₁
-  sym-≅ⱽ ⌞ x ⌟ = ⌞ R.sym 𝑽 x ⌟
+  refl-≅ⱽ : ∀ {τ} {v : Value τ} → v ≅⟨ ι (Dom′ v) ⟩ⱽ v
+  refl-≅ⱽ = ⌞ IsEquivalenceᴮ.reflᴮ 𝑽 ⌟
 
-  trans-≅ⱽ : ∀ {τ₁ τ₂ τ₃} {v₁ : Value τ₁} {v₂ : Value τ₂} {v₃ : Value τ₃} →
-               v₁ ≅ⱽ v₂ → v₂ ≅ⱽ v₃ → v₁ ≅ⱽ v₃
-  trans-≅ⱽ ⌞ x ⌟ ⌞ y ⌟ = ⌞  R.trans 𝑽 x y ⌟
+  sym-≅ⱽ : ∀ {τ₁ τ₂ β} {v₁ : Value τ₁} {v₂ : Value τ₂} → v₁ ≅⟨ β ⟩ⱽ v₂ → v₂ ≅⟨ β ⁻¹ ⟩ⱽ v₁
+  sym-≅ⱽ ⌞ x ⌟ = ⌞ symᴮ x ⌟
+
+  trans-≅ⱽ : ∀ {τ₁ τ₂ τ₃ β₁ β₂} {v₁ : Value τ₁} {v₂ : Value τ₂} {v₃ : Value τ₃} →
+               v₁ ≅⟨ β₁ ⟩ⱽ v₂ → v₂ ≅⟨ β₂ ⟩ⱽ v₃ → v₁ ≅⟨ β₂ ∘ β₁ ⟩ⱽ v₃
+  trans-≅ⱽ ⌞ x ⌟ ⌞ y ⌟ = ⌞  transᴮ x y ⌟
+
+--------------------------------------------------------------------------------
+-- Cleaner but gives us problem in the heap LowEq properties
+
+-- data _≅⟨_⟩ⱽ_ {τ₁} : ∀ {τ₂} → Value τ₁ → Bij → Value τ₂ → Set where
+--   ⌞_⌟ : ∀ {β} {v₁ : Value τ₁} {v₂ : Value τ₁} → v₁ ≈⟨ β ⟩ⱽ v₂ → v₁ ≅⟨ β ⟩ⱽ v₂
+
+-- module Props (𝑽 : IsEquivalenceᴮ {F = Value} _≈⟨_⟩ⱽ_) where
+
+--   open IsEquivalenceᴮ 𝑽
+
+--   refl-≅ⱽ : Reflexiveᴮ {Ty} {Value} _≅⟨_⟩ⱽ_ Dom
+--   refl-≅ⱽ = ⌞ reflᴮ ⌟
+
+--   wken-≅ⱽ : Wkenᴮ {Ty} {Value} _≅⟨_⟩ⱽ_
+--   wken-≅ⱽ n<m ⌞ x ⌟ = ⌞ wkenᴮ n<m x ⌟
+
+--   sym-≅ⱽ : Symmetricᴮ {Ty} {Value} _≅⟨_⟩ⱽ_
+--   sym-≅ⱽ ⌞ x ⌟ = ⌞ symᴮ x ⌟
+
+--   trans-≅ⱽ : Transitiveᴮ {Ty} {Value} _≅⟨_⟩ⱽ_
+--   trans-≅ⱽ ⌞ x ⌟ ⌞ y ⌟ = ⌞  transᴮ x y ⌟
+
+--   ≅ⱽ-isEquivᴮ : IsEquivalenceᴮ {F = Value} _≅⟨_⟩ⱽ_
+--   ≅ⱽ-isEquivᴮ =
+--     record { Dom = Dom
+--            ; wkenᴮ = wken-≅ⱽ
+--            ; reflᴮ = refl-≅ⱽ
+--            ; symᴮ = sym-≅ⱽ
+--            ; transᴮ = trans-≅ⱽ }
