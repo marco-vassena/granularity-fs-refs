@@ -1,4 +1,4 @@
-{-# OPTIONS --allow-unsolved-metas #-}
+-- {-# OPTIONS --allow-unsolved-metas #-}
 
 module Generic.Bijection where
 
@@ -223,6 +223,8 @@ irr-< (s≤s (s≤s p)) (s≤s (s≤s q)) = cong s≤s (irr-< (s≤s p) (s≤s q
 
 Relᴮ : {A : Set} → (A → Set) → Set₁
 Relᴮ F = ∀ {a} → F a → Bij → F a → Set
+
+-- Maybe these definitions could be in a module with an explicit parameter F ?
 
 Wkenᴮ : {A : Set} {F : A → Set} (R : Relᴮ F) → Set
 Wkenᴮ {F = F}  R = ∀ {a n m} {x : F a} → n ≤ m → R x (ι n) x → R x (ι m) x

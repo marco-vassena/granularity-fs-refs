@@ -1,5 +1,6 @@
 -- Generic pointwise L-equivalence for stores and memories and their
 -- properties.
+{-# OPTIONS --allow-unsolved-metas #-}
 
 open import Lattice
 open import Relation.Binary

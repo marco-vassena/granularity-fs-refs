@@ -154,43 +154,43 @@ Falseᴸ ℓ⊑A = Inr (Valueᴸ ℓ⊑A Unit)
 
 -- Derive L-equivalence for stores,
 -- open import Generic.Store.LowEq {Ty} {Raw} _≈ᴿ_ A as S using (_≈ˢ_) public
-_≈⟨_⟩ˢ_ : Store → Bij → Store → Set
-Σ₁ ≈⟨ β ⟩ˢ Σ₂ = Σ₁ ≈ˢ Σ₂
-  where open import Generic.Store.LowEq {Ty} {Raw} (λ r₁ r₂ → r₁ ≈⟨ β ⟩ᴿ r₂) A
+-- _≈⟨_⟩ˢ_ : Store → Bij → Store → Set
+-- Σ₁ ≈⟨ β ⟩ˢ Σ₂ = Σ₁ ≈ˢ Σ₂
+--   where open import Generic.Store.LowEq {Ty} {Raw} (λ r₁ r₂ → r₁ ≈⟨ β ⟩ᴿ r₂) A
 
--- Derive L-equivalence for heaps
-_≈⟨_⟩ᴴ_ : ∀ (μ₁ : Heap) → Bij → (μ₂ : Heap) → Set
-μ₁ ≈⟨ β ⟩ᴴ μ₂ = μ₁ H.≈⟨ β ⟩ᴴ μ₂
-  where open import Generic.Heap.LowEq {Ty} {Value} 𝑯 (λ v₁ v₂ → v₁ ≈⟨ β ⟩ⱽ v₂) A as H
+-- -- Derive L-equivalence for heaps
+-- _≈⟨_⟩ᴴ_ : ∀ (μ₁ : Heap) → Bij → (μ₂ : Heap) → Set
+-- μ₁ ≈⟨ β ⟩ᴴ μ₂ = μ₁ H.≈⟨ β ⟩ᴴ μ₂
+--   where open import Generic.Heap.LowEq {Ty} {Value} 𝑯 (λ v₁ v₂ → v₁ ≈⟨ β ⟩ⱽ v₂) A as H
 
---
--- using (_≈⟨_⟩ᴴ_ ; _≈ᴴ_ ; new-≈ᴴ ; Bij⟨_,_⟩)
+-- --
+-- -- using (_≈⟨_⟩ᴴ_ ; _≈ᴴ_ ; new-≈ᴴ ; Bij⟨_,_⟩)
 
 
 
--- -- Lift low-equivalence to configurations
-open Conf
+-- -- -- Lift low-equivalence to configurations
+-- open Conf
 
--- open import Generic.Bijection as B
+-- -- open import Generic.Bijection as B
 
-record _≈⟨_⟩ᴬ_ {V : Set} (c₁ : Conf V) (R : V → Bij → V → Set) (c₂ : Conf V) : Set where
-  constructor ⟨_,_,_⟩
-  field
-    bij : Bij
-    store-≈ˢ : store c₁ ≈⟨ bij ⟩ˢ store c₂
-    heap-≈ᴴ : heap c₁ ≈⟨ bij ⟩ᴴ heap c₂
-    term-≈ : R (term c₁) bij (term c₂)
+-- record _≈⟨_⟩ᴬ_ {V : Set} (c₁ : Conf V) (R : V → Bij → V → Set) (c₂ : Conf V) : Set where
+--   constructor ⟨_,_,_⟩
+--   field
+--     bij : Bij
+--     store-≈ˢ : store c₁ ≈⟨ bij ⟩ˢ store c₂
+--     heap-≈ᴴ : heap c₁ ≈⟨ bij ⟩ᴴ heap c₂
+--     term-≈ : R (term c₁) bij (term c₂)
 
--- open _≈⟨_⟩ᴬ_ {{ ... }}
+-- -- open _≈⟨_⟩ᴬ_ {{ ... }}
 
--- L-Equivalence for initial configurations.  For terms we do not use
--- the bijection but simply require syntactic equivalence.
-_≈ᴵ_ : ∀ {Γ τ} → IConf Γ τ → IConf Γ τ → Set
-_≈ᴵ_ = _≈⟨ (λ e₁ β e₂ → e₁ ≡ e₂) ⟩ᴬ_
+-- -- L-Equivalence for initial configurations.  For terms we do not use
+-- -- the bijection but simply require syntactic equivalence.
+-- _≈ᴵ_ : ∀ {Γ τ} → IConf Γ τ → IConf Γ τ → Set
+-- _≈ᴵ_ = _≈⟨ (λ e₁ β e₂ → e₁ ≡ e₂) ⟩ᴬ_
 
--- Final configurations.
-_≈ᶜ_ : ∀ {τ} → FConf τ → FConf τ → Set
-_≈ᶜ_ = _≈⟨ _≈⟨_⟩ⱽ_ ⟩ᴬ_
+-- -- Final configurations.
+-- _≈ᶜ_ : ∀ {τ} → FConf τ → FConf τ → Set
+-- _≈ᶜ_ = _≈⟨ _≈⟨_⟩ⱽ_ ⟩ᴬ_
 
 --------------------------------------------------------------------------------
 -- Properties: L-equivalence is an equivalence relation.
@@ -354,5 +354,5 @@ mutual
 -- TODO: we probably need to make the bijection explicit in the relation.
 -- Define the "Equivalence up to bijection" class.
 
-open import Generic.Heap.LowEq {Ty} {Value} 𝑯 (λ v₁ v₂ → v₁ ≈⟨ {!!} ⟩ⱽ v₂) A as H
-open Props {!!}
+-- open import Generic.Heap.LowEq {Ty} {Value} 𝑯 (λ v₁ v₂ → v₁ ≈⟨ {!!} ⟩ⱽ v₂) A as H
+-- open Props {!!}

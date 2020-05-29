@@ -5,15 +5,23 @@ module Generic.Value.LowEq
   {Ty : Set} {Value : Ty → Set}
   (_≈⟨_⟩ⱽ_ : Relᴮ {Ty} Value) where
 
+-- TODO: is not this just a renaming?
+
+-- TODO: why do we need the inner module?
 module Props (𝑽 : IsEquivalenceᴮ {Ty} {Value} _≈⟨_⟩ⱽ_) where
 
-  open IsEquivalenceᴮ 𝑽
+  open IsEquivalenceᴮ 𝑽 renaming
+    ( Dom to ∣_∣ⱽ
+    ; reflᴮ to refl-≈ⱽ
+    ; symᴮ to sym-≈ⱽ
+    ; transᴮ to trans-≈ⱽ
+    ; wkenᴮ to wken-≈ⱽ) public
 
-  refl-≈ⱽ : Reflexiveᴮ {F = Value} _≈⟨_⟩ⱽ_ Dom
-  refl-≈ⱽ = reflᴮ
+  -- refl-≈ⱽ : Reflexiveᴮ {F = Value} _≈⟨_⟩ⱽ_ {!!} -- Dom
+  -- refl-≈ⱽ = reflᴮ
 
-  sym-≈ⱽ : Symmetricᴮ {F = Value} _≈⟨_⟩ⱽ_
-  sym-≈ⱽ = symᴮ
+  -- sym-≈ⱽ : Symmetricᴮ {F = Value} _≈⟨_⟩ⱽ_
+  -- sym-≈ⱽ = symᴮ
 
-  trans-≈ⱽ : Transitiveᴮ {F = Value} _≈⟨_⟩ⱽ_
-  trans-≈ⱽ = transᴮ
+  -- trans-≈ⱽ : Transitiveᴮ {F = Value} _≈⟨_⟩ⱽ_
+  -- trans-≈ⱽ = transᴮ

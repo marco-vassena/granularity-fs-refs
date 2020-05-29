@@ -49,7 +49,7 @@ step-≈ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
                c ⇓⟨ θ , pc ⟩ c' →
                pc ⋤ A →
                ∃ (λ β → Σ ≈⟨ β ⟩ˢ Σ' ∧ μ ≈⟨ β ⟩ᴴ μ')
-step-≈ (Var τ∈Γ x) pc⋤A = ⟨ {!!} , ⟨ ? , ? ⟩ ⟩
+step-≈ (Var τ∈Γ x) pc⋤A = ⟨ {!!} , ⟨ {!!} , {!refl-≈ᴴ!} ⟩ ⟩
 step-≈ Unit pc⋤A = {!!}
 step-≈ (Lbl ℓ) pc⋤A = {!!}
 step-≈ (Test₁ x x₁ x₂ x₃) pc⋤A = {!!}
