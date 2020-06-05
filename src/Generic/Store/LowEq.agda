@@ -13,23 +13,24 @@ module Generic.Store.LowEq
   (A : Label) where
 
 open import Generic.Store.Base Ty Value
-open import Generic.Memory.LowEq {Ty} {Value} _≈ⱽ_ A as M using (_≈⟨_⟩ᴹ_ ; _≈ᴹ_ ; ⌞_⌟ᴹ) public
+open import Generic.Memory.LowEq {Ty} {Value} _≈ⱽ_ A as M using (_≈⟨_⟩ᴹ_ ; _≈⟨_,_⟩ᴹ_ ; ⌞_⌟ᴹ) public
 
 open import Data.Empty
 open import Data.Unit hiding (_≟_)
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
+open import Generic.Bijection
 
 --------------------------------------------------------------------------------
 
 module Store-≈ˢ where
 
   -- Stores are related pointwise
-  _≈ˢ_ : Store → Store → Set
-  Σ₁ ≈ˢ Σ₂ = ∀ ℓ → Σ₁ ℓ ≈⟨ ℓ ⊑? A ⟩ᴹ Σ₂ ℓ
+  _≈⟨_⟩ˢ_ : Store → Bij → Store → Set
+  Σ₁ ≈⟨ β ⟩ˢ Σ₂ = ∀ ℓ → Σ₁ ℓ ≈⟨ β , ℓ ⊑? A ⟩ᴹ Σ₂ ℓ
 
   -- Retrieves two observable memories
-  getᴸ : ∀ {ℓ Σ₁ Σ₂} → Σ₁ ≈ˢ Σ₂ → ℓ ⊑ A → Σ₁ ℓ ≈ᴹ Σ₂ ℓ
+  getᴸ : ∀ {ℓ Σ₁ Σ₂ β} → Σ₁ ≈⟨ β ⟩ˢ Σ₂ → ℓ ⊑ A → Σ₁ ℓ ≈⟨ β ⟩ᴹ Σ₂ ℓ
   getᴸ {ℓ} Σ₁≈Σ₂ ℓ⊑A with ℓ ⊑? A | Σ₁≈Σ₂ ℓ
   ... | yes _ | M₁≈M₂ = M₁≈M₂
   ... | no ℓ⋤A | _  = ⊥-elim (ℓ⋤A ℓ⊑A)
@@ -41,6 +42,9 @@ module Props (𝑽 : ∀ {τ} → IsEquivalence (_≈ⱽ_ {τ})) where
   module ≈ˢ-Equivalence where
 
     open M.Props 𝑽 public
+
+    -- What size should I use here for the identity bijection?
+    -- Maybe it's not the right thing to compute it.
 
     -- Reflexive
     refl-≈ˢ : ∀ {Σ} → Σ ≈ˢ Σ

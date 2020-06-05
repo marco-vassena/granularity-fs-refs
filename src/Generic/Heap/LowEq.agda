@@ -1,5 +1,3 @@
-{-# OPTIONS --allow-unsolved-metas #-}
-
 open import Lattice
 open import Relation.Binary
 open import Generic.LValue as L
@@ -36,13 +34,15 @@ _⊆ᴿ_ : Bij → Heap → Set
 ⊆ᴿ-⊆ᴰ {β} ⊆ (n , x) = ⊆ (n , left-inverse-of x)
   where open Bijectionᴾ β
 
-
+-- Homogeneous L-equivalence.
+-- TODO: do we ever use this?
 Lift-≈ : Heap → Heap → Bij → Set
-Lift-≈ μ₁ μ₂ β =  ∀ {n₁ n₂ τ} {v₁ v₂ : LValue τ} → (n₁ , n₂) ∈ᵗ β →
+Lift-≈ μ₁ μ₂ β =  ∀ {n₁ n₂ τ} {v₁ v₂ : LValue τ} →
+            (n₁ , n₂) ∈ᵗ β →
             n₁ ↦ v₁ ∈ᴴ μ₁ → n₂ ↦ v₂ ∈ᴴ μ₂ →
             v₁ ≈⟨ β ⟩ⱽ v₂
 
--- For proving properties (cf. transitivity) heterogeneous L-equivalence
+-- For proving properties (cf. transitivity) *heterogeneous* L-equivalence
 -- is more convenient.
 Lift-≅ : Heap → Heap → Bij → Set
 Lift-≅ μ₁ μ₂ β =  ∀ {n₁ n₂ τ₁ τ₂} {v₁ : LValue τ₁} {v₂ : LValue τ₂} →
@@ -113,6 +113,7 @@ module Props (𝑽 : IsEquivalenceᴮ {Ty} {Value} _≈⟨_⟩ⱽ_ ) where
           -- μ = [ 0 ↦ Refˢ L 1 ] I cannot prove that μ ≈⟨ ι 1 ⟩ μ,
           -- because Refˢ L 1 ≈⟨ ι 1 ⟩ Refˢ L 1, because ι 1 = 0 ↔ 0,
           -- i.e., 1 is not defined in the bijection.
+          -- Why ... it seems that this definition works ...
           lift-≅ : Lift-≅ μ μ (ι ∥ μ ∥ᴴ)
           lift-≅ {_} {_} {τ₁} {τ₂} {v₁} {v₂} x ∈₁ ∈₂ rewrite idᴾ-≡ x with inj-∈′ ∈₁ ∈₂
           ... | refl , refl = ⌞ wkenᴮ (validᴴ ∈₁) refl-≈ⱽ ⌟

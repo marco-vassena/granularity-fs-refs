@@ -1,5 +1,3 @@
-{-# OPTIONS --allow-unsolved-metas #-}
-
 open import Lattice
 open import Relation.Binary
 open import Generic.Bijection
