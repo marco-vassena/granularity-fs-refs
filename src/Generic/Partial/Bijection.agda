@@ -115,10 +115,14 @@ _∘_ {A} {B} {C} f g =
 
         inv {x} {y} | nothing | [ eq ] | nothing | [ eq' ] = (λ ()) , (λ ())
 
+infixr 3 _∘_
+
 -- Invert a bijection
 _⁻¹ : ∀ {A : Set} {B : Set} → A ⤖ᴾ B → B ⤖ᴾ A
 β ⁻¹ = record { to = from ; from = to ; inverse-of = right-inverse-of , left-inverse-of }
   where open Bijectionᴾ β
+
+infixr 5 _⁻¹
 
 -- Singleton bijection
 _↔_ : ∀ {A B} {{_≟ᴬ_ : DecEq A}} {{_≟ᴮ_ : DecEq B}} (x : A) (y : B) → A ⤖ᴾ B
