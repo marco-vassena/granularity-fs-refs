@@ -38,7 +38,7 @@ mutual
   ∣ inl x ∣ᴿ = ∣ x ∣ⱽ
   ∣ inr x ∣ᴿ = ∣ x ∣ⱽ
   ∣ ⟨ x , y ⟩ ∣ᴿ = ∣ x ∣ⱽ ⊔ᴺ ∣ y ∣ⱽ
-  ∣ Refᴵ x x₁ ∣ᴿ = 0
+  ∣ Refᴵ x n ∣ᴿ = ℕ.suc n
   ∣ Refˢ n ∣ᴿ = ℕ.suc n
   ∣ ⌞ x ⌟ ∣ᴿ = 0
   ∣ Id x ∣ᴿ = ∣ x ∣ⱽ
@@ -108,9 +108,9 @@ mutual
             ⟨ e , θ₁ ⟩ᶜ ≈⟨ β ⟩ᴿ ⟨ e , θ₂ ⟩ᶜ
 
     -- Flow-insensitive refs
-    Ref-Iᴸ : ∀ {β} {ℓ τ} →
-               (ℓ⊑A : ℓ ⊑ A) (n : ℕ) →
-               Refᴵ {τ = τ} ℓ n ≈⟨ β ⟩ᴿ Refᴵ ℓ n
+    Ref-Iᴸ : ∀ {β} {ℓ τ n m} →
+               (ℓ⊑A : ℓ ⊑ A) → ⟨ n , m ⟩ ∈ᵗ β →
+               Refᴵ {τ = τ} ℓ n ≈⟨ β ⟩ᴿ Refᴵ ℓ m
 
     Ref-Iᴴ : ∀ {β} {ℓ₁ ℓ₂ n₁ n₂ τ} →
                (ℓ₁⋤A : ℓ₁ ⋤ A) (ℓ₂⋤A : ℓ₂ ⋤ A) →
@@ -214,7 +214,7 @@ mutual
   wken-≈ᴿ n≤m (Inr x) = Inr (wken-≈ⱽ n≤m x)
   wken-≈ᴿ n≤m (Pair x y) = Pair (wken-≈ⱽ n≤m x) (wken-≈ⱽ n≤m y)
   wken-≈ᴿ n≤m (Fun x) = Fun (wken-≈ᴱ n≤m x)
-  wken-≈ᴿ n≤m (Ref-Iᴸ ℓ⊑A n) = Ref-Iᴸ ℓ⊑A n
+  wken-≈ᴿ n≤m (Ref-Iᴸ ℓ⊑A ∈ᴮ) = Ref-Iᴸ ℓ⊑A (ι-∈ (≤-trans (ι-≤ᴰ ∈ᴮ) n≤m))
   wken-≈ᴿ n≤m (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = Ref-Iᴴ ℓ₂⋤A ℓ₂⋤A
   wken-≈ᴿ n≤m (Ref-S ∈ᴮ) = Ref-S (ι-∈ (≤-trans (ι-≤ᴰ ∈ᴮ) n≤m))
   wken-≈ᴿ n≤m (Id x) = Id (wken-≈ⱽ n≤m x)
@@ -236,7 +236,7 @@ mutual
     where ≈₁′ = wken-≈ⱽ (m≤m⊔n ∣ v₁ ∣ⱽ ∣ v₂ ∣ⱽ) (refl-≈ⱽ v₁)
           ≈₂′ = wken-≈ⱽ (n≤m⊔n ∣ v₁ ∣ⱽ ∣ v₂ ∣ⱽ) (refl-≈ⱽ v₂)
   refl-≈ᴿ (Refᴵ ℓ n) with ℓ ⊑? A
-  ... | yes ℓ⊑A = Ref-Iᴸ ℓ⊑A n
+  ... | yes ℓ⊑A = Ref-Iᴸ ℓ⊑A (ι-∈ (s≤s ≤-refl))
   ... | no ℓ⋤A = Ref-Iᴴ ℓ⋤A ℓ⋤A
   refl-≈ᴿ (Refˢ n) = Ref-S (ι-∈ (s≤s ≤-refl))
   refl-≈ᴿ ⌞ ℓ ⌟ = Lbl ℓ
@@ -262,7 +262,7 @@ mutual
   sym-≈ᴿ (Inr x) = Inr (sym-≈ⱽ x)
   sym-≈ᴿ (Pair x y) = Pair (sym-≈ⱽ x) (sym-≈ⱽ y)
   sym-≈ᴿ (Fun x) = Fun (sym-≈ᴱ x)
-  sym-≈ᴿ (Ref-Iᴸ ℓ⊑A n) = Ref-Iᴸ ℓ⊑A n
+  sym-≈ᴿ {β = β} (Ref-Iᴸ ℓ⊑A x) = Ref-Iᴸ ℓ⊑A (Bijectionᴾ.right-inverse-of β x)
   sym-≈ᴿ (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = Ref-Iᴴ ℓ₂⋤A ℓ₁⋤A
   sym-≈ᴿ {β = β} (Ref-S x) = Ref-S (Bijectionᴾ.right-inverse-of β x)
   sym-≈ᴿ (Id x) = Id (sym-≈ⱽ x)
@@ -280,7 +280,8 @@ mutual
   trans-≈ᴿ (Inr x) (Inr y) = Inr (trans-≈ⱽ x y)
   trans-≈ᴿ (Pair x₁ y₁) (Pair x₂ y₂) = Pair (trans-≈ⱽ x₁ x₂) (trans-≈ⱽ y₁ y₂)
   trans-≈ᴿ (Fun x) (Fun y) = Fun (trans-≈ᴱ x y)
-  trans-≈ᴿ (Ref-Iᴸ ℓ⊑A n) (Ref-Iᴸ ℓ⊑A₁ .n) = Ref-Iᴸ ℓ⊑A₁ n
+  trans-≈ᴿ {β₁ = β₁} {β₂} (Ref-Iᴸ ℓ⊑A x) (Ref-Iᴸ ℓ⊑A₁ y)
+    = Ref-Iᴸ ℓ⊑A₁ (join-∈ᵗ {β₁ = β₁} {β₂} x y)
   trans-≈ᴿ (Ref-Iᴸ ℓ⊑A n) (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = ⊥-elim (ℓ₁⋤A ℓ⊑A)
   trans-≈ᴿ (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) (Ref-Iᴸ ℓ⊑A n) = ⊥-elim (ℓ₂⋤A ℓ⊑A)
   trans-≈ᴿ (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) (Ref-Iᴴ ℓ₁⋤A₁ ℓ₂⋤A₁) = Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A₁
