@@ -221,26 +221,32 @@ irr-< (s≤s (s≤s p)) (s≤s (s≤s q)) = cong s≤s (irr-< (s≤s p) (s≤s q
 --------------------------------------------------------------------------------
 -- Explicitly indexed
 
-Relᴮ : {A : Set} → (A → Set) → Set₁
-Relᴮ F = ∀ {a} → F a → Bij → F a → Set
+module IProps (A : Set) (F : A → Set) where
 
--- Maybe these definitions could be in a module with an explicit parameter F ?
+  Relᴮ : Set₁
+  Relᴮ = ∀ {a} → F a → Bij → F a → Set
 
-Wkenᴮ : {A : Set} {F : A → Set} (R : Relᴮ F) → Set
-Wkenᴮ {F = F}  R = ∀ {a n m} {x : F a} → n ≤ m → R x (ι n) x → R x (ι m) x
+  Wkenᴮ : Relᴮ → Set
+  Wkenᴮ R = ∀ {a n m} {x : F a} → n ≤ m → R x (ι n) x → R x (ι m) x
 
-Reflexiveᴮ : {A : Set} {F : A → Set} (R : Relᴮ F) (Dom : ∀ {a} → F a → ℕ) → Set
-Reflexiveᴮ {F = F} R Dom = ∀ {a} {x : F a} → R x (ι (Dom x)) x
+  Reflexiveᴮ : Relᴮ → (Dom : ∀ {a} → F a → ℕ) → Set
+  Reflexiveᴮ R Dom = ∀ {a} {x : F a} → R x (ι (Dom x)) x
 
-Symmetricᴮ : {A : Set} {F : A → Set} (R : Relᴮ F) → Set
-Symmetricᴮ {F = F} R =  ∀ {a β} {x y : F a} → R x β y → R y (β ⁻¹) x
+  Symmetricᴮ : Relᴮ → Set
+  Symmetricᴮ R = ∀ {a β} {x y : F a} → R x β y → R y (β ⁻¹) x
 
-Transitiveᴮ : {A : Set} {F : A → Set} (R : Relᴮ F) → Set
-Transitiveᴮ {F = F} R = ∀ {a β₁ β₂} {x y z : F a} → R x β₁ y → R y β₂ z → R x (β₂ ∘ β₁) z
+  Transitiveᴮ : Relᴮ → Set
+  Transitiveᴮ R = ∀ {a β₁ β₂} {x y z : F a} → R x β₁ y → R y β₂ z → R x (β₂ ∘ β₁) z
 
-record IsEquivalenceᴮ {A : Set} {F : A → Set} (R : Relᴮ F) : Set where
-  field Dom : ∀ {a} → F a → ℕ
-        wkenᴮ : Wkenᴮ {A} {F} R
-        reflᴮ : Reflexiveᴮ {A} {F} R Dom
-        symᴮ : Symmetricᴮ {A} {F} R
-        transᴮ : Transitiveᴮ {A} {F} R
+  record IsEquivalenceᴮ (R : Relᴮ) : Set where
+    field Dom : ∀ {a} → F a → ℕ
+          wkenᴮ : Wkenᴮ R
+          reflᴮ : Reflexiveᴮ R Dom
+          symᴮ : Symmetricᴮ R
+          transᴮ : Transitiveᴮ R
+
+
+module Props (F : Set) where
+
+  open import Data.Unit
+  open IProps ⊤ (λ x → F) public
