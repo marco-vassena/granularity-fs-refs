@@ -91,3 +91,9 @@ _∷ᴿ_ : ∀ {τ s} → Store → Cell τ s → Store
 ∥ _ ∷ Σ ∥ = suc ∥ Σ ∥
 
 infix 1 ∥_∥
+
+<-∈ : ∀ {n} {Σ : Store} → n < ∥ Σ ∥ → n ∈ Σ
+<-∈ {Σ = []} ()
+<-∈ {zero} {Σ = c ∷ Σ} (s≤s x) = _ , _ , c , Here
+<-∈ {suc n} {Σ = c ∷ Σ} (s≤s x) with <-∈ x
+... | _ , _ , _ , n∈Σ = _ , _ , _ , There n∈Σ

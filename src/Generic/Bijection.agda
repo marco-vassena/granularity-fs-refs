@@ -246,7 +246,22 @@ module IProps (A : Set) (F : A → Set) where
           transᴮ : Transitiveᴮ R
 
 
-module Props (F : Set) where
+-- Simple (not indexed) props
+-- It does not seem we need this because store
+-- are restricted anyway
+module SProps (F : Set) where
 
   open import Data.Unit
-  open IProps ⊤ (λ x → F) public
+  open IProps ⊤ (λ _ → F) public
+
+  -- Wkenᴮ : Relᴮ → Set
+  -- Wkenᴮ R = ∀ {a n m} {x : F a} → n ≤ m → R x (ι n) x → R x (ι m) x
+
+  -- Reflexiveᴮ : Relᴮ → (Dom : ∀ {a} → F a → ℕ) → Set
+  -- Reflexiveᴮ R Dom = ∀ {a} {x : F a} → R x (ι (Dom x)) x
+
+  -- Symmetricᴮ : Relᴮ → Set
+  -- Symmetricᴮ R = ∀ {a β} {x y : F a} → R x β y → R y (β ⁻¹) x
+
+  -- Transitiveᴮ : Relᴮ → Set
+  -- Transitiveᴮ R = ∀ {a β₁ β₂} {x y z : F a} → R x β₁ y → R y β₂ z → R x (β₂ ∘ β₁) z

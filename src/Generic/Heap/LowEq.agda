@@ -92,6 +92,8 @@ module Props (𝑽 : IsEquivalenceᴮ {Ty} {Value} _≈⟨_⟩ⱽ_ ) where
 
   open import Generic.Heap.Valid {Ty} {Value} 𝑯 Dom
 
+  -- We are not computing the domain in the right way!
+  -- We should take the maximum of all the references in the heap.
   refl-≈ᴴ : ∀ {μ} {{validᴴ : Validᴴ μ}} → μ ≈⟨ ι ∥ μ ∥ᴴ ⟩ᴴ μ
   refl-≈ᴴ {μ} {{validᴴ}}  =
     record { dom-⊆ = dom-⊆
