@@ -156,14 +156,13 @@ open import Generic.LValue
 -- Configurations
 
 -- Generic store and flow-sensitive heap
-open import Generic.Store.Base Ty Raw public
-open import Generic.Heap 𝑯 hiding (_∈_) public
+open import Generic.Store.Base Ty Raw hiding (_∈_ ; Write) public
+-- open import Generic.Heap 𝑯 hiding (_∈_) public
 
 -- Generic configuration container.
 record Conf (A : Set) : Set where
-  constructor ⟨_,_,_⟩
+  constructor ⟨_,_⟩
   field store : Store
-        heap : Heap
         term : A
 
 -- Initial configuration.
