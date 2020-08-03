@@ -1,13 +1,11 @@
--- remove indexes from bijection
-
-{-# OPTIONS --allow-unsolved-metas #-}
-
 -- This module defines a L-equivalence relation for all the categoris
 -- of the calculus.  L-equivalence relates terms that are
 -- indistinguishabile to an attacker at security level L.
 --
 -- This module is parametric in the security lattice 𝑳 = (𝓛, ⊑) and in
 -- the attacker's security A ∈ 𝓛.
+
+{-# OPTIONS --allow-unsolved-metas #-}
 
 open import Lattice
 
@@ -25,27 +23,28 @@ open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
 open import Generic.Bijection renaming (_∘_ to _∘ᴮ_)
 open import Data.Product renaming (_,_ to ⟨_,_⟩)
+open import FG.Valid
 
-mutual
-
+-- mutual
+  -- Moved to Valid
   -- "Size" of a value
-  ∣_∣ⱽ : ∀ {τ} → Value τ → ℕ
-  ∣ r ^ ℓ ∣ⱽ = ∣ r ∣ᴿ
+  -- ∣_∣ⱽ : ∀ {τ} → Value τ → ℕ
+  -- ∣ r ^ ℓ ∣ⱽ = ∣ r ∣ᴿ
 
-  ∣_∣ᴿ : ∀ {τ} → Raw τ → ℕ
-  ∣ （） ∣ᴿ = 0
-  ∣ ⟨ x , θ ⟩ᶜ ∣ᴿ = ∣ θ ∣ᴱ
-  ∣ inl x ∣ᴿ = ∣ x ∣ⱽ
-  ∣ inr x ∣ᴿ = ∣ x ∣ⱽ
-  ∣ ⟨ x , y ⟩ ∣ᴿ = ∣ x ∣ⱽ ⊔ᴺ ∣ y ∣ⱽ
-  ∣ Refᴵ x n ∣ᴿ = ℕ.suc n
-  ∣ Refˢ n ∣ᴿ = ℕ.suc n
-  ∣ ⌞ x ⌟ ∣ᴿ = 0
-  ∣ Id x ∣ᴿ = ∣ x ∣ⱽ
+  -- ∣_∣ᴿ : ∀ {τ} → Raw τ → ℕ
+  -- ∣ （） ∣ᴿ = 0
+  -- ∣ ⟨ x , θ ⟩ᶜ ∣ᴿ = ∣ θ ∣ᴱ
+  -- ∣ inl x ∣ᴿ = ∣ x ∣ⱽ
+  -- ∣ inr x ∣ᴿ = ∣ x ∣ⱽ
+  -- ∣ ⟨ x , y ⟩ ∣ᴿ = ∣ x ∣ⱽ ⊔ᴺ ∣ y ∣ⱽ
+  -- ∣ Refᴵ x n ∣ᴿ = ℕ.suc n
+  -- ∣ Refˢ n ∣ᴿ = ℕ.suc n
+  -- ∣ ⌞ x ⌟ ∣ᴿ = 0
+  -- ∣ Id x ∣ᴿ = ∣ x ∣ⱽ
 
-  ∣_∣ᴱ : ∀ {Γ} → Env Γ → ℕ
-  ∣ [] ∣ᴱ = 0
-  ∣ v ∷ θ ∣ᴱ = ∣ v ∣ⱽ ⊔ᴺ ∣ θ ∣ᴱ
+  -- ∣_∣ᴱ : ∀ {Γ} → Env Γ → ℕ
+  -- ∣ [] ∣ᴱ = 0
+  -- ∣ v ∷ θ ∣ᴱ = ∣ v ∣ⱽ ⊔ᴺ ∣ θ ∣ᴱ
 
 
 mutual
@@ -120,6 +119,8 @@ mutual
     Ref-S : ∀ {τ n m β} → ⟨ n , m ⟩ ∈ᵗ β →
               Refˢ {τ = τ} n ≈⟨ β ⟩ᴿ Refˢ m
 
+    -- TODO: Case when the indexes are not in the bijection ?
+
     Id : ∀ {β} {τ} {v₁ v₂ : Value τ} →
            v₁ ≈⟨ β ⟩ⱽ v₂ →
            Id v₁ ≈⟨ β ⟩ᴿ Id v₂
@@ -133,8 +134,8 @@ mutual
              (v₁ ∷ θ₁) ≈⟨ β ⟩ᴱ (v₂ ∷ θ₂)
 
 -- Shorthand
-Ref-Iᴸ′ : ∀ {τ ℓ n₁ n₂} {β : Bij} → ℓ ⊑ A → n₁ ≡ n₂ → Refᴵ {τ = τ} ℓ n₁ ≈⟨ β ⟩ᴿ Refᴵ ℓ n₂
-Ref-Iᴸ′ ℓ⊑A refl = Ref-Iᴸ ℓ⊑A _
+Ref-Iᴸ′ : ∀ {τ ℓ n₁ n₂} {β : Bij} → ℓ ⊑ A → ⟨ n₁ , n₂ ⟩ ∈ᵗ β → Refᴵ {τ = τ} ℓ n₁ ≈⟨ β ⟩ᴿ Refᴵ ℓ n₂
+Ref-Iᴸ′ ℓ⊑A x = Ref-Iᴸ ℓ⊑A x
 
 Trueᴸ : ∀ {ℓ} {β : Bij} → ℓ ⊑ A → true ℓ ≈⟨ β ⟩ᴿ true ℓ
 Trueᴸ ℓ⊑A = Inl (Valueᴸ ℓ⊑A Unit)
@@ -153,7 +154,8 @@ Falseᴸ ℓ⊑A = Inr (Valueᴸ ℓ⊑A Unit)
 ≈ⱽ-⊑ pc (Valueᴴ x x₁) = Valueᴴ (trans-⋤ (join-⊑₂ _ _) x) (trans-⋤ (join-⊑₂ _ _) x₁)
 
 -- Derive L-equivalence for stores,
--- open import Generic.Store.LowEq {Ty} {Raw} _≈ᴿ_ A as S using (_≈ˢ_) public
+open import Generic.Store.LowEq {Ty} {Raw} _≈⟨_⟩ᴿ_ A as S using (_≈⟨_⟩ˢ_) public
+
 -- _≈⟨_⟩ˢ_ : Store → Bij → Store → Set
 -- Σ₁ ≈⟨ β ⟩ˢ Σ₂ = Σ₁ ≈ˢ Σ₂
 --   where open import Generic.Store.LowEq {Ty} {Raw} (λ r₁ r₂ → r₁ ≈⟨ β ⟩ᴿ r₂) A
@@ -168,29 +170,27 @@ Falseᴸ ℓ⊑A = Inr (Valueᴸ ℓ⊑A Unit)
 
 
 
--- -- -- Lift low-equivalence to configurations
--- open Conf
+-- Lift low-equivalence to configurations
+open Conf
 
--- -- open import Generic.Bijection as B
+-- open import Generic.Bijection as B
 
--- record _≈⟨_⟩ᴬ_ {V : Set} (c₁ : Conf V) (R : V → Bij → V → Set) (c₂ : Conf V) : Set where
---   constructor ⟨_,_,_⟩
---   field
---     bij : Bij
---     store-≈ˢ : store c₁ ≈⟨ bij ⟩ˢ store c₂
---     heap-≈ᴴ : heap c₁ ≈⟨ bij ⟩ᴴ heap c₂
---     term-≈ : R (term c₁) bij (term c₂)
+record _≈⟨_,_⟩ᴬ_ {V : Set} (c₁ : Conf V) (R : V  → V → Set) (β : Bij) (c₂ : Conf V) : Set where
+  constructor ⟨_,_⟩
+  field
+    store-≈ˢ : store c₁ ≈⟨ β ⟩ˢ store c₂
+    term-≈ : R (term c₁) (term c₂)
 
--- -- open _≈⟨_⟩ᴬ_ {{ ... }}
+open _≈⟨_,_⟩ᴬ_ {{ ... }}
 
--- -- L-Equivalence for initial configurations.  For terms we do not use
--- -- the bijection but simply require syntactic equivalence.
--- _≈ᴵ_ : ∀ {Γ τ} → IConf Γ τ → IConf Γ τ → Set
--- _≈ᴵ_ = _≈⟨ (λ e₁ β e₂ → e₁ ≡ e₂) ⟩ᴬ_
+-- L-Equivalence for initial configurations.  For terms we do not use
+-- the bijection but simply require syntactic equivalence.
+_≈⟨_⟩ᴵ_ : ∀ {Γ τ} → IConf Γ τ → Bij → IConf Γ τ → Set
+c₁ ≈⟨ β ⟩ᴵ c₂ = c₁ ≈⟨ _≡_ , β ⟩ᴬ c₂
 
--- -- Final configurations.
--- _≈ᶜ_ : ∀ {τ} → FConf τ → FConf τ → Set
--- _≈ᶜ_ = _≈⟨ _≈⟨_⟩ⱽ_ ⟩ᴬ_
+-- Final configurations.
+_≈⟨_⟩ᶜ_ : ∀ {τ} → FConf τ → Bij → FConf τ → Set
+c₁ ≈⟨ β ⟩ᶜ c₂ = c₁ ≈⟨ _≈⟨ β ⟩ⱽ_ , β ⟩ᴬ c₂
 
 --------------------------------------------------------------------------------
 -- Properties: L-equivalence is an equivalence relation.
@@ -199,42 +199,42 @@ mutual
 
   -- Weaken the identity bijection to progressively construct a bijection
   -- large enough for all the references in a value.
-  wken-≈ⱽ : ∀ {n m τ} {v : Value τ} → n ≤ m → v ≈⟨ ι n  ⟩ⱽ v → v ≈⟨ ι m ⟩ⱽ v
+  wken-≈ⱽ : ∀ {n m τ} {v₁ v₂ : Value τ} → n ≤ m → v₁ ≈⟨ ι n  ⟩ⱽ v₂ → v₁ ≈⟨ ι m ⟩ⱽ v₂
   wken-≈ⱽ n≤m (Valueᴸ ℓ⊑A r≈) = Valueᴸ ℓ⊑A (wken-≈ᴿ n≤m r≈)
-  wken-≈ⱽ n≤m (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = Valueᴴ ℓ₂⋤A ℓ₂⋤A
+  wken-≈ⱽ n≤m (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = Valueᴴ ℓ₁⋤A ℓ₂⋤A
 
-  wken-≈ᴱ : ∀ {n m Γ} {θ : Env Γ} → n ≤ m → θ ≈⟨ ι n  ⟩ᴱ θ → θ ≈⟨ ι m ⟩ᴱ θ
+  wken-≈ᴱ : ∀ {n m Γ} {θ₁ θ₂ : Env Γ} → n ≤ m → θ₁ ≈⟨ ι n  ⟩ᴱ θ₂ → θ₁ ≈⟨ ι m ⟩ᴱ θ₂
   wken-≈ᴱ n≤m [] = []
   wken-≈ᴱ n≤m (≈ⱽ ∷ ≈ᴱ) = wken-≈ⱽ n≤m ≈ⱽ ∷ wken-≈ᴱ n≤m ≈ᴱ
 
-  wken-≈ᴿ : ∀ {τ n m} {r : Raw τ} → n ≤ m → r ≈⟨ ι n  ⟩ᴿ r → r ≈⟨ ι m ⟩ᴿ r
+  wken-≈ᴿ : ∀ {τ n m} {r₁ r₂ : Raw τ} → n ≤ m → r₁ ≈⟨ ι n  ⟩ᴿ r₂ → r₁ ≈⟨ ι m ⟩ᴿ r₂
   wken-≈ᴿ n≤m Unit = Unit
   wken-≈ᴿ n≤m (Lbl ℓ) = Lbl ℓ
   wken-≈ᴿ n≤m (Inl x) = Inl (wken-≈ⱽ n≤m x)
   wken-≈ᴿ n≤m (Inr x) = Inr (wken-≈ⱽ n≤m x)
   wken-≈ᴿ n≤m (Pair x y) = Pair (wken-≈ⱽ n≤m x) (wken-≈ⱽ n≤m y)
   wken-≈ᴿ n≤m (Fun x) = Fun (wken-≈ᴱ n≤m x)
-  wken-≈ᴿ n≤m (Ref-Iᴸ ℓ⊑A ∈ᴮ) = Ref-Iᴸ ℓ⊑A (ι-∈ (≤-trans (ι-≤ᴰ ∈ᴮ) n≤m))
-  wken-≈ᴿ n≤m (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = Ref-Iᴴ ℓ₂⋤A ℓ₂⋤A
-  wken-≈ᴿ n≤m (Ref-S ∈ᴮ) = Ref-S (ι-∈ (≤-trans (ι-≤ᴰ ∈ᴮ) n≤m))
+  wken-≈ᴿ n≤m (Ref-Iᴸ ℓ⊑A ∈ᴮ) = Ref-Iᴸ ℓ⊑A (ι-⊆ n≤m ∈ᴮ)
+  wken-≈ᴿ n≤m (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A
+  wken-≈ᴿ n≤m (Ref-S ∈ᴮ) = Ref-S (ι-⊆ n≤m ∈ᴮ)
   wken-≈ᴿ n≤m (Id x) = Id (wken-≈ⱽ n≤m x)
 
 --------------------------------------------------------------------------------
 
   -- Reflexive
-  refl-≈ⱽ : ∀ {τ} (v : Value τ) → v ≈⟨ ι ∣ v ∣ⱽ ⟩ⱽ v
+  refl-≈ⱽ : ∀ {τ} (v : Value τ) → v ≈⟨ ι ∥ v ∥ⱽ ⟩ⱽ v
   refl-≈ⱽ (r ^ ℓ) with ℓ ⊑? A
   refl-≈ⱽ (r ^ ℓ) | yes ℓ⊑A = Valueᴸ ℓ⊑A (refl-≈ᴿ r)
   refl-≈ⱽ (r ^ ℓ) | no ℓ⋤A = Valueᴴ ℓ⋤A ℓ⋤A
 
-  refl-≈ᴿ : ∀ {τ} (r : Raw τ) → r ≈⟨ ι ∣ r ∣ᴿ ⟩ᴿ r
+  refl-≈ᴿ : ∀ {τ} (r : Raw τ) → r ≈⟨ ι ∥ r ∥ᴿ ⟩ᴿ r
   refl-≈ᴿ （） = Unit
   refl-≈ᴿ ⟨ x , θ ⟩ᶜ = Fun (refl-≈ᴱ θ)
   refl-≈ᴿ (inl v) = Inl (refl-≈ⱽ v)
   refl-≈ᴿ (inr v) = Inr (refl-≈ⱽ v)
   refl-≈ᴿ ⟨ v₁ , v₂ ⟩ = Pair ≈₁′ ≈₂′
-    where ≈₁′ = wken-≈ⱽ (m≤m⊔n ∣ v₁ ∣ⱽ ∣ v₂ ∣ⱽ) (refl-≈ⱽ v₁)
-          ≈₂′ = wken-≈ⱽ (n≤m⊔n ∣ v₁ ∣ⱽ ∣ v₂ ∣ⱽ) (refl-≈ⱽ v₂)
+    where ≈₁′ = wken-≈ⱽ (m≤m⊔n ∥ v₁ ∥ⱽ ∥ v₂ ∥ⱽ) (refl-≈ⱽ v₁)
+          ≈₂′ = wken-≈ⱽ (n≤m⊔n ∥ v₁ ∥ⱽ ∥ v₂ ∥ⱽ) (refl-≈ⱽ v₂)
   refl-≈ᴿ (Refᴵ ℓ n) with ℓ ⊑? A
   ... | yes ℓ⊑A = Ref-Iᴸ ℓ⊑A (ι-∈ (s≤s ≤-refl))
   ... | no ℓ⋤A = Ref-Iᴴ ℓ⋤A ℓ⋤A
@@ -242,11 +242,11 @@ mutual
   refl-≈ᴿ ⌞ ℓ ⌟ = Lbl ℓ
   refl-≈ᴿ (Id v) = Id (refl-≈ⱽ v)
 
-  refl-≈ᴱ : ∀ {Γ} (θ : Env Γ) → θ ≈⟨ ι ∣ θ ∣ᴱ ⟩ᴱ θ
+  refl-≈ᴱ : ∀ {Γ} (θ : Env Γ) → θ ≈⟨ ι ∥ θ ∥ᴱ ⟩ᴱ θ
   refl-≈ᴱ [] = []
   refl-≈ᴱ (v ∷ θ) = ≈₁ ∷ ≈₂
-    where ≈₁ = wken-≈ⱽ (m≤m⊔n ∣ v ∣ⱽ ∣ θ ∣ᴱ) (refl-≈ⱽ v)
-          ≈₂ = wken-≈ᴱ (n≤m⊔n ∣ v ∣ⱽ ∣ θ ∣ᴱ) (refl-≈ᴱ θ)
+    where ≈₁ = wken-≈ⱽ (m≤m⊔n ∥ v ∥ⱽ ∥ θ ∥ᴱ) (refl-≈ⱽ v)
+          ≈₂ = wken-≈ᴱ (n≤m⊔n ∥ v ∥ⱽ ∥ θ ∥ᴱ) (refl-≈ᴱ θ)
 
 ----------------------------------------------------------------------------------
 
@@ -302,12 +302,26 @@ mutual
   trans-≈ᴱ (≈ⱽ₁ ∷ ≈ᴱ₁) (≈ⱽ₂ ∷ ≈ᴱ₂) = trans-≈ⱽ ≈ⱽ₁ ≈ⱽ₂ ∷ trans-≈ᴱ ≈ᴱ₁ ≈ᴱ₂
 
 --------------------------------------------------------------------------------
--- Do we even use these instances?
+
+open import Generic.Bijection
 
 -- Why do we need this?
--- 𝑹 : ∀ {τ} → IsEquivalenceᴮ {A = Value τ}  _≈⟨_⟩ⱽ_
--- 𝑹 = record { Dom = ∣_∣ⱽ ; reflᴮ = refl-≈ⱽ _ ; symᴮ = sym-≈ⱽ ; transᴮ = trans-≈ⱽ }
+𝑽 : IProps.IsEquivalenceᴮ Ty Value  _≈⟨_⟩ⱽ_
+𝑽 = record { Dom = ∥_∥ⱽ
+           ; reflᴮ = refl-≈ⱽ _
+           ; wkenᴮ = wken-≈ⱽ
+           ; symᴮ = sym-≈ⱽ
+           ; transᴮ = trans-≈ⱽ }
 
+𝑹 : IProps.IsEquivalenceᴮ Ty Raw  _≈⟨_⟩ᴿ_
+
+𝑹 = record { Dom = ∥_∥ᴿ
+           ; reflᴮ = refl-≈ᴿ _
+           ; wkenᴮ = wken-≈ᴿ
+           ; symᴮ = sym-≈ᴿ
+           ; transᴮ = trans-≈ᴿ }
+
+-- TODO: remove
   -- Make them instance of my own Equivalence bijection-indexed relation
 -- instance
   -- ≈ᴿ-isEquivalence : ∀ {τ} → IsEquivalence (_≈ᴿ_ {τ})
@@ -322,8 +336,6 @@ mutual
 --   ≡-isEquivalence : ∀ {A : Set} → IsEquivalence (_≡_ {_} {A})
 --   ≡-isEquivalence = record { refl = refl ; sym = sym ; trans = trans }
 
-
--- open H.Props ≈ⱽ-isEquivalence public
 
 
 -- It doesn't seem we use this. Let's leave it out for now.
@@ -355,5 +367,4 @@ mutual
 -- TODO: we probably need to make the bijection explicit in the relation.
 -- Define the "Equivalence up to bijection" class.
 
--- open import Generic.Heap.LowEq {Ty} {Value} 𝑯 (λ v₁ v₂ → v₁ ≈⟨ {!!} ⟩ⱽ v₂) A as H
--- open Props {!!}
+open S.Props 𝑹 using (square-≈ˢ ; ∣_∣ˢ ; refl-≈ˢ ; wken-≈ˢ ; trans-≈ˢ) public

@@ -228,6 +228,7 @@ module Id (n : ℕ) where
   idᴾ m | yes p = just m
   idᴾ m | no ¬p = nothing
 
+  -- TODO: better name
   lemma : ∀ {x y} → (x , y) ∈ idᴾ → x ≡ y × y < n
   lemma {x} {y} ∈ with x <? n
   lemma {x} {.x} refl | yes p = refl , p

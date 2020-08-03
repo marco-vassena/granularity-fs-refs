@@ -1,3 +1,5 @@
+{-# OPTIONS --allow-unsolved-metas #-}
+
 module Generic.Partial.Bijection where
 
 import Function as F
@@ -70,6 +72,13 @@ b ∈ᴿ β = ∃ (λ a → (a , b) ∈ᵗ β)
 
 ∈-∈ᴿ : ∀ {A B} {x : A × B} {β : A ⤖ᴾ B} → x ∈ᵗ β → (proj₂ x) ∈ᴿ β
 ∈-∈ᴿ p = _ , p
+
+-- TODO: is this the right definition?
+-- β₁ ⊆ β₂ iff β₂ is an extension of β₁
+_⊆_ : ∀ {A B} → A ⤖ᴾ B → A ⤖ᴾ B → Set
+β₁ ⊆ β₂ = ∀ {x} → x ∈ᵗ β₁ → x ∈ᵗ β₂
+
+infixr 3 _⊆_
 
 -- Composition
 _∘_ : ∀ {A B C} → B ⤖ᴾ C → A ⤖ᴾ B → A ⤖ᴾ C
@@ -207,3 +216,52 @@ join-∈ᵗ {a = a} {.b} {c} {β₁} {β₂} x y | just b | refl = y
 join-∈ᵗ {a = a} {b} {c} {β₁} {β₂} () y | nothing
 
 --------------------------------------------------------------------------------
+
+open Bijectionᴾ
+
+-- lemma : ∀ {A} {a a' : A} {β} → to β a ≡ just a' → to β a' ≡ just a → a ≡ a'
+-- lemma {_} {a} {a'} {β} eq₁ eq₂ with right-inverse-of β eq₁ | right-inverse-of β eq₂ | to β a | to β a'
+-- ... | eq₁' | eq₂' | x | y = {!left-inverse-of β eq₁'!}
+
+⊆⁻¹ : ∀ {A} (β₁ β₂ : A ⤖ᴾ A) → β₁ ⊆ β₂ → β₂ ⁻¹ ⊆ β₁
+⊆⁻¹ = {!!}
+
+injective : ∀ {A B a a' b} {β : A ⤖ᴾ B} → to β a ≡ just b → to β a' ≡ just b → a ≡ a'
+injective = {!!}
+
+
+-- Is this true?
+-- Can this be generalized
+∘-⊆ : ∀ {A} {β β₁ β₂ : A ⤖ᴾ A} → β ⊆ β₁ → β ⊆ β₂ → β ⊆ β₁ ∘ β ∘ β₂
+∘-⊆ {β = β} {β₁} {β₂} ⊆₁ ⊆₂ {(a , a')} x∈β with ⊆₁ x∈β | ⊆₂ x∈β
+... | r | q rewrite q  = join-∈ᵗ {b = a} {β₁ = β} {β₁} {!x∈β!} r
+-- with injective x∈β {!!}
+-- ... | eq = {!!}
+-- with to β a'
+-- ... | just x rewrite x∈β = {!!}
+-- ... | nothing = {!⊥-elim!}
+
+
+-- with inspect (to β) a' | to β a'
+-- ... | [ eq ] | just a'' = {!!}
+-- ... | [ eq ] | nothing = {!trans (sym x∈β) ?!}
+
+
+--  with right-inverse-of (β₂ ⁻¹) (⊆₂ x∈β)
+-- ... | eq = {!eq!}
+-- with ⊆₁ x∈β | ⊆⁻¹ β β₂ ⊆₂ (right-inverse-of β₂ (⊆₂ x∈β))
+-- ... | r | q = {!!}
+
+-- rewrite q with right-inverse-of β x∈β
+-- ... | x rewrite x = {!!}
+
+-- ∘-⊆ {β₁ = β₁} {β₂} (a , b) x∈β₁ with Bijectionᴾ.to β₁ a | Bijectionᴾ.to β₂ a
+-- ∘-⊆ {β₁ = β₁} {β₂} (a , .x) refl | just x | just x₁ = {!!}
+-- ∘-⊆ {β₁ = β₁} {β₂} (a , .x) refl | just x | nothing = {!!}
+-- ∘-⊆ {β₁ = β₁} {β₂} (a , b) () | nothing | y
+
+-- Do we need also this? I think so.
+-- ∘-⊆′ : ∀ {A} {β₁ β₂ : A ⤖ᴾ A} → β₁ ⊆ β₂ ∘ β₁
+-- ∘-⊆′ {β₁ = β₁} {β₂} (a , b) x∈β₁ with Bijectionᴾ.to β₁ a
+-- ∘-⊆′ {β₁ = β₁} {β₂} (a , .x) refl | just x = {!!}
+-- ∘-⊆′ {β₁ = β₁} {β₂} (a , b) () | nothing

@@ -97,3 +97,7 @@ infix 1 ∥_∥
 <-∈ {zero} {Σ = c ∷ Σ} (s≤s x) = _ , _ , c , Here
 <-∈ {suc n} {Σ = c ∷ Σ} (s≤s x) with <-∈ x
 ... | _ , _ , _ , n∈Σ = _ , _ , _ , There n∈Σ
+
+_++ˢ_ : Store → Store → Store
+[] ++ˢ Σ' = Σ'
+(c ∷ Σ) ++ˢ Σ' = c ∷ (Σ ++ˢ Σ')

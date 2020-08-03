@@ -1,4 +1,4 @@
--- {-# OPTIONS --allow-unsolved-metas #-}
+{-# OPTIONS --allow-unsolved-metas #-}
 
 module Generic.Bijection where
 
@@ -50,6 +50,14 @@ Bij = ℕ ⤖ᴾ ℕ
 ι-≤ᴰ {c = c} = idᴾ-<ᴰ
   where open Id c
 
+open Bijectionᴾ
+ι-⊆ : ∀ {n m} → n ≤ m → ι n ⊆ ι m
+ι-⊆ {n} {m} n≤m {a , b} ∈₁ with a <? m | a <? n
+ι-⊆ {n} {m} n≤m {a , b} ∈₁ | yes p | yes p₁ = ∈₁
+ι-⊆ {n} {m} n≤m {a , b} () | yes p | no ¬p
+ι-⊆ {n} {m} n≤m {a , .a} refl | no ¬p | yes p = ⊥-elim (¬p (≤-trans p n≤m))
+ι-⊆ {n} {m} n≤m {a , b} () | no ¬p | no ¬p₁
+
 --------------------------------------------------------------------------------
 -- Manipulations and lemmas for the Fin typesx
 
@@ -85,6 +93,62 @@ Bij = ℕ ⤖ᴾ ℕ
 irr-< : ∀ {n m} → (p q : n < m) → p ≡ q
 irr-< (s≤s z≤n) (s≤s z≤n) = refl
 irr-< (s≤s (s≤s p)) (s≤s (s≤s q)) = cong s≤s (irr-< (s≤s p) (s≤s q))
+
+open import Data.Sum
+
+open Bijectionᴾ
+_≈_ : Bij → Bij → Set
+β₁ ≈ β₂ = ∀ x → to β₁ x ≡ to β₂ x
+
+-- foo : ∀ a b c x → a ≤ c → b ≤ c → x ≤ b → x ≤ c → ¬ (x ≤ a) → ⊥
+-- foo .0 .0 zero .0 z≤n z≤n z≤n z≤n x≰a = ⊥-elim (x≰a z≤n)
+-- foo a b (suc c) x a≤c b≤c x≤b x≤c x≰a = {!!}
+
+-- bar : ∀ a c → a ≤ c → c ≰ a → ⊥
+-- bar .0 zero z≤n c≰a = ⊥-elim (c≰a z≤n)
+-- bar .0 (suc c) z≤n c≰a = bar 0 c z≤n (λ { z≤n → c≰a {!!} })
+-- bar .(suc _) (suc c) (s≤s a≤c) c≰a = bar _ c a≤c (λ z → c≰a (s≤s z))
+
+-- ι-∘-≈′ : ∀ a b c → a ≤ c → b ≤ c → (ι a ∘ ι b) ≈ ι c
+-- ι-∘-≈′ a b c a≤c b≤c x with x <? c
+-- ι-∘-≈′ a b c a≤c b≤c x | yes p with x <? b
+-- ι-∘-≈′ a b c a≤c b≤c x | yes p | yes p₁ with x <? a
+-- ι-∘-≈′ a b c a≤c b≤c x | yes p | yes p₁ | yes p₂ = refl
+-- ι-∘-≈′ a b c a≤c b≤c x | yes x<c | yes x<b | no x≮a with c ≤? a
+-- ι-∘-≈′ a b c a≤c b≤c x | yes x<c | yes x<b | no x≮a | yes c≤a = ⊥-elim ((x≮a (≤-trans x<c c≤a)))
+-- ι-∘-≈′ a b c a≤c b≤c x | yes x<c | yes x<b | no x≮a | no c≰a = ⊥-elim (bar a c a≤c c≰a)
+--  -- = ⊥-elim ((x≮a (≤-trans x<c {!!}))) -- (foo a c (suc x) a≤c p ¬p) -- (foo a c (suc x) a≤c p {!!})
+-- ι-∘-≈′ a b c a≤c b≤c x | yes p | no ¬p = ⊥-elim (¬p (≤-trans p {!!})) -- ?
+-- ι-∘-≈′ a b c a≤c b≤c x | no ¬p with x <? b
+-- ι-∘-≈′ a b c a≤c b≤c x | no ¬p | yes p with x <? a
+-- ι-∘-≈′ a b c a≤c b≤c x | no ¬p | yes p | yes p₁ = ⊥-elim (¬p (≤-trans p b≤c))
+-- ι-∘-≈′ a b c a≤c b≤c x | no ¬p | yes p | no ¬p₁ = refl
+-- ι-∘-≈′ a b c a≤c b≤c x | no ¬p | no ¬p₁ = refl
+
+
+-- ι-∘-≈ : ∀ n m → ((ι n) ∘ (ι m)) ≈ ι (n ⊔ m)
+-- ι-∘-≈ n m x with ⊔-sel n m
+-- ι-∘-≈ n m x | inj₁ n≡n⊔m rewrite n≡n⊔m with x <? n | x <? m
+-- ... | yes p | b = {!!}
+-- ... | no ¬p | no –p' = refl
+-- ... | no ¬p | yes p with m≤m⊔n m n
+-- ... | m≤m⊔n rewrite ⊔-comm n m | sym n≡n⊔m | sym (⊔-assoc m m n) | ⊔-idem m = ⊥-elim (¬p (≤-trans p m≤m⊔n))
+-- ι-∘-≈ n m x | inj₂ eq₂ rewrite eq₂ = {!!}
+
+
+-- x with x <? (n ⊔ m) | x <? n | x <? m
+-- ι-∘-≈ n m x | yes p | q | s = {!!}
+-- ι-∘-≈ n m x | no ¬p | yes p | s = {!!}
+-- ι-∘-≈ n m x | no ¬p | no ¬p₁ | yes p = ⊥-elim (¬p (≤-trans p {!m≤m⊔n m n!}))
+-- ι-∘-≈ n m x | no ¬p | no ¬p₁ | no ¬p₂ = refl
+
+ι-∘ : ∀ n m → m ≤ n → (ι n ∘ ι m) ≡ ι m
+ι-∘ n m m≤n = {!!}
+
+-- ι-∘ : ∀ n m → ((ι n) ∘ (ι m)) ≡ ι (n ⊔ m)
+-- ι-∘ n m with ⊔-sel n m
+-- ι-∘ n m | inj₁ x = {!!}
+-- ι-∘ n m | inj₂ y = {!!}
 
 --------------------------------------------------------------------------------
 
@@ -227,7 +291,7 @@ module IProps (A : Set) (F : A → Set) where
   Relᴮ = ∀ {a} → F a → Bij → F a → Set
 
   Wkenᴮ : Relᴮ → Set
-  Wkenᴮ R = ∀ {a n m} {x : F a} → n ≤ m → R x (ι n) x → R x (ι m) x
+  Wkenᴮ R = ∀ {a n m} {x y : F a} → n ≤ m → R x (ι n) y → R x (ι m) y
 
   Reflexiveᴮ : Relᴮ → (Dom : ∀ {a} → F a → ℕ) → Set
   Reflexiveᴮ R Dom = ∀ {a} {x : F a} → R x (ι (Dom x)) x
