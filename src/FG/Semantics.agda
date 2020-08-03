@@ -131,7 +131,9 @@ mutual
     Write : ∀ {Σ₁ Σ₂ Σ₃ Σ₃' ℓ ℓ₂ ℓ' n τ} {e₁ : Expr _ (Ref I τ)}
               {e₂ : Expr _ τ} {r₂ : Raw τ} →
              ⟨ Σ₁ , e₁ ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ₂ , (Refᴵ ℓ n) ^ ℓ' ⟩ →
-              ℓ' ⊑ pc →
+             -- Was l' ⊑ pc, wouldn't this imply pc ≡ ℓ' (from pc ⊑ ℓ'). Probably a
+             -- typo, but check actual paper and formalization online.
+              ℓ' ⊑ ℓ →
              ⟨ Σ₂ , e₂ ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ₃ , r₂ ^ ℓ₂ ⟩ →
              (ℓ₂⊑ℓ : ℓ₂ ⊑ ℓ) →
              Σ₃' ≔ Σ₃ [ n ↦ r₂ ]ᴵ →
@@ -171,7 +173,7 @@ mutual
              ℓ ⊑ ℓ₁ →
              (eq : ℓ₂' ≡ ℓ ⊔ ℓ₂) →
              Σ₃' ≔ Σ₃ [ n ↦ (r₂ , ℓ₂') ]ˢ →
-             Step θ pc ⟨ Σ₁ , e₁ ≔ e₂ ⟩ ⟨ Σ₃ , （） ^ pc ⟩
+             Step θ pc ⟨ Σ₁ , e₁ ≔ e₂ ⟩ ⟨ Σ₃' , （） ^ pc ⟩
 
     Id : ∀ {Σ₁ Σ₂ τ} {e : Expr Γ τ} {v : Value τ} →
             ⟨ Σ₁ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ₂ , v ⟩ →
