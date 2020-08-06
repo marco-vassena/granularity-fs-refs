@@ -1,4 +1,4 @@
-{-# OPTIONS --allow-unsolved-metas #-}
+-- {-# OPTIONS --allow-unsolved-metas #-}
 
 module Generic.Bijection where
 
@@ -58,6 +58,9 @@ open Bijectionᴾ
 ι-⊆ {n} {m} n≤m {a , .a} refl | no ¬p | yes p = ⊥-elim (¬p (≤-trans p n≤m))
 ι-⊆ {n} {m} n≤m {a , b} () | no ¬p | no ¬p₁
 
+-- TODO: whenever you need to use this postulate, use the above lemma
+-- postulate ι-≤ : ∀ {a b n m} → n ≤ m → (a , b) ∈ᵗ ι n → (a , b) ∈ᵗ ι m
+
 --------------------------------------------------------------------------------
 -- Manipulations and lemmas for the Fin typesx
 
@@ -94,11 +97,6 @@ irr-< : ∀ {n m} → (p q : n < m) → p ≡ q
 irr-< (s≤s z≤n) (s≤s z≤n) = refl
 irr-< (s≤s (s≤s p)) (s≤s (s≤s q)) = cong s≤s (irr-< (s≤s p) (s≤s q))
 
-open import Data.Sum
-
-open Bijectionᴾ
-_≈_ : Bij → Bij → Set
-β₁ ≈ β₂ = ∀ x → to β₁ x ≡ to β₂ x
 
 -- foo : ∀ a b c x → a ≤ c → b ≤ c → x ≤ b → x ≤ c → ¬ (x ≤ a) → ⊥
 -- foo .0 .0 zero .0 z≤n z≤n z≤n z≤n x≰a = ⊥-elim (x≰a z≤n)
@@ -142,13 +140,78 @@ _≈_ : Bij → Bij → Set
 -- ι-∘-≈ n m x | no ¬p | no ¬p₁ | yes p = ⊥-elim (¬p (≤-trans p {!m≤m⊔n m n!}))
 -- ι-∘-≈ n m x | no ¬p | no ¬p₁ | no ¬p₂ = refl
 
-ι-∘ : ∀ n m → m ≤ n → (ι n ∘ ι m) ≡ ι m
-ι-∘ n m m≤n = {!!}
+--------------------------------------------------------------------------------
+-- Equality about composition of identity bijections
 
--- ι-∘ : ∀ n m → ((ι n) ∘ (ι m)) ≡ ι (n ⊔ m)
--- ι-∘ n m with ⊔-sel n m
--- ι-∘ n m | inj₁ x = {!!}
--- ι-∘ n m | inj₂ y = {!!}
+open import Relation.Binary.HeterogeneousEquality hiding (inspect ; sym)
+
+postulate funext : ∀ {A : Set} {B : Set} (f g : A → B) → (∀ x → f x ≡ g x) → f ≡ g
+
+postulate funext₂ : ∀ {A B : Set} {F : A → B → Set} (f g : ∀ x y → F x y) → (∀ x y → f x y ≅ g x y) → f ≅ g
+
+_≈ᵀ_ : Bij → Bij → Set
+β₁ ≈ᵀ β₂ = ∀ x → to β₁ x ≡ to β₂ x
+  where open Bijectionᴾ
+
+_≈ᶠ_ : Bij → Bij → Set
+β₁ ≈ᶠ β₂ = ∀ x → from β₁ x ≡ from β₂ x
+  where open Bijectionᴾ
+
+-- Absorbs the ι with the greater domain.
+absorb-ι : ∀ {n m} → m ≤ n → (ι n ∘ ι m) ≡ ι m
+absorb-ι {n} {m} m≤n = bij-≡ (ι n ∘ ι m) (ι m) (funext _ _ (ι-∘ᵀ n m m≤n)) (funext _ _ (ι-∘ᶠ n m m≤n))
+  -- TODO: We proved this postulate below. We just need to redefine inverse-of to take
+  -- the indexes explicitly instead of as implicit paramters
+  where postulate bij-≡ : ∀ (β₁ β₂ : Bij) → to β₁ ≡ to β₂ → from β₁ ≡ from β₂ → β₁ ≡ β₂
+
+        ι-∘ᵀ : ∀ n m → m ≤ n → (ι n ∘ ι m) ≈ᵀ ι m
+        ι-∘ᵀ n m m≤n x with x <? m
+        ι-∘ᵀ n m m≤n x | yes p with x <? n
+        ι-∘ᵀ n m m≤n x | yes p | yes p₁ = refl
+        ι-∘ᵀ n m m≤n x | yes x<m | no x≮n = ⊥-elim (x≮n (≤-trans x<m m≤n))
+        ι-∘ᵀ n m m≤n x | no ¬p = refl
+
+        ι-∘ᶠ : ∀ n m → m ≤ n → (ι n ∘ ι m) ≈ᶠ ι m
+        ι-∘ᶠ n m m≤n x with x <? n | x <? m
+        ι-∘ᶠ n m m≤n x | yes p | yes p₁ with x <? m
+        ι-∘ᶠ n m m≤n x | yes p | yes p₁ | yes p₂ = refl
+        ι-∘ᶠ n m m≤n x | yes x<m | yes x<n | no x≮n = ⊥-elim (x≮n x<n)
+        ι-∘ᶠ n m m≤n x | yes p | no ¬p with x <? m
+        ι-∘ᶠ n m m≤n x | yes p | no x≮m | yes x<m = ⊥-elim (x≮m x<m)
+        ι-∘ᶠ n m m≤n x | yes p | no ¬p | no ¬p₁ = refl
+        ι-∘ᶠ n m m≤n x | no x≮n | yes x<m = ⊥-elim (x≮n (≤-trans x<m m≤n))
+        ι-∘ᶠ n m m≤n x | no ¬p | no ¬p₁ = refl
+
+--------------------------------------------------------------------------------
+-- TODO: Adapt the definition of partial bijections to use the following
+-- definition of InverseOf to avoid trouble with implicit parameters.
+
+-- _InverseOf'_ : ℕ ⇀ ℕ → ℕ ⇀ ℕ → Set
+-- _InverseOf'_ f g = ∀ x y → (x , y) ∈ f ⇔ (y , x) ∈ g
+
+-- record Bij' : Set where
+--   field to' : ℕ ⇀ ℕ
+--         from' : ℕ ⇀ ℕ
+--         inverse-of' : from' InverseOf' to' -- Irrelevance does not seem to help either :-(
+
+-- open Bij'
+
+-- -- Functions over equalities are equal
+-- ≡-equality-funs : ∀ {A B : Set} {a b : A} {c d : B} (f g : a ≡ b → c ≡ d) (eq : a ≡ b) → f eq ≡ g eq
+-- ≡-equality-funs f g eq rewrite ≡-irrelevance (f eq) (g eq) = refl
+
+-- help : ∀ {f g : ℕ ⇀ ℕ} → (p q : f InverseOf' g) (x y : ℕ) → p x y ≅ q x y
+-- help p q x y with p x y | q x y
+-- ... | a , b | c , d with funext a c (≡-equality-funs a c) | funext b d (≡-equality-funs b d)
+-- ... | eq₁ | eq₂ rewrite eq₁ | eq₂ = refl
+
+
+-- bij-≡ : ∀ (β₁ β₂ : Bij') → to' β₁ ≡ to' β₂ → from' β₁ ≡ from' β₂ → β₁ ≡ β₂
+-- bij-≡
+--   record { to' = to₁ ; from' = from₁ ; inverse-of' = inverse-of₁ }
+--   record { to' = to₂ ; from' = from₂ ; inverse-of' = inverse-of₂ } refl refl
+--   with funext₂′ inverse-of₁ inverse-of₂ (help inverse-of₁ inverse-of₂)
+-- ... | refl = refl
 
 --------------------------------------------------------------------------------
 
