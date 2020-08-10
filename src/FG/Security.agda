@@ -9,7 +9,7 @@ open import Lattice
 
 module FG.Security {{𝑳 : Lattice}} (A : Label) where
 
-open import FG.Types hiding (_×_) renaming (_⊆_ to _⊆ᶜ_)
+open import FG.Types hiding (_×_) renaming (_⊆_ to _⊆ᶜ_) hiding (refl-⊆)
 open import FG.Syntax hiding (_∘_)
 open import FG.Semantics
 open import FG.LowEq A as E public
@@ -17,7 +17,7 @@ open import FG.LowEq A as E public
 open import Data.Empty
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
-open import Generic.Bijection hiding (_∈_)
+open import Generic.Bijection as B hiding (_∈_)
 
 import Generic.Store.LowEq {Ty} {Raw} _≈⟨_⟩ᴿ_ as S
 
@@ -239,10 +239,10 @@ mutual
                     θ₁ ≈⟨ β ⟩ᴱ θ₂ →
                     pc ⊑ A →
                     ∃ (λ β' → β ⊆ β' × c₁' ≈⟨ β' ⟩ᶜ c₂')
-  tiniᴸ (Var τ∈Γ refl) (Var .τ∈Γ refl) Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A = {!!} ∧ {!!} ∧ ⟨ Σ₁≈Σ₂ , ≈ⱽ-⊑ _ v₁≈v₂ ⟩
+  tiniᴸ {β = β} (Var τ∈Γ refl) (Var .τ∈Γ refl) Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A = _ ∧ refl-⊆ β ∧ ⟨ Σ₁≈Σ₂ , ≈ⱽ-⊑ _ v₁≈v₂ ⟩
     where v₁≈v₂ = lookup-≈ⱽ τ∈Γ θ₁≈θ₂
 
-  -- tiniᴸ Unit Unit Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A = ⟨ {!!} , Σ₁≈Σ₂ ,  Valueᴸ pc⊑A Unit ⟩
+  tiniᴸ {β = β} Unit Unit Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A = ? -- ⟨ {!!} , Σ₁≈Σ₂ ,  Valueᴸ pc⊑A Unit ⟩
 
   -- tiniᴸ (Lbl ℓ) (Lbl .ℓ) Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A = ⟨ {!!} , Σ₁≈Σ₂ , Valueᴸ pc⊑A (Lbl ℓ) ⟩
 
@@ -460,14 +460,13 @@ mutual
   -- Do we actually need to prove β ⊆ β' ? Not clear from Banjaree proof if this is ever used.
   -- The only reason I can think of is that the theorem might be trivial if we choose β' = ∅
   -- because we do not need to take care of the references. Check this with Deepak.
-  tiniᴴ {β = β} {c₁ = ⟨ Σ₁ , _ ⟩} {c₂ = ⟨ Σ₂ , _ ⟩} {c₁' = ⟨ Σ₁' , _ ⟩} {c₂' = ⟨ Σ₂' , _ ⟩}
+  tiniᴴ {β = β} {{⟨ isV₁ˢ , isV₁ᴱ ⟩ }} {{⟨ isV₂ˢ , isV₂ᴱ ⟩ }}
          Σ₁≈Σ₂ x₁ x₂ pc₁⋤A pc₂⋤A =
-    let Σ₁≈Σ₁' = step-≈ˢ {{ {!!} }} {{ {!!} }} x₁ pc₁⋤A   -- in {!!}
-        Σ₂≈Σ₂' = step-≈ˢ {{ {!!} }} {{ {!!} }} x₂ pc₂⋤A
-        Σ₁'≈Σ₂' = square-≈ˢ Σ₁≈Σ₂ Σ₁≈Σ₁' Σ₂≈Σ₂'
-        v≈ = Valueᴴ (trans-⋤ (step-⊑ x₁) pc₁⋤A) (trans-⋤ (step-⊑ x₂) pc₂⋤A)
-        β' = ι ∣ Σ₂ ∣ˢ ∘ β ∘ (ι ∣ Σ₁ ∣ˢ) ⁻¹ in
-        β' ∧ {!!} ∧ ⟨ Σ₁'≈Σ₂' , v≈ ⟩ -- Lemma about ⊆ and ι. Maybe need extra assumptions about size/dom of Σ₁ and Σ₂ ?
+    let Σ₁≈Σ₁' = step-≈ˢ {{ isV₁ˢ }} {{ isV₁ᴱ }} x₁ pc₁⋤A
+        Σ₂≈Σ₂' = step-≈ˢ {{ isV₂ˢ }} {{ isV₂ᴱ }} x₂ pc₂⋤A
+        Σ₁'≈Σ₂' = square-≈ˢ-ι Σ₁≈Σ₂ Σ₁≈Σ₁' Σ₂≈Σ₂'
+        v≈ = Valueᴴ (trans-⋤ (step-⊑ x₁) pc₁⋤A) (trans-⋤ (step-⊑ x₂) pc₂⋤A) in
+        β ∧ B.refl-⊆ β ∧ ⟨ Σ₁'≈Σ₂' , v≈ ⟩
 
 
   -- TINI: top level theorem
