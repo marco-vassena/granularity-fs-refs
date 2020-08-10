@@ -19,7 +19,10 @@ open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
 open import Generic.Bijection hiding (_∈_)
 
+import Generic.Store.LowEq {Ty} {Raw} _≈⟨_⟩ᴿ_ as S
+
 --------------------------------------------------------------------------------
+-- TODO: move this to FG LowEq module?
 -- Lemmas on L-equivalent environments.
 
 -- Lookup in L-equivalent envs gives L-equivalent values
@@ -49,15 +52,10 @@ open Conf
 open import Data.Nat hiding (_^_)
 open import Data.Nat.Properties
 
-postulate step-≤ :  ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
-             let ⟨ Σ , _ ⟩ = c
-                 ⟨ Σ' , _ ⟩ = c' in
-               c ⇓⟨ θ , pc ⟩ c' → ∥ Σ ∥ ≤ ∥ Σ' ∥
-
 step-≈ˢ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
              let ⟨ Σ , _ ⟩ = c
                  ⟨ Σ' , _ ⟩ = c' in
-                {{validˢ : Validˢ Σ}} {{validᴱ : Validᴱ ∥ Σ ∥ θ}} →
+                {{validˢ : Validˢ Σ}} {{validᴱ : Validᴱ Σ θ}} →
                c ⇓⟨ θ , pc ⟩ c' →
                pc ⋤ A →
                Σ ≈⟨ ι ∥ Σ ∥ ⟩ˢ Σ'
@@ -83,11 +81,11 @@ step-≈ˢ {{isV₁}} {{isV₂}} (App {θ' = θ'} x x₁ refl x₃) pc⋤A =
       isVᴱ′ ∧ isV₁′′ ∧ isV₂′′ = valid-invariant x₁ ⟨ isV₁′ , isVᴱ ⟩
       Σ⊆Σ₁ = step-≈ˢ {{ isV₁ }} x pc⋤A
       Σ₁⊆Σ₂ = step-≈ˢ {{ isV₁′ }} {{ isVᴱ }} x₁ pc⋤A
-      isVᴱ′′ = validᴱ-≤ {θ = θ'} (store-≤ x₁) isV₂′
+      isVᴱ′′ = validᴱ-⊆ {θ = θ'} (step-⊆ x₁) isV₂′
       Σ₂⊆Σ₃ = step-≈ˢ {{ isV₁′′ }} {{ isV₂′′ ∧ isVᴱ′′ }} x₃ (trans-⋤ (join-⊑₁ _ _) pc⋤A)
   in trans-≈ˢ-ι Σ⊆Σ₁ (trans-≈ˢ-ι Σ₁⊆Σ₂ Σ₂⊆Σ₃)
 
-step-≈ˢ {{isV₁}} {{isV₂}} (Wken p x) pc⋤A = step-≈ˢ {{ isV₁ }} {{ validᴱ-⊆ p isV₂ }} x pc⋤A
+step-≈ˢ {{isV₁}} {{isV₂}} (Wken p x) pc⋤A = step-≈ˢ {{ isV₁ }} {{ validᴱ-⊆ᶜ p isV₂ }} x pc⋤A
 
 step-≈ˢ {{isV₁}} {{isV₂}} (Inl x) pc⋤A = step-≈ˢ {{ isV₁ }} {{ isV₂ }} x pc⋤A
 
@@ -125,22 +123,19 @@ step-≈ˢ {{isV₁}} {{isV₂}} (Taint refl x x₁ pc'⊑pc'') pc⋤A =
 step-≈ˢ {{isV₁}} {{isV₂}} (LabelOfRef x eq) pc⋤A = step-≈ˢ {{ isV₁ }} x pc⋤A
 step-≈ˢ {{isV₁}} {{isV₂}} (New x) pc⋤A = snoc-≈ˢ (step-≈ˢ {{isV₁}} {{isV₂}} x pc⋤A)
 step-≈ˢ {{isV₁}} {{isV₂}} (Read x x₁ eq) pc⋤A = step-≈ˢ {{ isV₁ }} x pc⋤A
-step-≈ˢ {{isV₁}} {{isV₂}} (Write x ⊑₁ x₁ ⊑₂ w) pc⋤A =
+step-≈ˢ {{isV₁}} {{isV₂}} (Write {ℓ = ℓ} {n = n} {τ = τ} x ⊑₁ x₁ ⊑₂ w) pc⋤A =
   let isVᴱ ∧ isV₁′ ∧ isV₂′ = valid-invariant x ⟨ isV₁ , isV₂ ⟩
       isVᴱ′ ∧ isV₁′′ ∧ isV₂′′ = valid-invariant x₁ ⟨ isV₁′ , isVᴱ ⟩
+      ref ∧ ∈₂ = validᴿ-⊆ {r = Refᴵ {τ = τ} ℓ n} (step-⊆ x₁) isV₂′
       Σ⊆Σ₁ = step-≈ˢ {{ isV₁ }} x pc⋤A
       Σ₁⊆Σ₂ = step-≈ˢ {{ isV₁′ }} {{ isVᴱ }} x₁ pc⋤A
-      Σ₂≈Σ₃ = writeᴴ-≈ˢ {{ {!isV₁′′ !} }} {!⊑₁!} (trans-⋤ (trans-⊑ (step-⊑ x₁) ⊑₂) pc⋤A) {!!} w
-  -- Here I need to show that the reference points to a secret cell.
-  -- I know that the reference is valid, but how can I exclude that it
-  -- points to a public cell? Is this an additional invariant?
-  -- Now all the cell carry a label, which we need to define L-equivalence
-  -- correctly for stores under bijection. (For secret computations the identity
-  -- bijection will include secret addresses to).
+      ℓ⋤A = trans-⋤ (trans-⊑ (step-⊑ x) ⊑₁) pc⋤A
+      c≈c' = S.⌞ S.cellᴴ ℓ⋤A  ℓ⋤A ⌟
+      Σ₂≈Σ₃ = writeᴴ-≈ˢ {{ isV₁′′  }} ∈₂ w c≈c'
   in trans-≈ˢ-ι Σ⊆Σ₁ (trans-≈ˢ-ι Σ₁⊆Σ₂ Σ₂≈Σ₃)
 
 step-≈ˢ {{isV₁}} {{isV₂}} (LabelOfRef-FS x x₁ eq) pc⋤A = step-≈ˢ {{ isV₁ }} x pc⋤A
-step-≈ˢ {{isV₁}} {{isV₂}} (New-FS x) pc⋤A = snoc-≈ˢ (step-≈ˢ {{ isV₁ }} {{ isV₂ }} x pc⋤A) -- snoc-⊆ˢ (step-≈ˢ {{isV₁}} {{isV₂}} x pc⋤A)
+step-≈ˢ {{isV₁}} {{isV₂}} (New-FS x) pc⋤A = snoc-≈ˢ (step-≈ˢ {{ isV₁ }} {{ isV₂ }} x pc⋤A)
 step-≈ˢ {{isV₁}} {{isV₂}} (Read-FS x x₁ eq) pc⋤A = step-≈ˢ {{ isV₁ }} x pc⋤A
 
 step-≈ˢ {{isV₁}} {{isV₂}} (Write-FS {ℓ = ℓ} {ℓ₁} {ℓ₂} {ℓ₂'} x x₁ ∈₁ ⊑₁ refl w) pc⋤A =
@@ -148,7 +143,8 @@ step-≈ˢ {{isV₁}} {{isV₂}} (Write-FS {ℓ = ℓ} {ℓ₁} {ℓ₂} {ℓ₂
       isVᴱ′ ∧ isV₁′′ ∧ isV₂′′ = valid-invariant x₁ ⟨ isV₁′ , isVᴱ ⟩
       Σ⊆Σ₁ = step-≈ˢ {{ isV₁ }} x pc⋤A
       Σ₁⊆Σ₂ = step-≈ˢ {{ isV₁′ }} {{ isVᴱ }} x₁ pc⋤A
-      Σ₂≈Σ₃ = (writeᴴ-≈ˢ {{ isV₁′′ }} (trans-⋤ (trans-⊑ (step-⊑ x) ⊑₁) pc⋤A) (join-⋤₁ (trans-⋤ (step-⊑ x) pc⋤A)) ∈₁ w)
+      c≈c' = S.⌞ S.cellᴴ (trans-⋤ (trans-⊑ (step-⊑ x) ⊑₁) pc⋤A) (join-⋤₁ (trans-⋤ (step-⊑ x) pc⋤A)) ⌟
+      Σ₂≈Σ₃ = writeᴴ-≈ˢ {{ isV₁′′ }} ∈₁ w c≈c'
   in trans-≈ˢ-ι Σ⊆Σ₁ (trans-≈ˢ-ι Σ₁⊆Σ₂ Σ₂≈Σ₃ )
 
 step-≈ˢ {{isV₁}} {{isV₂}} (Id x) pc⋤A = step-≈ˢ {{ isV₁ }} {{ isV₂ }} x pc⋤A

@@ -29,8 +29,8 @@ data _≈⟨_⟩ᶜ_ : ∀ {τ} → Cell τ → Bij → Cell τ → Set where
   -- Probably no because when we read them, we get tainted with ℓ.
   -- ⌞_⌟ˢ : ∀ {ℓ τ β} → {v v' : Value τ} → v ≈⟨ β ⟩ⱽ v' → ⌞ v , ℓ ⌟ˢ ≈⟨ β ⟩ᶜ ⌞ v' , ℓ ⌟ˢ
   -- TODO: here we need to remove the flow s
-  cellᴸ : ∀ {ℓ τ β} → {v v' : Value τ} → ℓ ⊑ A → v ≈⟨ β ⟩ⱽ v' → ⌞ v , ℓ ⌟ ≈⟨ β ⟩ᶜ ⌞ v' , ℓ ⌟
-  cellᴴ : ∀ {ℓ ℓ' τ β} → {v v' : Value τ} → ℓ ⋤ A → ℓ' ⋤ A → ⌞ v , ℓ ⌟ ≈⟨ β ⟩ᶜ ⌞ v' , ℓ' ⌟
+  cellᴸ : ∀ {ℓ τ β} → {v v' : Value τ} → ℓ ⊑ A → v ≈⟨ β ⟩ⱽ v' → (v , ℓ) ≈⟨ β ⟩ᶜ (v' , ℓ)
+  cellᴴ : ∀ {ℓ ℓ' τ β} → {v v' : Value τ} → ℓ ⋤ A → ℓ' ⋤ A → (v , ℓ) ≈⟨ β ⟩ᶜ (v' , ℓ')
 
 
 -- Cells
@@ -134,7 +134,7 @@ module Props (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ) where
   refl-≈ᶜ : ∀ {τ} {c : Cell τ} → c ≈⟨ ι ∣ c ∣ᶜ ⟩ᶜ c
   -- refl-≈ᶜ {c = ⌞ ≈ⱽ ⌟ᴵ} = ⌞ refl-≈ⱽ ⌟ᴵ
   -- refl-≈ᶜ {c = ⌞ ≈ⱽ ⌟ˢ} = ⌞ refl-≈ⱽ ⌟ˢ
-  refl-≈ᶜ {c = ⌞ v , ℓ ⌟ } with ℓ ⊑? A
+  refl-≈ᶜ {c = (v , ℓ) } with ℓ ⊑? A
   ... | yes ℓ⊑A  = cellᴸ ℓ⊑A refl-≈ⱽ
   ... | no ℓ⋤A  = cellᴴ ℓ⋤A ℓ⋤A
 
@@ -428,10 +428,10 @@ module Props (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ) where
   --     ... | ∈₂′ with inj-∈′ ∈₂ ∈₂′
   --     ... | refl , refl = ⌞ (wken-≈ᶜ (validˢ ∈₁) refl-≈ᶜ) ⌟
 
-  writeᴴ-≈ˢ : ∀ {Σ Σ' n τ ℓ ℓ'} {v v' : Value τ} {{validˢ : Validˢ Σ}} →
-              ℓ ⋤ A → ℓ' ⋤ A → n ↦ ⌞ v , ℓ ⌟ ∈ Σ → Σ' ≔ Σ [ n ↦ ⌞ v' , ℓ' ⌟ ] →
+  writeᴴ-≈ˢ : ∀ {Σ Σ' n τ} {c c' : Cell τ} {{validˢ : Validˢ Σ}} →
+              n ↦ c ∈ Σ → Σ' ≔ Σ [ n ↦ c' ] → c ≅⟨ ι ∥ Σ ∥ ⟩ᶜ c' →
               Σ ≈⟨ ι ∥ Σ ∥ ⟩ˢ Σ'
-  writeᴴ-≈ˢ {Σ} {Σ'} {n} {v = v} {{validˢ}} ℓ⋤A ℓ'⋤A n∈Σ w =
+  writeᴴ-≈ˢ {Σ} {Σ'} {n} {{validˢ}} n∈Σ w ≈₁ =
     record { dom-⊆ = refl-⊆ᴰ ; rng-⊆ = rng-⊆ ; lift-≅ = lift-≅ }
     where
       open Id ∣ Σ ∣ˢ
@@ -447,7 +447,7 @@ module Props (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ) where
        -- The written cell is secret
       lift-≅ {n₁} {.n₁} ∈ᴮ ∈₁ ∈₂ | refl , _ | yes refl with inj-∈′ ∈₁ n∈Σ
       lift-≅ {n₁} {.n₁} ∈ᴮ ∈₁ ∈₂ | refl , _ | yes refl | refl , refl with inj-∈′ ∈₂ (write-∈ w)
-      ... | refl , refl = ⌞ (cellᴴ ℓ⋤A ℓ'⋤A) ⌟
+      ... | refl , refl = ≈₁
 
       -- Identical cells are looked up, use reflexivity.
       lift-≅ {n₁} {.n₁} ∈ᴮ ∈₁ ∈₂ | refl , _ | no n₁≠n with write-only-one w n₁≠n ∈₁ ∈₂

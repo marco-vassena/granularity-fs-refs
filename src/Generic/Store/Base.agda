@@ -18,10 +18,13 @@ open import Generic.Calculus using (Flow; S; I)
 --
 -- TODO: remove Flow not needed. We always need to store a label
 -- to be able to compare the cell content.
-data Cell (τ : Ty) : Set where
-  -- ⌞_⌟ᴵ : Value τ → Cell τ I
-  -- ⌞_⌟ˢ : Value τ × Label → Cell τ S
-  ⌞_⌟ : Value τ × Label → Cell τ
+-- data Cell (τ : Ty) : Set where
+--   -- ⌞_⌟ᴵ : Value τ → Cell τ I
+--   -- ⌞_⌟ˢ : Value τ × Label → Cell τ S
+--   ⌞_⌟ : Value τ × Label → Cell τ
+
+Cell : Ty → Set
+Cell τ = Value τ × Label
 
 -- A store is a linear list of memory cells.
 data Store : Set where
