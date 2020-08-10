@@ -80,6 +80,9 @@ data Graph {A : Set} {B : Set} (f : A ⇀ B) (a : A) : B → Set where
 _∈_ : ∀ {A B} → A × B → A ⇀ B → Set
 (a , b) ∈ p = p a ≡ just b
 
+_∉_ : ∀ {A B} → A × B → A ⇀ B → Set
+(a , b) ∉ p = p a ≡ nothing
+
 infixr 4 _∈_
 
 _∈ᴰ_ : ∀ {A B} → A → A ⇀ B → Set

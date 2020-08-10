@@ -157,12 +157,81 @@ _≈ᶠ_ : Bij → Bij → Set
 β₁ ≈ᶠ β₂ = ∀ x → from β₁ x ≡ from β₂ x
   where open Bijectionᴾ
 
+-- TODO: We proved this postulate below. We just need to redefine inverse-of to take
+-- the indexes explicitly instead of as implicit paramters
+postulate bij-≡ : ∀ (β₁ β₂ : Bij) → to β₁ ≡ to β₂ → from β₁ ≡ from β₂ → β₁ ≡ β₂
+
+-- Move to bijection
+_⊆ᴿ_ : ∀ {A B C} → A ⤖ᴾ B → B ⤖ᴾ C → Set
+β₁ ⊆ᴿ β₂ = ∀ {y} → y ∈ᴿ β₁ → y ∈ᴰ β₂
+
+_⊆ᴰ_ : ∀ {A B} → A ⤖ᴾ B → A ⤖ᴾ B → Set
+β₁ ⊆ᴰ β₂ = ∀ {x} → x ∈ᴰ β₁ → x ∈ᴰ β₂
+
+-- TODO: Remove, this seems unused
+-- open import Generic.Partial.Function as P
+-- open import Data.Sum
+-- from-∈? : ∀ (n : ℕ) (β : Bij) → (n P.∈ᴰ (from β)) ⊎ n P.∉ᴰ (from β)
+-- from-∈? n β with from β n
+-- from-∈? n β | just x = inj₁ (just _)
+-- from-∈? n β | nothing = inj₂ nothing
+
+-- to-∈? : ∀ (n : ℕ) (β : Bij) → (n P.∈ᴰ (to β)) ⊎ n P.∉ᴰ (to β)
+-- to-∈? n β with to β n
+-- to-∈? n β | just x = inj₁ (just _)
+-- to-∈? n β | nothing = inj₂ nothing
+
+
 -- Absorbs the ι with the greater domain.
+absorb-ι₁ : ∀ {n β} →  β ⊆ᴿ (ι n) → (ι n ∘ β) ≡ β
+absorb-ι₁ {n} {β} ⊆₁ = bij-≡ (ι n ∘ β) β (funext _ _ to-ι) (funext _ _ from-ι)
+  where to-ι : ∀ x → to (ι n ∘ β) x ≡ to β x
+        to-ι x with to β x | inspect (to β) x
+        to-ι x | just y | [ eq ] with y <? n
+        to-ι x | just y | [ eq ] | yes p = refl
+        to-ι x | just y | [ eq ] | no ¬p with ⊆₁ (_ , eq)
+        to-ι x | just y | [ eq ] | no ¬p | _ , eq' with y <? n
+        to-ι x | just y | [ eq ] | no ¬p | _ , eq' | yes p = ⊥-elim (¬p p)
+        to-ι x | just y | [ eq ] | no ¬p | _ , () | no ¬p₁
+        to-ι x | nothing | [ eq ] = refl
+
+        from-ι : (x : ℕ) → from (ι n ∘ β) x ≡ from β x
+        from-ι x with x <? n
+        from-ι x | yes p = refl
+        from-ι x | no ¬p with from β x | inspect (from β) x
+        from-ι x | no ¬p | just y | [ eq ] with ⊆₁ (_ , left-inverse-of β eq)
+        from-ι x | no ¬p | just y | [ eq ] | _ , eq' with x <? n
+        from-ι x | no ¬p | just y | [ eq ] | _ , eq' | yes p = ⊥-elim (¬p p)
+        from-ι x | no ¬p | just y | [ eq ] | _ , () | no ¬p₁
+        from-ι x | no ¬p | nothing | [ eq ] = refl
+
+absorb-ι₂ : ∀ {n β} → β ⊆ᴰ (ι n) → (β ∘ ι n) ≡ β
+absorb-ι₂ {n} {β} ⊆₁ = bij-≡ (β ∘ ι n) β (funext _ _ to-ι) (funext _ _ from-ι)
+  where to-ι : (x : ℕ) → to (β ∘ ι n) x ≡ to β x
+        to-ι x with x <? n
+        to-ι x | yes p = refl
+        to-ι x | no ¬p with to β x | inspect (to β) x
+        to-ι x | no ¬p | just x₁ | [ eq ] with ⊆₁ (_ , eq)
+        to-ι x | no ¬p | just x₁ | [ eq ] | _ , eq' with x <? n
+        to-ι x | no ¬p | just x₁ | [ eq ] | _ , eq' | yes p = ⊥-elim (¬p p)
+        to-ι x | no ¬p | just x₁ | [ eq ] | _ , () | no ¬p₁
+        to-ι x | no ¬p | nothing | [ eq ] = refl
+
+        from-ι : (x : ℕ) → from (β ∘ ι n) x ≡ from β x
+        from-ι x with from β x | inspect (from β) x
+        from-ι x | just y | [ eq ] with y <? n
+        from-ι x | just y | [ eq ] | yes p = refl
+        from-ι x | just y | [ eq ] | no ¬p with ⊆₁ (_ , left-inverse-of β eq)
+        from-ι x | just y | [ eq ] | no ¬p | _ , eq' with y <? n
+        from-ι x | just y | [ eq ] | no ¬p | _ , eq' | yes p = ⊥-elim (¬p p)
+        from-ι x | just y | [ eq ] | no ¬p | _ , () | no ¬p₁
+        from-ι x | nothing | [ eq ] = refl
+
+-- Absorbs the ι with the greater domain.
+-- This seems a particular instance of the above.
 absorb-ι : ∀ {n m} → m ≤ n → (ι n ∘ ι m) ≡ ι m
 absorb-ι {n} {m} m≤n = bij-≡ (ι n ∘ ι m) (ι m) (funext _ _ (ι-∘ᵀ n m m≤n)) (funext _ _ (ι-∘ᶠ n m m≤n))
-  -- TODO: We proved this postulate below. We just need to redefine inverse-of to take
-  -- the indexes explicitly instead of as implicit paramters
-  where postulate bij-≡ : ∀ (β₁ β₂ : Bij) → to β₁ ≡ to β₂ → from β₁ ≡ from β₂ → β₁ ≡ β₂
+  where
 
         ι-∘ᵀ : ∀ n m → m ≤ n → (ι n ∘ ι m) ≈ᵀ ι m
         ι-∘ᵀ n m m≤n x with x <? m
