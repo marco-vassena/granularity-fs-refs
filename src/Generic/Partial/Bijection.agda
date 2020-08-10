@@ -80,6 +80,9 @@ _⊆_ : ∀ {A B} → A ⤖ᴾ B → A ⤖ᴾ B → Set
 
 infixr 3 _⊆_
 
+refl-⊆ : ∀ {A B} (β : A ⤖ᴾ B) → β ⊆ β
+refl-⊆ β = λ z → z
+
 -- Composition
 _∘_ : ∀ {A B C} → B ⤖ᴾ C → A ⤖ᴾ B → A ⤖ᴾ C
 _∘_ {A} {B} {C} f g =

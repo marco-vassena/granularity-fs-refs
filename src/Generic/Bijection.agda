@@ -185,6 +185,7 @@ _⊆ᴰ_ : ∀ {A B} → A ⤖ᴾ B → A ⤖ᴾ B → Set
 -- Absorbs the ι with the greater domain.
 absorb-ι₁ : ∀ {n β} →  β ⊆ᴿ (ι n) → (ι n ∘ β) ≡ β
 absorb-ι₁ {n} {β} ⊆₁ = bij-≡ (ι n ∘ β) β (funext _ _ to-ι) (funext _ _ from-ι)
+
   where to-ι : ∀ x → to (ι n ∘ β) x ≡ to β x
         to-ι x with to β x | inspect (to β) x
         to-ι x | just y | [ eq ] with y <? n
@@ -194,6 +195,7 @@ absorb-ι₁ {n} {β} ⊆₁ = bij-≡ (ι n ∘ β) β (funext _ _ to-ι) (fune
         to-ι x | just y | [ eq ] | no ¬p | _ , eq' | yes p = ⊥-elim (¬p p)
         to-ι x | just y | [ eq ] | no ¬p | _ , () | no ¬p₁
         to-ι x | nothing | [ eq ] = refl
+
 
         from-ι : (x : ℕ) → from (ι n ∘ β) x ≡ from β x
         from-ι x with x <? n
@@ -250,6 +252,9 @@ absorb-ι {n} {m} m≤n = bij-≡ (ι n ∘ ι m) (ι m) (funext _ _ (ι-∘ᵀ 
         ι-∘ᶠ n m m≤n x | yes p | no ¬p | no ¬p₁ = refl
         ι-∘ᶠ n m m≤n x | no x≮n | yes x<m = ⊥-elim (x≮n (≤-trans x<m m≤n))
         ι-∘ᶠ n m m≤n x | no ¬p | no ¬p₁ = refl
+
+ι-inv : ∀ {n} → (ι n) ≡ (ι n)⁻¹
+ι-inv {n} = bij-≡ _  _ refl refl
 
 --------------------------------------------------------------------------------
 -- TODO: Adapt the definition of partial bijections to use the following
