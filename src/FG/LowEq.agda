@@ -11,7 +11,7 @@ open import Lattice
 
 module FG.LowEq {{𝑳 : Lattice}} (A : Label) where
 
-open import FG.Types
+open import FG.Types hiding (_⊆_)
 open import FG.Syntax
 open import Data.Empty
 open import Data.Nat using (ℕ ; _≤_ ; _<_ ; s≤s ; z≤n) renaming (_⊔_ to _⊔ᴺ_)
@@ -197,6 +197,22 @@ c₁ ≈⟨ β ⟩ᶜ c₂ = c₁ ≈⟨ _≈⟨ β ⟩ⱽ_ , β ⟩ᴬ c₂
 
 mutual
 
+  -- TODO: Could it be that wken should have the condition ⊆  instead of ≤ ?
+  -- That would explain why we need to prove ⊆ in the tini theorem
+
+  -- Ok this is the property that we want.
+  wken-≈ᴿ′ : ∀ {τ β β'} {r₁ r₂ : Raw τ} → β ⊆ β' → r₁ ≈⟨ β  ⟩ᴿ r₂ → r₁ ≈⟨ β' ⟩ᴿ r₂
+  wken-≈ᴿ′ β⊆β' Unit = Unit
+  wken-≈ᴿ′ β⊆β' (Lbl ℓ) = Lbl ℓ
+  wken-≈ᴿ′ β⊆β' (Inl x) = {!!}
+  wken-≈ᴿ′ β⊆β' (Inr x) = {!!}
+  wken-≈ᴿ′ β⊆β' (Pair x x₁) = {!!}
+  wken-≈ᴿ′ β⊆β' (Fun x) = {!!}
+  wken-≈ᴿ′ β⊆β' (Ref-Iᴸ ℓ⊑A x) = Ref-Iᴸ ℓ⊑A (bij-⊆ β⊆β' x)
+  wken-≈ᴿ′ β⊆β' (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A
+  wken-≈ᴿ′ β⊆β' (Ref-S x) = Ref-S (bij-⊆ β⊆β' x)
+  wken-≈ᴿ′ β⊆β' (Id x) = {!!}
+
   -- Weaken the identity bijection to progressively construct a bijection
   -- large enough for all the references in a value.
   wken-≈ⱽ : ∀ {n m τ} {v₁ v₂ : Value τ} → n ≤ m → v₁ ≈⟨ ι n  ⟩ⱽ v₂ → v₁ ≈⟨ ι m ⟩ⱽ v₂
@@ -214,9 +230,9 @@ mutual
   wken-≈ᴿ n≤m (Inr x) = Inr (wken-≈ⱽ n≤m x)
   wken-≈ᴿ n≤m (Pair x y) = Pair (wken-≈ⱽ n≤m x) (wken-≈ⱽ n≤m y)
   wken-≈ᴿ n≤m (Fun x) = Fun (wken-≈ᴱ n≤m x)
-  wken-≈ᴿ n≤m (Ref-Iᴸ ℓ⊑A ∈ᴮ) = Ref-Iᴸ ℓ⊑A (ι-⊆ n≤m ∈ᴮ)
+  wken-≈ᴿ n≤m (Ref-Iᴸ ℓ⊑A ∈ᴮ) = Ref-Iᴸ ℓ⊑A (ι-extends n≤m ∈ᴮ)
   wken-≈ᴿ n≤m (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A
-  wken-≈ᴿ n≤m (Ref-S ∈ᴮ) = Ref-S (ι-⊆ n≤m ∈ᴮ)
+  wken-≈ᴿ n≤m (Ref-S ∈ᴮ) = Ref-S (ι-extends n≤m ∈ᴮ)
   wken-≈ᴿ n≤m (Id x) = Id (wken-≈ⱽ n≤m x)
 
 --------------------------------------------------------------------------------

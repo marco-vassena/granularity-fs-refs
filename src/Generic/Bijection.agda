@@ -51,12 +51,17 @@ Bij = ℕ ⤖ᴾ ℕ
   where open Id c
 
 open Bijectionᴾ
+
+
+ι-extends : ∀ {n m} → n ≤ m → (ι m) Extends (ι n)
+ι-extends {n} {m} n≤m {a , b} ∈₁ with a <? m | a <? n
+ι-extends {n} {m} n≤m {a , b} ∈₁ | yes p | yes p₁ = ∈₁
+ι-extends {n} {m} n≤m {a , b} () | yes p | no ¬p
+ι-extends {n} {m} n≤m {a , .a} refl | no ¬p | yes p = ⊥-elim (¬p (≤-trans p n≤m))
+ι-extends {n} {m} n≤m {a , b} () | no ¬p | no ¬p₁
+
 ι-⊆ : ∀ {n m} → n ≤ m → ι n ⊆ ι m
-ι-⊆ {n} {m} n≤m {a , b} ∈₁ with a <? m | a <? n
-ι-⊆ {n} {m} n≤m {a , b} ∈₁ | yes p | yes p₁ = ∈₁
-ι-⊆ {n} {m} n≤m {a , b} () | yes p | no ¬p
-ι-⊆ {n} {m} n≤m {a , .a} refl | no ¬p | yes p = ⊥-elim (¬p (≤-trans p n≤m))
-ι-⊆ {n} {m} n≤m {a , b} () | no ¬p | no ¬p₁
+ι-⊆ n≤m = record { bij-⊆ = ι-extends n≤m }
 
 -- TODO: whenever you need to use this postulate, use the above lemma
 -- postulate ι-≤ : ∀ {a b n m} → n ≤ m → (a , b) ∈ᵗ ι n → (a , b) ∈ᵗ ι m
@@ -254,7 +259,7 @@ absorb-ι {n} {m} m≤n = bij-≡ (ι n ∘ ι m) (ι m) (funext _ _ (ι-∘ᵀ 
         ι-∘ᶠ n m m≤n x | no ¬p | no ¬p₁ = refl
 
 ι-inv : ∀ {n} → (ι n) ≡ (ι n)⁻¹
-ι-inv {n} = bij-≡ _  _ refl refl
+ι-inv {n} = bij-≡ _ _ refl refl
 
 --------------------------------------------------------------------------------
 -- TODO: Adapt the definition of partial bijections to use the following

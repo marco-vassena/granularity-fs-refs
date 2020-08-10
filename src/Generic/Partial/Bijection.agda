@@ -73,15 +73,26 @@ b ∈ᴿ β = ∃ (λ a → (a , b) ∈ᵗ β)
 ∈-∈ᴿ : ∀ {A B} {x : A × B} {β : A ⤖ᴾ B} → x ∈ᵗ β → (proj₂ x) ∈ᴿ β
 ∈-∈ᴿ p = _ , p
 
--- TODO: is this the right definition?
+_Extends_ : ∀ {A B} (β₁ β₂ : A ⤖ᴾ B) → Set
+β₂ Extends β₁ = ∀ {x} → x ∈ᵗ β₁ → x ∈ᵗ β₂
+
 -- β₁ ⊆ β₂ iff β₂ is an extension of β₁
-_⊆_ : ∀ {A B} → A ⤖ᴾ B → A ⤖ᴾ B → Set
-β₁ ⊆ β₂ = ∀ {x} → x ∈ᵗ β₁ → x ∈ᵗ β₂
+-- Defined as a record to ease inference of the bijections
+record _⊆_ {A B} (β₁ β₂ : A ⤖ᴾ B) : Set where
+  field bij-⊆ : β₂ Extends β₁
 
-infixr 3 _⊆_
+open _⊆_ public
 
-refl-⊆ : ∀ {A B} (β : A ⤖ᴾ B) → β ⊆ β
-refl-⊆ β = λ z → z
+infixr 2 _⊆_
+
+
+refl-⊆ : ∀ {A B} {β : A ⤖ᴾ B} → β ⊆ β
+refl-⊆ {β = β} = record { bij-⊆ = λ {x} z → z }
+
+trans-⊆ : ∀ {A B} {β₁ β₂ β₃ : A ⤖ᴾ B} → β₁ ⊆ β₂ → β₂ ⊆ β₃ → β₁ ⊆ β₃
+trans-⊆ ⊆₁ ⊆₂ = record { bij-⊆ = λ ∈₁ → M₂.bij-⊆ (M₁.bij-⊆ ∈₁) }
+  where module M₁ = _⊆_ ⊆₁
+        module M₂ = _⊆_ ⊆₂
 
 -- Composition
 _∘_ : ∀ {A B C} → B ⤖ᴾ C → A ⤖ᴾ B → A ⤖ᴾ C
@@ -226,18 +237,20 @@ open Bijectionᴾ
 -- lemma {_} {a} {a'} {β} eq₁ eq₂ with right-inverse-of β eq₁ | right-inverse-of β eq₂ | to β a | to β a'
 -- ... | eq₁' | eq₂' | x | y = {!left-inverse-of β eq₁'!}
 
-⊆⁻¹ : ∀ {A} (β₁ β₂ : A ⤖ᴾ A) → β₁ ⊆ β₂ → β₂ ⁻¹ ⊆ β₁
-⊆⁻¹ = {!!}
+-- TODO: needed? remove
+-- ⊆⁻¹ : ∀ {A} (β₁ β₂ : A ⤖ᴾ A) → β₁ ⊆ β₂ → β₂ ⁻¹ ⊆ β₁
+-- ⊆⁻¹ = {!!}
 
-injective : ∀ {A B a a' b} {β : A ⤖ᴾ B} → to β a ≡ just b → to β a' ≡ just b → a ≡ a'
-injective = {!!}
+-- injective : ∀ {A B a a' b} {β : A ⤖ᴾ B} → to β a ≡ just b → to β a' ≡ just b → a ≡ a'
+-- injective = {!!}
 
 
+-- TODO: remove
 -- Is this true?
 -- Can this be generalized
-∘-⊆ : ∀ {A} {β β₁ β₂ : A ⤖ᴾ A} → β ⊆ β₁ → β ⊆ β₂ → β ⊆ β₁ ∘ β ∘ β₂
-∘-⊆ {β = β} {β₁} {β₂} ⊆₁ ⊆₂ {(a , a')} x∈β with ⊆₁ x∈β | ⊆₂ x∈β
-... | r | q rewrite q  = join-∈ᵗ {b = a} {β₁ = β} {β₁} {!x∈β!} r
+-- ∘-⊆ : ∀ {A} {β β₁ β₂ : A ⤖ᴾ A} → β ⊆ β₁ → β ⊆ β₂ → β ⊆ β₁ ∘ β ∘ β₂
+-- ∘-⊆ {β = β} {β₁} {β₂} ⊆₁ ⊆₂ {(a , a')} x∈β with ⊆₁ x∈β | ⊆₂ x∈β
+-- ... | r | q rewrite q  = join-∈ᵗ {b = a} {β₁ = β} {β₁} {!x∈β!} r
 -- with injective x∈β {!!}
 -- ... | eq = {!!}
 -- with to β a'
