@@ -156,7 +156,7 @@ open import Generic.LValue
 -- Configurations
 
 -- Generic store and flow-sensitive heap
-open import Generic.Store.Base Ty Raw hiding (_∈_ ; Write) public
+open import Generic.Store.Base Ty Raw hiding (_∈_ ; Write ; _⊆_) public
 -- open import Generic.Heap 𝑯 hiding (_∈_) public
 
 -- Generic configuration container.

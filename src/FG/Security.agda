@@ -46,7 +46,7 @@ open import Data.Product renaming (_,_ to _∧_) hiding (,_)
 open import FG.Valid
 open import Generic.Store.Valid Ty Raw ∥_∥ᴿ as V
 open Conf
-open import Data.Nat
+open import Data.Nat hiding (_^_)
 open import Data.Nat.Properties
 
 postulate step-≤ :  ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
@@ -54,102 +54,116 @@ postulate step-≤ :  ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
                  ⟨ Σ' , _ ⟩ = c' in
                c ⇓⟨ θ , pc ⟩ c' → ∥ Σ ∥ ≤ ∥ Σ' ∥
 
-
--- trans-≈ˢ-ι : ∀ {Σ₁ Σ₂ Σ₃} → ∥ Σ₁ ∥ ≤ ∥ Σ₂ ∥ →
---                             ∥ Σ₂ ∥ ≤ ∥ Σ₃ ∥ →
---                             Σ₁ ≈⟨ ι ∥ Σ₁ ∥ ⟩ˢ Σ₂ →
---                             Σ₂ ≈⟨ ι ∥ Σ₂ ∥ ⟩ˢ Σ₃ → Σ₁ ≈⟨ ι ∥ Σ₁ ∥ ⟩ˢ Σ₃
--- trans-≈ˢ-ι ≤₁ ≤₂ x y =
---   let y' = wken-≈ˢ ≤₁ y
---       z = trans-≈ˢ x y' in
---       {!z!} -- Can rewrite ι n ∘ ι n ≡ ι n
-
--- TODO: rename
--- Could I generalize the lemma by taking the
--- store Σ used in ι ∥ Σ ∥ universally quantified?
--- I am not sure if we can prove refl for all n though!
-step-≈ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
+step-≈ˢ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
              let ⟨ Σ , _ ⟩ = c
                  ⟨ Σ' , _ ⟩ = c' in
                 {{validˢ : Validˢ Σ}} {{validᴱ : Validᴱ ∥ Σ ∥ θ}} →
                c ⇓⟨ θ , pc ⟩ c' →
                pc ⋤ A →
-               Σ ≈⟨ ι ∣ Σ ∣ˢ ⟩ˢ Σ'
-step-≈ {{v}} (Var τ∈Γ x) pc⋤A = refl-≈ˢ {{v}}  -- refl-≈ˢ  -- {{ v }}  -- ⟨ {!!} , {!refl-≈ᴴ!} ⟩ ⟩
-step-≈ {{v}} Unit pc⋤A = refl-≈ˢ {{ v }}
-step-≈ (Lbl ℓ) pc⋤A = {!!}
-step-≈ (Test₁ x x₁ x₂ x₃) pc⋤A = {!!}
-step-≈ (Test₂ x x₁ x₂ x₃) pc⋤A = {!!}
-step-≈ Fun pc⋤A = {!!}
-step-≈ {{ v }} (App x x₁ refl x₃) pc⋤A =
-  let Σ≈Σ₁ = step-≈ {{ v }} x pc⋤A
-      Σ₁≈Σ₂ = step-≈ {{ {!!} }} {{ {!!} }} x₁ pc⋤A
-      Σ₂≈Σ₃ = step-≈ {{ {!!} }} {{ {!!} }} x₃ (trans-⋤ (join-⊑₁ _ _) pc⋤A) in {!Σ≈Σ₁!}
-      -- Σ≤Σ₁ = step-≤ x
-      -- Σ₁≤Σ₂ = step-≤ x₁
-      -- Σ₂≤Σ₃ = step-≤ x₃
+               Σ ≈⟨ ι ∥ Σ ∥ ⟩ˢ Σ'
+step-≈ˢ {{isV₁}} {{isV₂}} (Var τ∈Γ x) pc⋤A = refl-≈ˢ {{isV₁}}
+step-≈ˢ {{isV₁}} {{isV₂}} Unit pc⋤A = refl-≈ˢ {{isV₁}}
+step-≈ˢ {{isV₁}} {{isV₂}} (Lbl ℓ) pc⋤A = refl-≈ˢ {{isV₁}}
 
-      -- trans-≈ˢ-ι Σ≤Σ₁ (≤-trans Σ₁≤Σ₂ Σ₂≤Σ₃) Σ≈Σ₁ (trans-≈ˢ-ι Σ₁≤Σ₂ Σ₂≤Σ₃ Σ₁≈Σ₂ Σ₂≈Σ₃)
---      trans-≈ˢ (wken-≈ˢ {!!} Σ≈Σ₁) (trans-≈ˢ (wken-≈ˢ {!!} Σ₁≈Σ₂) (wken-≈ˢ {!!} Σ₂≈Σ₃))
-        -- (trans-≈ˢ {Σ₁} {Σ₂} {Σ₄} {β₁ = β} {β₂ ∘ᴮ β₁} Σ≈Σ₁
-        --                     (trans-≈ˢ {Σ₂} {Σ₃} {Σ₄} {β₁ = β₁} {β₂ = β₂} Σ₁≈Σ₂ Σ₂≈Σ₃))
+step-≈ˢ {{isV₁}} {{isV₂}} (Test₁ x x₁ ℓ⊑ refl) pc⋤A =
+  let isVᴱ ∧ isV₁′ ∧ isV₂′ = valid-invariant x ⟨ isV₁ , isV₂ ⟩
+      Σ⊆Σ₁ = step-≈ˢ {{ isV₁ }} x pc⋤A
+      Σ₁⊆Σ₂ = step-≈ˢ {{ isV₁′ }} {{ isVᴱ }} x₁ pc⋤A
+  in trans-≈ˢ-ι Σ⊆Σ₁ Σ₁⊆Σ₂
 
-step-≈ (Wken p x) pc⋤A = {!!}
-step-≈ (Inl x) pc⋤A = {!!}
-step-≈ (Inr x) pc⋤A = {!!}
-step-≈ (Case₁ x x₁ x₂) pc⋤A = {!!}
-step-≈ (Case₂ x x₁ x₂) pc⋤A = {!!}
-step-≈ (Pair x x₁) pc⋤A = {!!}
-step-≈ (Fst x x₁) pc⋤A = {!!}
-step-≈ (Snd x x₁) pc⋤A = {!!}
-step-≈ (LabelOf x) pc⋤A = {!!}
-step-≈ GetLabel pc⋤A = {!!}
-step-≈ (Taint eq c⇓ c⇓₁ pc'⊑pc'') pc⋤A = {!!}
-step-≈ (LabelOfRef x eq) pc⋤A = {!!}
-step-≈ (New x) pc⋤A = {!!}
-step-≈ (Read x x₁ eq) pc⋤A = {!!}
-step-≈ (Write x x₁ x₂ ℓ₂⊑ℓ x₃) pc⋤A = {!!}
-step-≈ (LabelOfRef-FS x x₁ eq) pc⋤A = {!!}
-step-≈ (New-FS x) pc⋤A = {!!}
-step-≈ (Read-FS x x₁ eq) pc⋤A = {!!}
-step-≈ (Write-FS x x₁ x₂ x₃ eq x₄) pc⋤A = {!!}
-step-≈ (Id x) pc⋤A = {!!}
-step-≈ (UnId x eq) pc⋤A = {!!}
+step-≈ˢ {{isV₁}} {{isV₂}} (Test₂ x x₁ ℓ⊑ refl) pc⋤A =
+  let isVᴱ ∧ isV₁′ ∧ isV₂′ = valid-invariant x ⟨ isV₁ , isV₂ ⟩
+      Σ⊆Σ₁ = step-≈ˢ {{ isV₁ }} x pc⋤A
+      Σ₁⊆Σ₂ = step-≈ˢ {{ isV₁′ }} {{ isVᴱ }} x₁ pc⋤A
+  in trans-≈ˢ-ι Σ⊆Σ₁ Σ₁⊆Σ₂
 
--- step-≈ᴴ {c = c} (Var τ∈Γ x) pc⋤A = ⟨ ι , refl-≈ᴴ {μ = Conf.heap c} ⟩
--- step-≈ᴴ Unit pc⋤A = {!!}
--- step-≈ᴴ (Lbl ℓ) pc⋤A = {!!}
--- step-≈ᴴ (Test₁ x x₁ x₂ x₃) pc⋤A = {!!}
--- step-≈ᴴ (Test₂ x x₁ x₂ x₃) pc⋤A = {!!}
--- step-≈ᴴ Fun pc⋤A = {!!}
--- step-≈ᴴ (App {μ = μ₁} {μ₂} {μ₃} {μ₄} x x₁ refl x₃) pc⋤A =
---   let ⟨ β , μ≈μ₁ ⟩ = step-≈ᴴ x pc⋤A
---       ⟨ β₁ , μ₁≈μ₂ ⟩ = step-≈ᴴ x₁ pc⋤A
---       ⟨ β₂ , μ₂≈μ₃ ⟩ = step-≈ᴴ x₃ (trans-⋤ (join-⊑₁ _ _) pc⋤A) in
---         ⟨ β₂ ∘ᴮ β₁ ∘ᴮ β , (trans-≈ᴴ {μ₁} {μ₂} {μ₄} {β₁ = β} {β₂ ∘ᴮ β₁} μ≈μ₁
---                             (trans-≈ᴴ {μ₂} {μ₃} {μ₄} {β₁ = β₁} {β₂ = β₂} μ₁≈μ₂ μ₂≈μ₃)) ⟩
--- step-≈ᴴ (Wken p x) pc⋤A = {!!}
--- step-≈ᴴ (Inl x) pc⋤A = {!!}
--- step-≈ᴴ (Inr x) pc⋤A = {!!}
--- step-≈ᴴ (Case₁ x x₁ x₂) pc⋤A = {!!}
--- step-≈ᴴ (Case₂ x x₁ x₂) pc⋤A = {!!}
--- step-≈ᴴ (Pair x x₁) pc⋤A = {!!}
--- step-≈ᴴ (Fst x x₁) pc⋤A = {!!}
--- step-≈ᴴ (Snd x x₁) pc⋤A = {!!}
--- step-≈ᴴ (LabelOf x) pc⋤A = {!!}
--- step-≈ᴴ GetLabel pc⋤A = {!!}
--- step-≈ᴴ (Taint eq x x₁ pc'⊑pc'') pc⋤A = {!!}
--- step-≈ᴴ (LabelOfRef x eq) pc⋤A = {!!}
--- step-≈ᴴ (New x) pc⋤A = {!!}
--- step-≈ᴴ (Read x x₁ eq) pc⋤A = {!!}
--- step-≈ᴴ (Write x x₁ x₂ ℓ₂⊑ℓ x₃) pc⋤A = {!!}
--- step-≈ᴴ (LabelOfRef-FS x x₁ eq) pc⋤A = {!!}
--- step-≈ᴴ (New-FS {μ = μ} {μ'} {v = v} x) pc⋤A =
---   let ⟨ β , μ≈μ' ⟩ = step-≈ᴴ x pc⋤A in new-≈ᴴ {μ} {μ'} {β} μ≈μ' v (trans-⋤ (step-⊑ x) pc⋤A)
--- step-≈ᴴ (Read-FS x x₁ eq) pc⋤A = {!!}
--- step-≈ᴴ (Write-FS x x₁ x₂ x₃ eq x₄) pc⋤A = {!!}
--- step-≈ᴴ (Id x) pc⋤A = {!!}
--- step-≈ᴴ (UnId x eq) pc⋤A = {!!}
+step-≈ˢ {{isV₁}} {{isV₂}} Fun pc⋤A = refl-≈ˢ {{isV₁}}
+step-≈ˢ {{isV₁}} {{isV₂}} (App {θ' = θ'} x x₁ refl x₃) pc⋤A =
+  let isVᴱ ∧ isV₁′ ∧ isV₂′ = valid-invariant x ⟨ isV₁ , isV₂ ⟩
+      isVᴱ′ ∧ isV₁′′ ∧ isV₂′′ = valid-invariant x₁ ⟨ isV₁′ , isVᴱ ⟩
+      Σ⊆Σ₁ = step-≈ˢ {{ isV₁ }} x pc⋤A
+      Σ₁⊆Σ₂ = step-≈ˢ {{ isV₁′ }} {{ isVᴱ }} x₁ pc⋤A
+      isVᴱ′′ = validᴱ-≤ {θ = θ'} (store-≤ x₁) isV₂′
+      Σ₂⊆Σ₃ = step-≈ˢ {{ isV₁′′ }} {{ isV₂′′ ∧ isVᴱ′′ }} x₃ (trans-⋤ (join-⊑₁ _ _) pc⋤A)
+  in trans-≈ˢ-ι Σ⊆Σ₁ (trans-≈ˢ-ι Σ₁⊆Σ₂ Σ₂⊆Σ₃)
+
+step-≈ˢ {{isV₁}} {{isV₂}} (Wken p x) pc⋤A = step-≈ˢ {{ isV₁ }} {{ validᴱ-⊆ p isV₂ }} x pc⋤A
+
+step-≈ˢ {{isV₁}} {{isV₂}} (Inl x) pc⋤A = step-≈ˢ {{ isV₁ }} {{ isV₂ }} x pc⋤A
+
+step-≈ˢ {{isV₁}} {{isV₂}} (Inr x) pc⋤A = step-≈ˢ {{ isV₁ }} {{ isV₂ }} x pc⋤A
+
+step-≈ˢ {{isV₁}} {{isV₂}} (Case₁ x refl x₁) pc⋤A =
+  let isVᴱ ∧ isV₁′ ∧ isV₂′ = valid-invariant x ⟨ isV₁ , isV₂ ⟩
+      Σ⊆Σ₁ = step-≈ˢ {{ isV₁ }} x pc⋤A
+      Σ₁⊆Σ₂ = step-≈ˢ {{ isV₁′ }} {{ isV₂′ ∧ isVᴱ }} x₁ (trans-⋤ (join-⊑₁ _ _) pc⋤A)
+  in trans-≈ˢ-ι Σ⊆Σ₁ Σ₁⊆Σ₂
+
+step-≈ˢ {{isV₁}} {{isV₂}} (Case₂ x refl x₁) pc⋤A =
+  let isVᴱ ∧ isV₁′ ∧ isV₂′ = valid-invariant x ⟨ isV₁ , isV₂ ⟩
+      Σ⊆Σ₁ = step-≈ˢ {{ isV₁ }} x pc⋤A
+      Σ₁⊆Σ₂ = step-≈ˢ {{ isV₁′ }} {{ isV₂′ ∧ isVᴱ }} x₁ (trans-⋤ (join-⊑₁ _ _) pc⋤A)
+  in trans-≈ˢ-ι Σ⊆Σ₁ Σ₁⊆Σ₂
+
+step-≈ˢ {{isV₁}} {{isV₂}} (Pair x x₁) pc⋤A =
+  let isVᴱ ∧ isV₁′ ∧ isV₂′ = valid-invariant x ⟨ isV₁ , isV₂ ⟩
+      Σ⊆Σ₁ = step-≈ˢ {{ isV₁ }} x pc⋤A
+      Σ₁⊆Σ₂ = step-≈ˢ {{ isV₁′ }} {{ isVᴱ }} x₁ pc⋤A
+  in trans-≈ˢ-ι Σ⊆Σ₁ Σ₁⊆Σ₂
+
+step-≈ˢ {{isV₁}} {{isV₂}} (Fst x refl) pc⋤A = step-≈ˢ {{ isV₁ }} x pc⋤A
+
+step-≈ˢ {{isV₁}} {{isV₂}} (Snd x x₁) pc⋤A = step-≈ˢ {{ isV₁ }} x pc⋤A
+step-≈ˢ {{isV₁}} {{isV₂}} (LabelOf x) pc⋤A = step-≈ˢ {{ isV₁ }} {{ isV₂ }} x pc⋤A
+step-≈ˢ {{isV₁}} {{isV₂}} GetLabel pc⋤A = refl-≈ˢ {{isV₁}}
+step-≈ˢ {{isV₁}} {{isV₂}} (Taint refl x x₁ pc'⊑pc'') pc⋤A =
+  let isVᴱ ∧ isV₁′ ∧ isV₂′ = valid-invariant x ⟨ isV₁ , isV₂ ⟩
+      Σ⊆Σ₁ = step-≈ˢ {{ isV₁ }} x pc⋤A
+      Σ₁⊆Σ₂ = step-≈ˢ {{ isV₁′ }} {{ isVᴱ }} x₁ (trans-⋤ (join-⊑₁ _ _) pc⋤A)
+  in trans-≈ˢ-ι Σ⊆Σ₁ Σ₁⊆Σ₂
+
+step-≈ˢ {{isV₁}} {{isV₂}} (LabelOfRef x eq) pc⋤A = step-≈ˢ {{ isV₁ }} x pc⋤A
+step-≈ˢ {{isV₁}} {{isV₂}} (New x) pc⋤A = snoc-≈ˢ (step-≈ˢ {{isV₁}} {{isV₂}} x pc⋤A)
+step-≈ˢ {{isV₁}} {{isV₂}} (Read x x₁ eq) pc⋤A = step-≈ˢ {{ isV₁ }} x pc⋤A
+step-≈ˢ {{isV₁}} {{isV₂}} (Write x ⊑₁ x₁ ⊑₂ w) pc⋤A =
+  let isVᴱ ∧ isV₁′ ∧ isV₂′ = valid-invariant x ⟨ isV₁ , isV₂ ⟩
+      isVᴱ′ ∧ isV₁′′ ∧ isV₂′′ = valid-invariant x₁ ⟨ isV₁′ , isVᴱ ⟩
+      Σ⊆Σ₁ = step-≈ˢ {{ isV₁ }} x pc⋤A
+      Σ₁⊆Σ₂ = step-≈ˢ {{ isV₁′ }} {{ isVᴱ }} x₁ pc⋤A
+      Σ₂≈Σ₃ = writeᴴ-≈ˢ {{ {!isV₁′′ !} }} {!⊑₁!} (trans-⋤ (trans-⊑ (step-⊑ x₁) ⊑₂) pc⋤A) {!!} w
+  -- Here I need to show that the reference points to a secret cell.
+  -- I know that the reference is valid, but how can I exclude that it
+  -- points to a public cell? Is this an additional invariant?
+  -- Now all the cell carry a label, which we need to define L-equivalence
+  -- correctly for stores under bijection. (For secret computations the identity
+  -- bijection will include secret addresses to).
+  in trans-≈ˢ-ι Σ⊆Σ₁ (trans-≈ˢ-ι Σ₁⊆Σ₂ Σ₂≈Σ₃)
+
+step-≈ˢ {{isV₁}} {{isV₂}} (LabelOfRef-FS x x₁ eq) pc⋤A = step-≈ˢ {{ isV₁ }} x pc⋤A
+step-≈ˢ {{isV₁}} {{isV₂}} (New-FS x) pc⋤A = snoc-≈ˢ (step-≈ˢ {{ isV₁ }} {{ isV₂ }} x pc⋤A) -- snoc-⊆ˢ (step-≈ˢ {{isV₁}} {{isV₂}} x pc⋤A)
+step-≈ˢ {{isV₁}} {{isV₂}} (Read-FS x x₁ eq) pc⋤A = step-≈ˢ {{ isV₁ }} x pc⋤A
+
+step-≈ˢ {{isV₁}} {{isV₂}} (Write-FS {ℓ = ℓ} {ℓ₁} {ℓ₂} {ℓ₂'} x x₁ ∈₁ ⊑₁ refl w) pc⋤A =
+  let isVᴱ ∧ isV₁′ ∧ isV₂′ = valid-invariant x ⟨ isV₁ , isV₂ ⟩
+      isVᴱ′ ∧ isV₁′′ ∧ isV₂′′ = valid-invariant x₁ ⟨ isV₁′ , isVᴱ ⟩
+      Σ⊆Σ₁ = step-≈ˢ {{ isV₁ }} x pc⋤A
+      Σ₁⊆Σ₂ = step-≈ˢ {{ isV₁′ }} {{ isVᴱ }} x₁ pc⋤A
+      Σ₂≈Σ₃ = (writeᴴ-≈ˢ {{ isV₁′′ }} (trans-⋤ (trans-⊑ (step-⊑ x) ⊑₁) pc⋤A) (join-⋤₁ (trans-⋤ (step-⊑ x) pc⋤A)) ∈₁ w)
+  in trans-≈ˢ-ι Σ⊆Σ₁ (trans-≈ˢ-ι Σ₁⊆Σ₂ Σ₂≈Σ₃ )
+
+step-≈ˢ {{isV₁}} {{isV₂}} (Id x) pc⋤A = step-≈ˢ {{ isV₁ }} {{ isV₂ }} x pc⋤A
+step-≈ˢ {{isV₁}} {{isV₂}} (UnId x eq) pc⋤A = step-≈ˢ {{ isV₁ }} {{ isV₂ }} x pc⋤A
+
+
+-- TODO: rename
+-- step-≈ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
+--              let ⟨ Σ , _ ⟩ = c
+--                  ⟨ Σ' , _ ⟩ = c' in
+--                 {{validˢ : Validˢ Σ}} {{validᴱ : Validᴱ ∥ Σ ∥ θ}} →
+--                c ⇓⟨ θ , pc ⟩ c' →
+--                pc ⋤ A →
+--                Σ ≈⟨ ι ∣ Σ ∣ˢ ⟩ˢ Σ'
+-- step-≈ {{isV₁}} {{isV₂}} x pc⋤A = ⊆-≈ˢ {{isV₁}} (step-⊆ˢ {{isV₁}} {{isV₂}} x pc⋤A)
 
 
 -- TODO: add FS-Store to this lemma (encompassed by the above lemma)
@@ -452,8 +466,8 @@ mutual
   -- because we do not need to take care of the references. Check this with Deepak.
   tiniᴴ {β = β} {c₁ = ⟨ Σ₁ , _ ⟩} {c₂ = ⟨ Σ₂ , _ ⟩} {c₁' = ⟨ Σ₁' , _ ⟩} {c₂' = ⟨ Σ₂' , _ ⟩}
          Σ₁≈Σ₂ x₁ x₂ pc₁⋤A pc₂⋤A =
-    let Σ₁≈Σ₁' = step-≈ {{ {!!} }} {{ {!!} }} x₁ pc₁⋤A   -- in {!!}
-        Σ₂≈Σ₂' = step-≈ {{ {!!} }} {{ {!!} }} x₂ pc₂⋤A
+    let Σ₁≈Σ₁' = step-≈ˢ {{ {!!} }} {{ {!!} }} x₁ pc₁⋤A   -- in {!!}
+        Σ₂≈Σ₂' = step-≈ˢ {{ {!!} }} {{ {!!} }} x₂ pc₂⋤A
         Σ₁'≈Σ₂' = square-≈ˢ Σ₁≈Σ₂ Σ₁≈Σ₁' Σ₂≈Σ₂'
         v≈ = Valueᴴ (trans-⋤ (step-⊑ x₁) pc₁⋤A) (trans-⋤ (step-⊑ x₂) pc₂⋤A)
         β' = ι ∣ Σ₂ ∣ˢ ∘ β ∘ (ι ∣ Σ₁ ∣ˢ) ⁻¹ in

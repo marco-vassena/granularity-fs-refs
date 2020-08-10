@@ -5,7 +5,7 @@
 -- This module is parametric in the security lattice 𝑳 = (𝓛, ⊑) and in
 -- the attacker's security A ∈ 𝓛.
 
-{-# OPTIONS --allow-unsolved-metas #-}
+-- {-# OPTIONS --allow-unsolved-metas #-}
 
 open import Lattice
 
@@ -367,4 +367,5 @@ open import Generic.Bijection
 -- TODO: we probably need to make the bijection explicit in the relation.
 -- Define the "Equivalence up to bijection" class.
 
-open S.Props 𝑹 using (square-≈ˢ ; ∣_∣ˢ ; refl-≈ˢ ; wken-≈ˢ ; trans-≈ˢ) public
+-- TODO: fix the export here ...
+open S.Props 𝑹 using (square-≈ˢ ; ∣_∣ˢ ; refl-≈ˢ ; trans-≈ˢ ; trans-≈ˢ-ι ; snoc-≈ˢ ; writeᴴ-≈ˢ) public

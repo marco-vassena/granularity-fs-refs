@@ -117,14 +117,14 @@ mutual
 
     New : ∀ {ℓ τ Σ Σ'} {e : Expr Γ _} {r : Raw τ} →
           ⟨ Σ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , r ^ ℓ ⟩ →
-          Step θ pc ⟨ Σ , new {s = I} e ⟩ ⟨  Σ' ∷ᴿ ⌞ r ⌟ᴵ  , (Refᴵ ℓ ∥ Σ ∥) ^ pc ⟩
+          Step θ pc ⟨ Σ , new {s = I} e ⟩ ⟨  Σ' ∷ᴿ ⌞ r , ℓ ⌟  , (Refᴵ ℓ ∥ Σ ∥) ^ pc ⟩
 
     -- This is better than asking ℓ' ⊑ ℓ and returning the value at pc
     -- ⊔ ℓ. The combination pc ⊑ ℓ' (step-⊑) and ℓ' ⊑ ℓ implies pc ⊑
     -- ℓ, thus the rule would not allow to read lower references.
     Read : ∀ {Σ Σ' ℓ ℓ' ℓ'' n τ} {e : Expr _ (Ref I τ)} {r : Raw τ } →
            ⟨ Σ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , (Refᴵ ℓ n) ^ ℓ' ⟩ →
-           n ↦ r ∈ᴵ Σ' →
+           n ↦ ⌞ r , ℓ ⌟ ∈ Σ' →
            (eq : ℓ'' ≡ (ℓ ⊔ ℓ')) →
            Step θ pc ⟨ Σ , ! e ⟩  ⟨ Σ' ,  r ^ ℓ'' ⟩
 
@@ -136,7 +136,7 @@ mutual
               ℓ' ⊑ ℓ →
              ⟨ Σ₂ , e₂ ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ₃ , r₂ ^ ℓ₂ ⟩ →
              (ℓ₂⊑ℓ : ℓ₂ ⊑ ℓ) →
-             Σ₃' ≔ Σ₃ [ n ↦ r₂ ]ᴵ →
+             Σ₃' ≔ Σ₃ [ n ↦ ⌞ r₂ , ℓ ⌟ ] →
              Step θ pc ⟨ Σ₁ , e₁ ≔ e₂ ⟩ ⟨ Σ₃' , （） ^ pc ⟩
 
     --------------------------------------------------------------------------------
@@ -147,21 +147,21 @@ mutual
     -- and distinct value.
     LabelOfRef-FS : ∀ {Σ Σ' ℓ₁ ℓ₂ ℓ₃ n τ} {e : Expr Γ (Ref S τ)} {r : Raw τ} →
                   ⟨ Σ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , Refˢ n ^ ℓ₁ ⟩ →
-                  n ↦ (r , ℓ₂) ∈ˢ Σ' →
+                  n ↦ ⌞ r , ℓ₂ ⌟ ∈ Σ' →
                   (eq : ℓ₃ ≡ ℓ₁ ⊔ ℓ₂) →
                   Step θ pc ⟨ Σ , labelOfRef e ⟩ ⟨ Σ' , ⌞ ℓ₂ ⌟ ^ ℓ₃ ⟩
 
     New-FS : ∀ {τ Σ Σ' v} {e : Expr Γ (Ref S τ)} →
              ⟨ Σ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , v ⟩ →
              let r ^ ℓ = v in
-             Step θ pc ⟨ Σ , new {s = S} e ⟩  ⟨  Σ' ∷ᴿ ⌞ r , ℓ ⌟ˢ , Refˢ ∥ Σ' ∥ ^ pc ⟩
+             Step θ pc ⟨ Σ , new {s = S} e ⟩  ⟨  Σ' ∷ᴿ ⌞ r , ℓ ⌟ , Refˢ ∥ Σ' ∥ ^ pc ⟩
 
     -- -- This is better than asking ℓ' ⊑ ℓ and returning the value at pc
     -- -- ⊔ ℓ. The combination pc ⊑ ℓ' (step-⊑) and ℓ' ⊑ ℓ implies pc ⊑
     -- -- ℓ, thus the rule would not allow to read lower references.
     Read-FS : ∀ {Σ Σ' ℓ ℓ' ℓ'' n τ r} {e : Expr _ (Ref S τ)}  →
            ⟨ Σ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , (Refˢ n) ^ ℓ ⟩ →
-           n ↦ (r , ℓ') ∈ˢ Σ' →
+           n ↦ ⌞ r , ℓ' ⌟ ∈ Σ' →
            (eq : ℓ'' ≡ ℓ ⊔ ℓ') →
            Step θ pc ⟨ Σ , ! e ⟩  ⟨ Σ' ,  r ^ ℓ'' ⟩
 
@@ -169,10 +169,10 @@ mutual
                {e₁ : Expr _ (Ref S τ)} {e₂ : Expr _ τ} {r₁ r₂ : Raw τ} →
              ⟨ Σ₁ , e₁ ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ₂ , (Refˢ n) ^ ℓ ⟩ →
              ⟨ Σ₂ , e₂ ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ₃ , r₂ ^ ℓ₂ ⟩ →
-             n ↦ (r₁ , ℓ₁) ∈ˢ Σ₃ →
+             n ↦ ⌞ r₁ , ℓ₁ ⌟ ∈ Σ₃ →
              ℓ ⊑ ℓ₁ →
              (eq : ℓ₂' ≡ ℓ ⊔ ℓ₂) →
-             Σ₃' ≔ Σ₃ [ n ↦ (r₂ , ℓ₂') ]ˢ →
+             Σ₃' ≔ Σ₃ [ n ↦ ⌞ r₂ , ℓ₂' ⌟ ] →
              Step θ pc ⟨ Σ₁ , e₁ ≔ e₂ ⟩ ⟨ Σ₃' , （） ^ pc ⟩
 
     Id : ∀ {Σ₁ Σ₂ τ} {e : Expr Γ τ} {v : Value τ} →
