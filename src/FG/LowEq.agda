@@ -368,4 +368,4 @@ open import Generic.Bijection
 -- Define the "Equivalence up to bijection" class.
 
 -- TODO: fix the export here ...
-open S.Props 𝑹 using (square-≈ˢ ; ∣_∣ˢ ; refl-≈ˢ ; trans-≈ˢ ; trans-≈ˢ-ι ; snoc-≈ˢ ; writeᴴ-≈ˢ) public
+open S.Props 𝑹 using (square-≈ˢ ; ∣_∣ˢ ; refl-≈ˢ ; trans-≈ˢ ; trans-≈ˢ-ι ; snoc-≈ˢ ; writeᴴ-≈ˢ ; square-≈ˢ-ι) public
