@@ -117,7 +117,8 @@ mutual
 
     New : ∀ {ℓ τ Σ Σ'} {e : Expr Γ _} {r : Raw τ} →
           ⟨ Σ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , r ^ ℓ ⟩ →
-          Step θ pc ⟨ Σ , new {s = I} e ⟩ ⟨  Σ' ∷ᴿ (r , ℓ)  , (Refᴵ ℓ ∥ Σ ∥) ^ pc ⟩
+          Step θ pc ⟨ Σ , new {s = I} e ⟩ ⟨  Σ' ∷ᴿ (r , ℓ)  , (Refᴵ ℓ ∥ Σ' ∥) ^ pc ⟩
+    -- TODO: check formalization online  it was ∥ Σ ∥, wrong. It should be ∥ Σ' ∥.
 
     -- This is better than asking ℓ' ⊑ ℓ and returning the value at pc
     -- ⊔ ℓ. The combination pc ⊑ ℓ' (step-⊑) and ℓ' ⊑ ℓ implies pc ⊑
