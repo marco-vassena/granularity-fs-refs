@@ -154,7 +154,7 @@ Falseᴸ ℓ⊑A = Inr (Valueᴸ ℓ⊑A Unit)
 ≈ⱽ-⊑ pc (Valueᴴ x x₁) = Valueᴴ (trans-⋤ (join-⊑₂ _ _) x) (trans-⋤ (join-⊑₂ _ _) x₁)
 
 -- Derive L-equivalence for stores,
-open import Generic.Store.LowEq {Ty} {Raw} _≈⟨_⟩ᴿ_ A as S using (_≈⟨_⟩ˢ_) public
+open import Generic.Store.LowEq {Ty} {Raw} _≈⟨_⟩ᴿ_ A as S using (_≈⟨_⟩ˢ_ ; cellᴸ) public
 
 -- _≈⟨_⟩ˢ_ : Store → Bij → Store → Set
 -- Σ₁ ≈⟨ β ⟩ˢ Σ₂ = Σ₁ ≈ˢ Σ₂
@@ -197,43 +197,28 @@ c₁ ≈⟨ β ⟩ᶜ c₂ = c₁ ≈⟨ _≈⟨ β ⟩ⱽ_ , β ⟩ᴬ c₂
 
 mutual
 
-  -- TODO: Could it be that wken should have the condition ⊆  instead of ≤ ?
-  -- That would explain why we need to prove ⊆ in the tini theorem
-
-  -- Ok this is the property that we want.
-  wken-≈ᴿ′ : ∀ {τ β β'} {r₁ r₂ : Raw τ} → β ⊆ β' → r₁ ≈⟨ β  ⟩ᴿ r₂ → r₁ ≈⟨ β' ⟩ᴿ r₂
-  wken-≈ᴿ′ β⊆β' Unit = Unit
-  wken-≈ᴿ′ β⊆β' (Lbl ℓ) = Lbl ℓ
-  wken-≈ᴿ′ β⊆β' (Inl x) = {!!}
-  wken-≈ᴿ′ β⊆β' (Inr x) = {!!}
-  wken-≈ᴿ′ β⊆β' (Pair x x₁) = {!!}
-  wken-≈ᴿ′ β⊆β' (Fun x) = {!!}
-  wken-≈ᴿ′ β⊆β' (Ref-Iᴸ ℓ⊑A x) = Ref-Iᴸ ℓ⊑A (bij-⊆ β⊆β' x)
-  wken-≈ᴿ′ β⊆β' (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A
-  wken-≈ᴿ′ β⊆β' (Ref-S x) = Ref-S (bij-⊆ β⊆β' x)
-  wken-≈ᴿ′ β⊆β' (Id x) = {!!}
-
+  -- TODO: update description
   -- Weaken the identity bijection to progressively construct a bijection
   -- large enough for all the references in a value.
-  wken-≈ⱽ : ∀ {n m τ} {v₁ v₂ : Value τ} → n ≤ m → v₁ ≈⟨ ι n  ⟩ⱽ v₂ → v₁ ≈⟨ ι m ⟩ⱽ v₂
-  wken-≈ⱽ n≤m (Valueᴸ ℓ⊑A r≈) = Valueᴸ ℓ⊑A (wken-≈ᴿ n≤m r≈)
-  wken-≈ⱽ n≤m (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = Valueᴴ ℓ₁⋤A ℓ₂⋤A
+  wken-≈ⱽ : ∀ {β β' τ} {v₁ v₂ : Value τ} → β ⊆ β' → v₁ ≈⟨ β  ⟩ⱽ v₂ → v₁ ≈⟨ β' ⟩ⱽ v₂
+  wken-≈ⱽ β⊆β' (Valueᴸ ℓ⊑A r≈) = Valueᴸ ℓ⊑A (wken-≈ᴿ β⊆β' r≈)
+  wken-≈ⱽ β⊆β' (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = Valueᴴ ℓ₁⋤A ℓ₂⋤A
 
-  wken-≈ᴱ : ∀ {n m Γ} {θ₁ θ₂ : Env Γ} → n ≤ m → θ₁ ≈⟨ ι n  ⟩ᴱ θ₂ → θ₁ ≈⟨ ι m ⟩ᴱ θ₂
-  wken-≈ᴱ n≤m [] = []
-  wken-≈ᴱ n≤m (≈ⱽ ∷ ≈ᴱ) = wken-≈ⱽ n≤m ≈ⱽ ∷ wken-≈ᴱ n≤m ≈ᴱ
+  wken-≈ᴱ : ∀ {β β' Γ} {θ₁ θ₂ : Env Γ} → β ⊆ β' → θ₁ ≈⟨ β  ⟩ᴱ θ₂ → θ₁ ≈⟨ β' ⟩ᴱ θ₂
+  wken-≈ᴱ β⊆β' [] = []
+  wken-≈ᴱ β⊆β' (≈ⱽ ∷ ≈ᴱ) = wken-≈ⱽ β⊆β' ≈ⱽ ∷ wken-≈ᴱ β⊆β' ≈ᴱ
 
-  wken-≈ᴿ : ∀ {τ n m} {r₁ r₂ : Raw τ} → n ≤ m → r₁ ≈⟨ ι n  ⟩ᴿ r₂ → r₁ ≈⟨ ι m ⟩ᴿ r₂
-  wken-≈ᴿ n≤m Unit = Unit
-  wken-≈ᴿ n≤m (Lbl ℓ) = Lbl ℓ
-  wken-≈ᴿ n≤m (Inl x) = Inl (wken-≈ⱽ n≤m x)
-  wken-≈ᴿ n≤m (Inr x) = Inr (wken-≈ⱽ n≤m x)
-  wken-≈ᴿ n≤m (Pair x y) = Pair (wken-≈ⱽ n≤m x) (wken-≈ⱽ n≤m y)
-  wken-≈ᴿ n≤m (Fun x) = Fun (wken-≈ᴱ n≤m x)
-  wken-≈ᴿ n≤m (Ref-Iᴸ ℓ⊑A ∈ᴮ) = Ref-Iᴸ ℓ⊑A (ι-extends n≤m ∈ᴮ)
-  wken-≈ᴿ n≤m (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A
-  wken-≈ᴿ n≤m (Ref-S ∈ᴮ) = Ref-S (ι-extends n≤m ∈ᴮ)
-  wken-≈ᴿ n≤m (Id x) = Id (wken-≈ⱽ n≤m x)
+  wken-≈ᴿ : ∀ {τ β β'} {r₁ r₂ : Raw τ} → β ⊆ β' → r₁ ≈⟨ β  ⟩ᴿ r₂ → r₁ ≈⟨ β' ⟩ᴿ r₂
+  wken-≈ᴿ β⊆β' Unit = Unit
+  wken-≈ᴿ β⊆β' (Lbl ℓ) = Lbl ℓ
+  wken-≈ᴿ β⊆β' (Inl x) = Inl (wken-≈ⱽ β⊆β' x)
+  wken-≈ᴿ β⊆β' (Inr x) = Inr (wken-≈ⱽ β⊆β' x)
+  wken-≈ᴿ β⊆β' (Pair x y) = Pair (wken-≈ⱽ β⊆β' x) (wken-≈ⱽ β⊆β' y)
+  wken-≈ᴿ β⊆β' (Fun x) = Fun (wken-≈ᴱ β⊆β' x)
+  wken-≈ᴿ β⊆β' (Ref-Iᴸ ℓ⊑A ∈ᴮ) = Ref-Iᴸ ℓ⊑A (bij-⊆ β⊆β' ∈ᴮ)
+  wken-≈ᴿ β⊆β' (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A
+  wken-≈ᴿ β⊆β' (Ref-S ∈ᴮ) = Ref-S (bij-⊆ β⊆β' ∈ᴮ)
+  wken-≈ᴿ β⊆β' (Id x) = Id (wken-≈ⱽ β⊆β' x)
 
 --------------------------------------------------------------------------------
 
@@ -249,8 +234,8 @@ mutual
   refl-≈ᴿ (inl v) = Inl (refl-≈ⱽ v)
   refl-≈ᴿ (inr v) = Inr (refl-≈ⱽ v)
   refl-≈ᴿ ⟨ v₁ , v₂ ⟩ = Pair ≈₁′ ≈₂′
-    where ≈₁′ = wken-≈ⱽ (m≤m⊔n ∥ v₁ ∥ⱽ ∥ v₂ ∥ⱽ) (refl-≈ⱽ v₁)
-          ≈₂′ = wken-≈ⱽ (n≤m⊔n ∥ v₁ ∥ⱽ ∥ v₂ ∥ⱽ) (refl-≈ⱽ v₂)
+    where ≈₁′ = wken-≈ⱽ (ι-⊆ (m≤m⊔n ∥ v₁ ∥ⱽ ∥ v₂ ∥ⱽ)) (refl-≈ⱽ v₁)
+          ≈₂′ = wken-≈ⱽ (ι-⊆ (n≤m⊔n ∥ v₁ ∥ⱽ ∥ v₂ ∥ⱽ)) (refl-≈ⱽ v₂)
   refl-≈ᴿ (Refᴵ ℓ n) with ℓ ⊑? A
   ... | yes ℓ⊑A = Ref-Iᴸ ℓ⊑A (ι-∈ (s≤s ≤-refl))
   ... | no ℓ⋤A = Ref-Iᴴ ℓ⋤A ℓ⋤A
@@ -261,8 +246,8 @@ mutual
   refl-≈ᴱ : ∀ {Γ} (θ : Env Γ) → θ ≈⟨ ι ∥ θ ∥ᴱ ⟩ᴱ θ
   refl-≈ᴱ [] = []
   refl-≈ᴱ (v ∷ θ) = ≈₁ ∷ ≈₂
-    where ≈₁ = wken-≈ⱽ (m≤m⊔n ∥ v ∥ⱽ ∥ θ ∥ᴱ) (refl-≈ⱽ v)
-          ≈₂ = wken-≈ᴱ (n≤m⊔n ∥ v ∥ⱽ ∥ θ ∥ᴱ) (refl-≈ᴱ θ)
+    where ≈₁ = wken-≈ⱽ (ι-⊆ (m≤m⊔n ∥ v ∥ⱽ ∥ θ ∥ᴱ)) (refl-≈ⱽ v)
+          ≈₂ = wken-≈ᴱ (ι-⊆ (n≤m⊔n ∥ v ∥ⱽ ∥ θ ∥ᴱ)) (refl-≈ᴱ θ)
 
 ----------------------------------------------------------------------------------
 
@@ -384,4 +369,4 @@ open import Generic.Bijection
 -- Define the "Equivalence up to bijection" class.
 
 -- TODO: fix the export here ...
-open S.Props 𝑹 using (square-≈ˢ ; ∣_∣ˢ ; refl-≈ˢ ; trans-≈ˢ ; trans-≈ˢ-ι ; snoc-≈ˢ ; writeᴴ-≈ˢ ; square-≈ˢ-ι) public
+open S.Props 𝑹 using (square-≈ˢ ; ∣_∣ˢ ; refl-≈ˢ ; trans-≈ˢ ; trans-≈ˢ-ι ; snoc-≈ˢ ; writeᴴ-≈ˢ ; square-≈ˢ-ι ; sym-≈ˢ ; newᴴ-≈ˢ ; newᴸ-≈ˢ ; ≈-# ) public
