@@ -1,4 +1,4 @@
-{-# OPTIONS --allow-unsolved-metas #-}
+-- {-# OPTIONS --allow-unsolved-metas #-}
 
 module Generic.Partial.Bijection where
 
@@ -48,13 +48,20 @@ bijᴾ to from inv = record { to = to ; from = from ; inverse-of = inv }
 id : ∀ {A} → A ⤖ᴾ A
 id = bijᴾ just just ((λ { refl → refl }) , (λ { refl → refl }))
 
+--------------------------------------------------------------------------------
+-- TODO: So many variants ... need to clean up
+
 _∈ᵗ_ : ∀ {A B} → A × B → A ⤖ᴾ B → Set
 x ∈ᵗ β = x ∈ to
   where open Bijectionᴾ β
 
 -- TODO: would it be more readable to have A × B and then swap the pair in the def?
 _∈ᶠ_ : ∀ {A B} → A × B → A ⤖ᴾ B → Set
-x ∈ᶠ β = (swap x) ∈ from
+(a , b) ∈ᶠ β = (b , a) ∈ from
+  where open Bijectionᴾ β
+
+∈ᶠ-∈ᵗ : ∀ {A B} {x : A × B} {β : A ⤖ᴾ B} → x ∈ᶠ β → x ∈ᵗ β
+∈ᶠ-∈ᵗ {β = β} x = left-inverse-of x
   where open Bijectionᴾ β
 
 -- Don't think we have use ∈ᶠ maybe we can export ᵗ as just ∈ᴮ
@@ -64,14 +71,23 @@ x ∈ᴮ β = (x ∈ᵗ β) × (x ∈ᶠ β)
 _∈ᴰ_ : ∀ {A B} → A → A ⤖ᴾ B → Set
 a ∈ᴰ β = ∃ (λ b → (a , b) ∈ᵗ β)
 
+-- Not the best definition, ∈ᴿ′ seems better (more symmetric)
 _∈ᴿ_ : ∀ {A B} → B → A ⤖ᴾ B → Set
 b ∈ᴿ β = ∃ (λ a → (a , b) ∈ᵗ β)
 
+_∈ᴿ′_ : ∀ {A B} → B → A ⤖ᴾ B → Set
+b ∈ᴿ′ β = ∃ (λ a → (a , b) ∈ᶠ β)
+
+
+-- TODO : remove
 ∈-∈ᴰ : ∀ {A B} {x : A × B} {β : A ⤖ᴾ B} → x ∈ᵗ β → (proj₁ x) ∈ᴰ β
 ∈-∈ᴰ p = _ , p
 
-∈-∈ᴿ : ∀ {A B} {x : A × B} {β : A ⤖ᴾ B} → x ∈ᵗ β → (proj₂ x) ∈ᴿ β
-∈-∈ᴿ p = _ , p
+-- ∈-∈ᴿ : ∀ {A B} {x : A × B} {β : A ⤖ᴾ B} → x ∈ᵗ β → (proj₂ x) ∈ᴿ β
+-- ∈-∈ᴿ p = _ , p
+
+--------------------------------------------------------------------------------
+-- Bijection extension
 
 _Extends_ : ∀ {A B} (β₁ β₂ : A ⤖ᴾ B) → Set
 β₂ Extends β₁ = ∀ {x} → x ∈ᵗ β₁ → x ∈ᵗ β₂
@@ -83,8 +99,7 @@ record _⊆_ {A B} (β₁ β₂ : A ⤖ᴾ B) : Set where
 
 open _⊆_ public
 
-infixr 2 _⊆_
-
+infixr 3 _⊆_
 
 refl-⊆ : ∀ {A B} {β : A ⤖ᴾ B} → β ⊆ β
 refl-⊆ {β = β} = record { bij-⊆ = λ {x} z → z }
@@ -93,6 +108,8 @@ trans-⊆ : ∀ {A B} {β₁ β₂ β₃ : A ⤖ᴾ B} → β₁ ⊆ β₂ → �
 trans-⊆ ⊆₁ ⊆₂ = record { bij-⊆ = λ ∈₁ → M₂.bij-⊆ (M₁.bij-⊆ ∈₁) }
   where module M₁ = _⊆_ ⊆₁
         module M₂ = _⊆_ ⊆₂
+
+--------------------------------------------------------------------------------
 
 -- Composition
 _∘_ : ∀ {A B C} → B ⤖ᴾ C → A ⤖ᴾ B → A ⤖ᴾ C
@@ -147,12 +164,21 @@ _⁻¹ : ∀ {A : Set} {B : Set} → A ⤖ᴾ B → B ⤖ᴾ A
 
 infixr 5 _⁻¹
 
--- Singleton bijection
-_↔_ : ∀ {A B} {{_≟ᴬ_ : DecEq A}} {{_≟ᴮ_ : DecEq B}} (x : A) (y : B) → A ⤖ᴾ B
-_↔_ {A} {B} {{_≟ᴬ_}} {{_≟ᴮ_}} x y  = bijᴾ (x ↦ y) (y ↦ x) inverse-of-↦
-  where instance _ = _≟ᴬ_
-                 _ = _≟ᴮ_
+module Singleton {A B} {{_≟ᴬ_ : DecEq A}} {{_≟ᴮ_ : DecEq B}} where
+  instance _ = _≟ᴬ_
+           _ = _≟ᴮ_
 
+  -- Singleton bijection
+  _↔_ : ∀ (x : A) (y : B) → A ⤖ᴾ B
+  _↔_ x y  = bijᴾ (x ↦ y) (y ↦ x) inverse-of-↦
+
+  ↔-∈ : ∀ x y → (x , y) ∈ᴮ (x ↔ y)
+  ↔-∈ x y = trivial x y , trivial y x
+
+open Singleton {{...}} public
+
+--------------------------------------------------------------------------------
+-- TODO: Are these ever used?
 
 -- Disjoint bijections.
 -- β₁ # β₂ denotes that β₂ is disjoint from β₁, i.e., the
@@ -183,32 +209,54 @@ _∣ᴮ_ {A} {B} β₁ β₂ {{ to-# , from-# }} =
          } -- isB-∘ β₁ β₂ (to-# , from-#) }
   where module B₁ = Bijectionᴾ β₁
         module B₂ = Bijectionᴾ β₂
-        module B₁′ = Bijectionᴾ (β₁ ⁻¹)
-        module B₂′ = Bijectionᴾ (β₂ ⁻¹)
+        module B₁′ = Bijectionᴾ (β₁ ⁻¹) -- TODO: are these used?
+        module B₂′ = Bijectionᴾ (β₂ ⁻¹) -- TODO: are these used?
         left  = inverse-compose B₁.left-inverse-of B₂.left-inverse-of from-# to-#
         right = inverse-compose B₁.right-inverse-of B₂.right-inverse-of to-# from-#
 
--- Add a single pair to the right of a bijection
-_▻_ : ∀ {A B} (β : Bijectionᴾ A B) (x : A × B) →
-       let (a , b) = x in
-         {{∉ᴬ : a ∉ᴰ Bijectionᴾ.to β}} {{∉ᴮ : b ∉ᴰ Bijectionᴾ.from β}}
-         {{_≟ᴬ_ : DecEq A}} {{_≟ᴮ_ : DecEq B}} → Bijectionᴾ A B
-_▻_ β (a , b) {{ ∉ᴬ }} {{ ∉ᴮ }} {{_≟ᴬ_}} {{_≟ᴮ_}} = β ∣ᴮ (a ↔ b)
-  where instance _ = _≟ᴬ_
-                 _ = _≟ᴮ_
-                 _ : β # a ↔ b
-                 _ = ∉-# (Bijectionᴾ.to β) ∉ᴬ , ∉-# (Bijectionᴾ.from β) ∉ᴮ
 
--- Add a single pair to the left of a bijection
-_◅_ : ∀ {A B} (x : A × B) (β : Bijectionᴾ A B) →
-       let (a , b) = x in
-         {{∉ᴬ : a ∉ᴰ Bijectionᴾ.to β}} {{∉ᴮ : b ∉ᴰ Bijectionᴾ.from β}}
-         {{_≟ᴬ_ : DecEq A}} {{_≟ᴮ_ : DecEq B}} → Bijectionᴾ A B
-_◅_ (a , b) β {{ ∉ᴬ }} {{ ∉ᴮ }} {{_≟ᴬ_}} {{_≟ᴮ_}} = (a ↔ b) ∣ᴮ β
-  where instance _ = _≟ᴬ_
-                 _ = _≟ᴮ_
-                 _ : (a ↔ b) # β
-                 _ = sym-# (∉-# (Bijectionᴾ.to β) ∉ᴬ) , sym-# (∉-# (Bijectionᴾ.from β) ∉ᴮ)
+-- TODO: probably it'd be nice to do the other one to
+∣ᴮ-⊆₁  : ∀ {A B} → (β₁ β₂ : Bijectionᴾ A B) {{β₁#β₂ : β₁ # β₂}} → β₁ ⊆ (β₁ ∣ᴮ β₂)
+∣ᴮ-⊆₁ β₁ β₂ = record { bij-⊆ = bij-⊆′ }
+  where module B₁ = Bijectionᴾ β₁
+        module B₂ = Bijectionᴾ β₂
+        bij-⊆′ : (β₁ ∣ᴮ β₂) Extends β₁
+        bij-⊆′ {x , y} ∈₁ with B₁.to x
+        bij-⊆′ {x , y} ∈₁ | just x₁ = ∈₁
+        bij-⊆′ {x , y} () | nothing
+
+postulate ∣ᴮ-⊆₂  : ∀ {A B} → (β₁ β₂ : Bijectionᴾ A B) {{β₁#β₂ : β₁ # β₂}} → β₂ ⊆ (β₁ ∣ᴮ β₂)
+
+
+-- _∣ᴮ_[_] : ∀ {A B} → (β₁ β₂ : Bijectionᴾ A B) (β₁#β₂ : β₁ # β₂) → Bijectionᴾ A B
+-- β₁ ∣ᴮ β₂ [ β₁#β₂ ] = β₁ ∣ᴮ β₂
+--   where instance _ = β₁#β₂
+
+-- These seem too complicated to use in practice
+
+-- Maybe module?
+
+-- Add a single pair to the right of a bijection
+-- _▻_ : ∀ {A B} (β : Bijectionᴾ A B) (x : A × B) →
+--        let (a , b) = x in
+--          {{∉ᴬ : a ∉ᴰ Bijectionᴾ.to β}} {{∉ᴮ : b ∉ᴰ Bijectionᴾ.from β}}
+--          {{_≟ᴬ_ : DecEq A}} {{_≟ᴮ_ : DecEq B}} → Bijectionᴾ A B
+-- _▻_ β (a , b) {{ ∉ᴬ }} {{ ∉ᴮ }} {{_≟ᴬ_}} {{_≟ᴮ_}} = β ∣ᴮ (a ↔ b)
+--   where instance _ = _≟ᴬ_
+--                  _ = _≟ᴮ_
+--                  _ : β # a ↔ b
+--                  _ = ∉-# (Bijectionᴾ.to β) ∉ᴬ , ∉-# (Bijectionᴾ.from β) ∉ᴮ
+
+-- -- Add a single pair to the left of a bijection
+-- _◅_ : ∀ {A B} (x : A × B) (β : Bijectionᴾ A B) →
+--        let (a , b) = x in
+--          {{∉ᴬ : a ∉ᴰ Bijectionᴾ.to β}} {{∉ᴮ : b ∉ᴰ Bijectionᴾ.from β}}
+--          {{_≟ᴬ_ : DecEq A}} {{_≟ᴮ_ : DecEq B}} → Bijectionᴾ A B
+-- _◅_ (a , b) β {{ ∉ᴬ }} {{ ∉ᴮ }} {{_≟ᴬ_}} {{_≟ᴮ_}} = (a ↔ b) ∣ᴮ β
+--   where instance _ = _≟ᴬ_
+--                  _ = _≟ᴮ_
+--                  _ : (a ↔ b) # β
+--                  _ = sym-# (∉-# (Bijectionᴾ.to β) ∉ᴬ) , sym-# (∉-# (Bijectionᴾ.from β) ∉ᴮ)
 
 split-∈ᵗ : ∀ {A B C : Set} {a c} {β₁ : A ⤖ᴾ B} {β₂ : B ⤖ᴾ C} →
              (a , c) ∈ᵗ (β₂ ∘ β₁) →
@@ -232,6 +280,7 @@ join-∈ᵗ {a = a} {b} {c} {β₁} {β₂} () y | nothing
 --------------------------------------------------------------------------------
 
 open Bijectionᴾ
+
 
 -- lemma : ∀ {A} {a a' : A} {β} → to β a ≡ just a' → to β a' ≡ just a → a ≡ a'
 -- lemma {_} {a} {a'} {β} eq₁ eq₂ with right-inverse-of β eq₁ | right-inverse-of β eq₂ | to β a | to β a'

@@ -159,9 +159,13 @@ suc-snoc (x ∷ Σ) = cong suc (suc-snoc Σ)
 snoc-≤ : ∀ {Σ τ} {c : Cell τ} → ∥ Σ ∥ ≤ ∥ Σ ∷ᴿ c ∥
 snoc-≤ {Σ} {c = c} rewrite suc-snoc {c = c} Σ = ≤-step ≤-refl
 
+-- TODO: rename snoc-∈
 wken-∈ : ∀ {n τ τ' Σ} {c : Cell τ} {c' : Cell τ'} → n ↦ c ∈ Σ → n ↦ c ∈ (Σ ∷ᴿ c')
 wken-∈ Here = Here
 wken-∈ (There x) = There (wken-∈ x)
+
+wken-∈′ : ∀ {n τ Σ} {c : Cell τ} → n ∈ Σ → n ∈ (Σ ∷ᴿ c)
+wken-∈′ (_ , _ , ∈₁) = (_ , _ , wken-∈ ∈₁)
 
 write-length-≡ : ∀ {Σ Σ' n τ} {c : Cell τ} → Σ' ≔ Σ [ n ↦ c ] → ∥ Σ' ∥ ≡ ∥ Σ ∥
 write-length-≡ Here = refl
@@ -215,6 +219,9 @@ inj-∈ : ∀ {n τ} {Σ : Store} {c₁ c₂ : Cell τ} →
 inj-∈ x y with inj-∈′ x y
 ... | refl , eq = eq
 
+-- inj-∈-snoc : ∀ {n τ₁ τ₂ τ₃} {Σ : Store} {c₁ : Cell τ₁} {c₂ : Cell τ₂} {c₃ : Cell τ₃} →
+--              n ↦ c₁ ∈ Σ → n ↦ c₂ ∈ Σ → P.Σ (τ₁ ≡ τ₂) (λ {refl → c₁ ≡ c₂})
+-- inj-∈-snoc
 
 write-only-one : ∀ {Σ Σ' n τ} {c : Cell τ} → Σ' ≔ Σ [ n ↦ c ] →
                    (∀ {n' τ' τ''} {c' : Cell τ'} {c'' : Cell τ''}
@@ -237,3 +244,19 @@ lookup-snoc : ∀ {Σ n τ τ'} {c : Cell τ} {c' : Cell τ'} → n ↦ c ∈ (�
 lookup-snoc {[]} ∈₁ <₁ = ⊥-elim (n≮0 <₁)
 lookup-snoc {x ∷ Σ₁} Here <₁ = Here
 lookup-snoc {x ∷ Σ₁} (There ∈₁) (s≤s <₁) = There (lookup-snoc ∈₁ <₁)
+
+∉-oob : ∀ {Σ} → ∥ Σ ∥ ∈ Σ → ⊥
+∉-oob {[]} (_ , _ , ())
+∉-oob {_ ∷ Σ₁} (_ , _ , There x) = ∉-oob (_ , _ , x)
+
+last-∈ : ∀ {τ} {c : Cell τ} Σ → ∥ Σ ∥ ↦ c ∈ (Σ ∷ᴿ c)
+last-∈ [] = Here
+last-∈ (x ∷ Σ₁) = There (last-∈ Σ₁)
+
+last-∈′ : ∀ {τ} {c : Cell τ} Σ → ∥ Σ ∥ ∈ (Σ ∷ᴿ c)
+last-∈′ Σ = _ , _ , last-∈ Σ
+
+last-≡ : ∀ {Σ τ τ'} {c : Cell τ} {c' : Cell τ'} → ∥ Σ ∥ ↦ c' ∈ (Σ ∷ᴿ c) → P.Σ (τ ≡ τ') (λ { refl → c ≡ c' })
+last-≡ {[]} Here = refl , refl
+last-≡ {_ ∷ Σ₁} (There x) with last-≡ x
+... | refl , refl = refl , refl

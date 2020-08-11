@@ -80,9 +80,6 @@ data Graph {A : Set} {B : Set} (f : A ⇀ B) (a : A) : B → Set where
 _∈_ : ∀ {A B} → A × B → A ⇀ B → Set
 (a , b) ∈ p = p a ≡ just b
 
-_∉_ : ∀ {A B} → A × B → A ⇀ B → Set
-(a , b) ∉ p = p a ≡ nothing
-
 infixr 4 _∈_
 
 _∈ᴰ_ : ∀ {A B} → A → A ⇀ B → Set
@@ -172,6 +169,11 @@ module Util {A B : Set} {{ _≟ᴬ_ : DecEq A }}  where
   only-one a b a' b' x with a ≟ᴬ a'
   only-one a b .a .b refl | yes refl = refl , refl
   only-one a b a' b' () | no ¬p
+
+  trivial : ∀ x y → (x , y) ∈ (x ↦ y)
+  trivial x y with x ≟ᴬ x
+  trivial x y | yes refl = refl
+  trivial x y | no ¬p = ⊥-elim (¬p refl)
 
   postulate only-one′ : ∀ {a b a' b'} → (a' , b') ∈ (a ↦ b) → a' ≡ a × b' ≡ b
 

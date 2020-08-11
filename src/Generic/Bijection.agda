@@ -1,4 +1,4 @@
--- {-# OPTIONS --allow-unsolved-metas #-}
+{-# OPTIONS --allow-unsolved-metas #-}
 
 module Generic.Bijection where
 
@@ -14,6 +14,7 @@ open import Relation.Nullary
 
 --------------------------------------------------------------------------------
 
+-- TODO: remove
 suc-injective : ∀ {n} {x y : Fin n} → _≡_ {A = Fin (suc n)} (suc x) (suc y) → x ≡ y
 suc-injective refl = refl
 
@@ -62,6 +63,12 @@ open Bijectionᴾ
 
 ι-⊆ : ∀ {n m} → n ≤ m → ι n ⊆ ι m
 ι-⊆ n≤m = record { bij-⊆ = ι-extends n≤m }
+
+-- TODO: Remove, it does not hold
+-- id-⊆ : ∀ (β : Bij) → id ⊆ β
+-- id-⊆ β = record { bij-⊆ = proof }
+--   where proof : β Extends id
+--         proof refl = {!!}
 
 -- TODO: whenever you need to use this postulate, use the above lemma
 -- postulate ι-≤ : ∀ {a b n m} → n ≤ m → (a , b) ∈ᵗ ι n → (a , b) ∈ᵗ ι m
@@ -148,7 +155,7 @@ irr-< (s≤s (s≤s p)) (s≤s (s≤s q)) = cong s≤s (irr-< (s≤s p) (s≤s q
 --------------------------------------------------------------------------------
 -- Equality about composition of identity bijections
 
-open import Relation.Binary.HeterogeneousEquality hiding (inspect ; sym)
+open import Relation.Binary.HeterogeneousEquality hiding (inspect ; sym ; cong ; cong₂)
 
 postulate funext : ∀ {A : Set} {B : Set} (f g : A → B) → (∀ x → f x ≡ g x) → f ≡ g
 
@@ -168,7 +175,7 @@ postulate bij-≡ : ∀ (β₁ β₂ : Bij) → to β₁ ≡ to β₂ → from �
 
 -- Move to bijection
 _⊆ᴿ_ : ∀ {A B C} → A ⤖ᴾ B → B ⤖ᴾ C → Set
-β₁ ⊆ᴿ β₂ = ∀ {y} → y ∈ᴿ β₁ → y ∈ᴰ β₂
+β₁ ⊆ᴿ β₂ = ∀ {y} → y ∈ᴿ′ β₁ → y ∈ᴰ β₂
 
 _⊆ᴰ_ : ∀ {A B} → A ⤖ᴾ B → A ⤖ᴾ B → Set
 β₁ ⊆ᴰ β₂ = ∀ {x} → x ∈ᴰ β₁ → x ∈ᴰ β₂
@@ -191,26 +198,26 @@ _⊆ᴰ_ : ∀ {A B} → A ⤖ᴾ B → A ⤖ᴾ B → Set
 absorb-ι₁ : ∀ {n β} →  β ⊆ᴿ (ι n) → (ι n ∘ β) ≡ β
 absorb-ι₁ {n} {β} ⊆₁ = bij-≡ (ι n ∘ β) β (funext _ _ to-ι) (funext _ _ from-ι)
 
-  where to-ι : ∀ x → to (ι n ∘ β) x ≡ to β x
-        to-ι x with to β x | inspect (to β) x
-        to-ι x | just y | [ eq ] with y <? n
-        to-ι x | just y | [ eq ] | yes p = refl
-        to-ι x | just y | [ eq ] | no ¬p with ⊆₁ (_ , eq)
-        to-ι x | just y | [ eq ] | no ¬p | _ , eq' with y <? n
-        to-ι x | just y | [ eq ] | no ¬p | _ , eq' | yes p = ⊥-elim (¬p p)
-        to-ι x | just y | [ eq ] | no ¬p | _ , () | no ¬p₁
-        to-ι x | nothing | [ eq ] = refl
+  where postulate to-ι : ∀ x → to (ι n ∘ β) x ≡ to β x
+        -- to-ι x with to β x | inspect (to β) x
+        -- to-ι x | just y | [ eq ] with y <? n
+        -- to-ι x | just y | [ eq ] | yes p = refl
+        -- to-ι x | just y | [ eq ] | no ¬p with ⊆₁ (_ , eq)
+        -- to-ι x | just y | [ eq ] | no ¬p | _ , eq' with y <? n
+        -- to-ι x | just y | [ eq ] | no ¬p | _ , eq' | yes p = ⊥-elim (¬p p)
+        -- to-ι x | just y | [ eq ] | no ¬p | _ , () | no ¬p₁
+        -- to-ι x | nothing | [ eq ] = refl
 
 
-        from-ι : (x : ℕ) → from (ι n ∘ β) x ≡ from β x
-        from-ι x with x <? n
-        from-ι x | yes p = refl
-        from-ι x | no ¬p with from β x | inspect (from β) x
-        from-ι x | no ¬p | just y | [ eq ] with ⊆₁ (_ , left-inverse-of β eq)
-        from-ι x | no ¬p | just y | [ eq ] | _ , eq' with x <? n
-        from-ι x | no ¬p | just y | [ eq ] | _ , eq' | yes p = ⊥-elim (¬p p)
-        from-ι x | no ¬p | just y | [ eq ] | _ , () | no ¬p₁
-        from-ι x | no ¬p | nothing | [ eq ] = refl
+        postulate from-ι : (x : ℕ) → from (ι n ∘ β) x ≡ from β x
+        -- from-ι x with x <? n
+        -- from-ι x | yes p = refl
+        -- from-ι x | no ¬p with from β x | inspect (from β) x
+        -- from-ι x | no ¬p | just y | [ eq ] with ⊆₁ (_ , left-inverse-of β eq)
+        -- from-ι x | no ¬p | just y | [ eq ] | _ , eq' with x <? n
+        -- from-ι x | no ¬p | just y | [ eq ] | _ , eq' | yes p = ⊥-elim (¬p p)
+        -- from-ι x | no ¬p | just y | [ eq ] | _ , () | no ¬p₁
+        -- from-ι x | no ¬p | nothing | [ eq ] = refl
 
 absorb-ι₂ : ∀ {n β} → β ⊆ᴰ (ι n) → (β ∘ ι n) ≡ β
 absorb-ι₂ {n} {β} ⊆₁ = bij-≡ (β ∘ ι n) β (funext _ _ to-ι) (funext _ _ from-ι)
@@ -261,6 +268,29 @@ absorb-ι {n} {m} m≤n = bij-≡ (ι n ∘ ι m) (ι m) (funext _ _ (ι-∘ᵀ 
 ι-inv : ∀ {n} → (ι n) ≡ (ι n)⁻¹
 ι-inv {n} = bij-≡ _ _ refl refl
 
+--------------------------------------------------------------------------------
+
+-- _▻_ : Bij → (ℕ × ℕ) → Bij
+-- β ▻ (x , y) = record { to = to' ; from = from' ; inverse-of = {!!} }
+--   where
+--         to' : ℕ ⇀ ℕ
+--         to' x' with to β x'
+--         to' x' | just y' = just y'
+--         to' x' | nothing with x ≟ x'
+--         to' x' | nothing | yes refl = just y
+--         to' x' | nothing | no ¬p = nothing
+
+--         from' : ℕ ⇀ ℕ
+--         from' y' with from β y'
+--         from' y' | just x' = just x'
+--         from' y' | nothing with y ≟ y'
+--         from' y' | nothing | yes refl = just x
+--         from' y' | nothing | no ¬p = nothing
+
+--         proof : from' InverseOfᴾ to'
+--         proof = {!!} , {!!}
+
+--         proof₁
 --------------------------------------------------------------------------------
 -- TODO: Adapt the definition of partial bijections to use the following
 -- definition of InverseOf to avoid trouble with implicit parameters.
@@ -424,6 +454,27 @@ absorb-ι {n} {m} m≤n = bij-≡ (ι n ∘ ι m) (ι m) (funext _ _ (ι-∘ᵀ 
 --         symᴮ : Symmetricᴮ R
 --         transᴮ : Transitiveᴮ R
 
+-- TODO: remove
+-- postulate ∘⁻¹ : ∀ {A B C} (β₁ : A ⤖ᴾ B) (β₂ : B ⤖ᴾ C) → (β₂ ∘ β₁)⁻¹ ≡ (β₁ ⁻¹ ∘ β₂ ⁻¹)
+-- postulate inv-ι : ∀ {A} (β : A ⤖ᴾ A) → (β ⁻¹) ⁻¹ ≡ id
+-- postulate id-∘ : ∀ {A B} (β : A ⤖ᴾ B) → (β ∘ id) ≡ β
+
+-- lemma₁ : ∀ (β : Bij) → (β ⁻¹ ∘ β ∘ β ⁻¹) ⁻¹ ≡ β
+-- lemma₁ β = proof
+--   where open ≡-Reasoning
+--         proof : (β ⁻¹ ∘ β ∘ β ⁻¹) ⁻¹ ≡ β
+--         proof =
+--           begin (β ⁻¹ ∘ (β ∘ β ⁻¹)) ⁻¹ ≡⟨ ∘⁻¹ (β ∘ β ⁻¹) (β ⁻¹) ⟩
+--                 ((β ∘ β ⁻¹) ⁻¹) ∘ ((β ⁻¹) ⁻¹) ≡⟨ cong₂ _∘_ refl (inv-ι β)  ⟩
+--                 ((β ∘ β ⁻¹) ⁻¹) ∘ id ≡⟨ id-∘ ((β ∘ β ⁻¹) ⁻¹) ⟩
+--                 (β ∘ β ⁻¹) ⁻¹ ≡⟨ ∘⁻¹ (β ⁻¹) β ⟩
+--                 ((β ⁻¹) ⁻¹) ∘ β ⁻¹  ≡⟨ {!!} ⟩
+-- --                (((β ⁻¹) ⁻¹) ∘ β ⁻¹) ∘ ((β ⁻¹) ⁻¹)  ≡⟨ {!!} ⟩
+--                   β ∎
+
+-- lemma₂ : ∀ (β β' : Bij) → β ⊆ β' → β ⊆ (β' ⁻¹)
+-- lemma₂ β β' x = {!!}
+
 --------------------------------------------------------------------------------
 -- Explicitly indexed
 
@@ -433,7 +484,7 @@ module IProps (A : Set) (F : A → Set) where
   Relᴮ = ∀ {a} → F a → Bij → F a → Set
 
   Wkenᴮ : Relᴮ → Set
-  Wkenᴮ R = ∀ {a n m} {x y : F a} → n ≤ m → R x (ι n) y → R x (ι m) y
+  Wkenᴮ R = ∀ {a β β'} {x y : F a} → β ⊆ β' → R x β y → R x β' y
 
   Reflexiveᴮ : Relᴮ → (Dom : ∀ {a} → F a → ℕ) → Set
   Reflexiveᴮ R Dom = ∀ {a} {x : F a} → R x (ι (Dom x)) x
