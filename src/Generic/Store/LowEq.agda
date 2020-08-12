@@ -32,7 +32,6 @@ data _≈⟨_⟩ᶜ_ : ∀ {τ} → Cell τ → Bij → Cell τ → Set where
   cellᴸ : ∀ {ℓ τ β} → {v v' : Value τ} → ℓ ⊑ A → v ≈⟨ β ⟩ⱽ v' → (v , ℓ) ≈⟨ β ⟩ᶜ (v' , ℓ)
   cellᴴ : ∀ {ℓ ℓ' τ β} → {v v' : Value τ} → ℓ ⋤ A → ℓ' ⋤ A → (v , ℓ) ≈⟨ β ⟩ᶜ (v' , ℓ')
 
-
 -- Cells
 data _≅⟨_⟩ᶜ_ {τ} (c : Cell τ) (β : Bij) : ∀ {τ'} → Cell τ' → Set where
   ⌞_⌟ : ∀ {c' : Cell τ} → c ≈⟨ β ⟩ᶜ c' → c ≅⟨ β ⟩ᶜ c'

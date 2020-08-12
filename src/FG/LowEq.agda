@@ -137,6 +137,14 @@ mutual
 Ref-Iᴸ′ : ∀ {τ ℓ n₁ n₂} {β : Bij} → ℓ ⊑ A → ⟨ n₁ , n₂ ⟩ ∈ᵗ β → Refᴵ {τ = τ} ℓ n₁ ≈⟨ β ⟩ᴿ Refᴵ ℓ n₂
 Ref-Iᴸ′ ℓ⊑A x = Ref-Iᴸ ℓ⊑A x
 
+Ref-I′ : ∀ {τ n₁ n₂} {β : Bij} {v₁ v₂ : Value τ} → ⟨ n₁ , n₂ ⟩ ∈ᵗ β →
+            let _ ^ ℓ₁ = v₁
+                _ ^ ℓ₂ = v₂ in
+         v₁ ≈⟨ β ⟩ⱽ v₂ →
+         Refᴵ {τ = τ} ℓ₁ n₁ ≈⟨ β ⟩ᴿ Refᴵ ℓ₂ n₂
+Ref-I′ ∈₁ (Valueᴸ ℓ⊑A r≈) = Ref-Iᴸ ℓ⊑A ∈₁
+Ref-I′ ∈₁ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A
+
 Trueᴸ : ∀ {ℓ} {β : Bij} → ℓ ⊑ A → true ℓ ≈⟨ β ⟩ᴿ true ℓ
 Trueᴸ ℓ⊑A = Inl (Valueᴸ ℓ⊑A Unit)
 
@@ -154,8 +162,10 @@ Falseᴸ ℓ⊑A = Inr (Valueᴸ ℓ⊑A Unit)
 ≈ⱽ-⊑ pc (Valueᴴ x x₁) = Valueᴴ (trans-⋤ (join-⊑₂ _ _) x) (trans-⋤ (join-⊑₂ _ _) x₁)
 
 -- Derive L-equivalence for stores,
-open import Generic.Store.LowEq {Ty} {Raw} _≈⟨_⟩ᴿ_ A as S using (_≈⟨_⟩ˢ_ ; cellᴸ) public
+open import Generic.Store.LowEq {Ty} {Raw} _≈⟨_⟩ᴿ_ A as S
+  using (_≈⟨_⟩ˢ_ ; cellᴸ ; cellᴴ ) public
 
+-- open import Generic.Store.LowEq {Ty} {Raw} A renaming (_≈⟨_⟩ᶜ_ to _≈⟨_⟩ᶜ′_)
 -- _≈⟨_⟩ˢ_ : Store → Bij → Store → Set
 -- Σ₁ ≈⟨ β ⟩ˢ Σ₂ = Σ₁ ≈ˢ Σ₂
 --   where open import Generic.Store.LowEq {Ty} {Raw} (λ r₁ r₂ → r₁ ≈⟨ β ⟩ᴿ r₂) A
@@ -168,7 +178,13 @@ open import Generic.Store.LowEq {Ty} {Raw} _≈⟨_⟩ᴿ_ A as S using (_≈⟨
 -- --
 -- -- using (_≈⟨_⟩ᴴ_ ; _≈ᴴ_ ; new-≈ᴴ ; Bij⟨_,_⟩)
 
-
+-- TODO: this hints that maybe we should put values in the store
+≈ⱽ-≈ᶜ : ∀ {τ β} {v₁ v₂ : Value τ} → v₁ ≈⟨ β ⟩ⱽ v₂ →
+        let r₁ ^ ℓ₁ = v₁
+            r₂ ^ ℓ₂ = v₂ in
+            ⟨ r₁ , ℓ₁ ⟩ S.≈⟨ β ⟩ᶜ ⟨ r₂ , ℓ₂ ⟩
+≈ⱽ-≈ᶜ (Valueᴸ ℓ⊑A r≈) = cellᴸ ℓ⊑A r≈
+≈ⱽ-≈ᶜ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = cellᴴ ℓ₁⋤A ℓ₂⋤A
 
 -- Lift low-equivalence to configurations
 open Conf

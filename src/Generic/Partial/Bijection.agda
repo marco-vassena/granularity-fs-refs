@@ -175,6 +175,9 @@ module Singleton {A B} {{_≟ᴬ_ : DecEq A}} {{_≟ᴮ_ : DecEq B}} where
   ↔-∈ : ∀ x y → (x , y) ∈ᴮ (x ↔ y)
   ↔-∈ x y = trivial x y , trivial y x
 
+  ↔-∈ᵗ : ∀ x y → (x , y) ∈ᵗ (x ↔ y)
+  ↔-∈ᵗ x y = proj₁ (↔-∈ x y)
+
 open Singleton {{...}} public
 
 --------------------------------------------------------------------------------

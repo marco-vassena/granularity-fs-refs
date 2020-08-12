@@ -316,18 +316,15 @@ mutual
 
   -- Maybe this two cases can be merged as long as the new cells are L-equiv
   tiniᴸ  {pc = pc} {Σ₁ = Σ₁} {Σ₂ = Σ₂} (New {ℓ = ℓ₁} {τ = τ} {Σ' = Σ₁'} {r = r₁} x₁) (New {ℓ = ℓ₂} {Σ' = Σ₂'} {r = r₂} x₂) Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₂ Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A
-  ... | β' ∧ β⊆β' ∧ E.⟨ Σ≈ , E.Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = β' ∧ β⊆β' ∧ E.⟨ Σ≈′ , r≈′ ⟩
-      where Σ≈′ = newᴴ-≈ˢ Σ≈ ℓ₁⋤A ℓ₂⋤A
-            r≈′ = Valueᴸ pc⊑A (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A)
-  ... | β' ∧ β⊆β' ∧ E.⟨ Σ≈ , E.Valueᴸ ℓ⊑A r≈ ⟩ = β'' ∧ β⊆β'' ∧ E.⟨ Σ≈′ , wken-≈ⱽ (∣ᴮ-⊆₂ β' β₁) v≈′ ⟩
+  ... | β' ∧ β⊆β' ∧ E.⟨ Σ≈ , v≈  ⟩ = β'' ∧ β⊆β'' ∧ E.⟨ Σ≈′ , v≈′ ⟩
       where instance _ = _≟_
                      _ = ≈-# Σ≈
             β₁ =  ∥ Σ₁' ∥ ↔ ∥ Σ₂' ∥
             β'' = β' ∣ᴮ β₁
             β'⊆β'' = ∣ᴮ-⊆₁ β' β₁
             β⊆β'' = trans-⊆ β⊆β' β'⊆β''
-            Σ≈′ = newᴸ-≈ˢ (cellᴸ ℓ⊑A r≈) Σ≈
-            v≈′ = Valueᴸ pc⊑A (Ref-Iᴸ′ ℓ⊑A (proj₁ (↔-∈ ∥ Σ₁' ∥ ∥ Σ₂' ∥)))
+            Σ≈′ = newᴸ-≈ˢ (≈ⱽ-≈ᶜ v≈) Σ≈
+            v≈′ = Valueᴸ pc⊑A (Ref-I′ (bij-⊆ (∣ᴮ-⊆₂ β' β₁) (↔-∈ᵗ ∥ Σ₁' ∥ ∥ Σ₂' ∥)) (wken-≈ⱽ β'⊆β'' v≈))
 
   tiniᴸ (Read x₁ n∈M₁ refl) (Read x₂ n∈M₂ refl) Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A = {!!}
 -- with tiniᴸ x₁ x₂ Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A
@@ -374,7 +371,17 @@ mutual
 
   tiniᴸ (LabelOfRef-FS x x₁ eq) (LabelOfRef-FS x₂ x₃ eq₁) Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A = {!!}
 
-  tiniᴸ (New-FS x) (New-FS x₁) Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A = {!!}
+  tiniᴸ (New-FS {Σ' = Σ₁'} x₁) (New-FS {Σ' = Σ₂'} x₂) Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₂ Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A
+  ... | β' ∧ β⊆β' ∧ E.⟨ Σ≈ , v≈  ⟩ = β'' ∧ β⊆β'' ∧ E.⟨ Σ≈′ , wken-≈ⱽ (∣ᴮ-⊆₂ β' β₁) v≈′ ⟩
+      where instance _ = _≟_
+                     _ = ≈-# Σ≈
+            β₁ =  ∥ Σ₁' ∥ ↔ ∥ Σ₂' ∥
+            β'' = β' ∣ᴮ β₁
+            β'⊆β'' = ∣ᴮ-⊆₁ β' β₁
+            β⊆β'' = trans-⊆ β⊆β' β'⊆β''
+            Σ≈′ = newᴸ-≈ˢ (≈ⱽ-≈ᶜ v≈) Σ≈
+            v≈′ = Valueᴸ pc⊑A (Ref-S (↔-∈ᵗ ∥ Σ₁' ∥ ∥ Σ₂' ∥)) -- (Ref-Iᴸ′ ℓ⊑A (proj₁ (↔-∈ ∥ Σ₁' ∥ ∥ Σ₂' ∥)))
+
 
   tiniᴸ (Read-FS x x₁ eq) (Read-FS x₂ x₃ eq₁) Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A = {!!}
 
