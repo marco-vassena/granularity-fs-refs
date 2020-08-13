@@ -101,7 +101,6 @@ infixr 4 _∉ᴰ_
 ≡-∈ᴰ : ∀ {A B} a b (p : A ⇀ B) → p a ≡ just b → a ∈ᴰ p
 ≡-∈ᴰ _ _ _ eq rewrite eq = just tt
 
-
 ∈-just : ∀ {A B} a b (p : A ⇀ B) → (a , b) ∈ p → Is-just (p a)
 ∈-just a b p eq rewrite eq = just tt
 

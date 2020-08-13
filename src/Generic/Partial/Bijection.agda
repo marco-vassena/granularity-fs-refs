@@ -228,8 +228,18 @@ _∣ᴮ_ {A} {B} β₁ β₂ {{ to-# , from-# }} =
         bij-⊆′ {x , y} ∈₁ | just x₁ = ∈₁
         bij-⊆′ {x , y} () | nothing
 
-postulate ∣ᴮ-⊆₂  : ∀ {A B} → (β₁ β₂ : Bijectionᴾ A B) {{β₁#β₂ : β₁ # β₂}} → β₂ ⊆ (β₁ ∣ᴮ β₂)
-
+∣ᴮ-⊆₂  : ∀ {A B} → (β₁ β₂ : Bijectionᴾ A B) {{β₁#β₂ : β₁ # β₂}} → β₂ ⊆ (β₁ ∣ᴮ β₂)
+∣ᴮ-⊆₂ β₁ β₂ {{ β₁#β₂ }} = record { bij-⊆ = bij-⊆′ }
+  where module B₁ = Bijectionᴾ β₁
+        module B₂ = Bijectionᴾ β₂
+        open import Data.Maybe.Base
+        bij-⊆′ : (β₁ ∣ᴮ β₂) Extends β₂
+        bij-⊆′ {x , y} ∈₁ with B₁.to x | inspect B₁.to x
+        bij-⊆′ {x , y} ∈₁ | just x₁ | [ eq ] with proj₁ β₁#β₂ x  (∈-just _ _ B₁.to eq) | B₂.to x | inspect B₂.to x
+        bij-⊆′ {x , y} ∈₁ | just x₁ | [ eq ] | r | just x₂ | [ eq' ]
+          rewrite eq' = ⊥-elim (⊥-is-nothing-just r)
+        bij-⊆′ {x , y} () | just x₁ | [ eq ] | r | nothing | [ eq' ]
+        bij-⊆′ {x , y} ∈₁ | nothing | _ = ∈₁
 
 -- _∣ᴮ_[_] : ∀ {A B} → (β₁ β₂ : Bijectionᴾ A B) (β₁#β₂ : β₁ # β₂) → Bijectionᴾ A B
 -- β₁ ∣ᴮ β₂ [ β₁#β₂ ] = β₁ ∣ᴮ β₂
