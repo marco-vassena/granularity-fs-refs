@@ -164,14 +164,7 @@ Falseᴸ ℓ⊑A = Inr (Valueᴸ ℓ⊑A Unit)
 
 -- Derive L-equivalence for stores,
 open import Generic.Store.LowEq {Ty} {Raw} _≈⟨_⟩ᴿ_ A as S
-  using (_≈⟨_⟩ˢ_ ; cellᴸ ; cellᴴ ; ⌞_⌟) public
-
--- TODO: move to Store.LowEq
-postulate ≈ᶜ-⊑ :  ∀ {τ β} {c₁ c₂ : Cell τ} (pc : Label) →
-                   let ⟨ v₁ , ℓ₁ ⟩ = c₁
-                       ⟨ v₂ , ℓ₂ ⟩ = c₂ in
-                       c₁ S.≈⟨ β ⟩ᶜ c₂ → ⟨ v₁ , (pc ⊔ ℓ₁) ⟩ S.≈⟨ β ⟩ᶜ ⟨ v₂ , (pc ⊔ ℓ₂) ⟩
-
+  using (_≈⟨_⟩ˢ_ ; cellᴸ ; cellᴴ ; ⌞_⌟ ; ≈ᶜ-⊑) public
 
 -- open import Generic.Store.LowEq {Ty} {Raw} A renaming (_≈⟨_⟩ᶜ_ to _≈⟨_⟩ᶜ′_)
 -- _≈⟨_⟩ˢ_ : Store → Bij → Store → Set

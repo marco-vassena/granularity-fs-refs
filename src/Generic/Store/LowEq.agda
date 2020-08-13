@@ -31,13 +31,25 @@ data _≈⟨_⟩ᶜ_ : ∀ {τ} → Cell τ → Bij → Cell τ → Set where
   cellᴸ : ∀ {ℓ τ β} → {v v' : Value τ} → ℓ ⊑ A → v ≈⟨ β ⟩ⱽ v' → (v , ℓ) ≈⟨ β ⟩ᶜ (v' , ℓ)
   cellᴴ : ∀ {ℓ ℓ' τ β} → {v v' : Value τ} → ℓ ⋤ A → ℓ' ⋤ A → (v , ℓ) ≈⟨ β ⟩ᶜ (v' , ℓ')
 
+open import Relation.Nullary
+
+-- TODO: move to Store.LowEq
+≈ᶜ-⊑ :  ∀ {τ β} {c₁ c₂ : Cell τ} (pc : Label) →
+                   let (v₁ , ℓ₁) = c₁
+                       (v₂ , ℓ₂) = c₂ in
+                       c₁ ≈⟨ β ⟩ᶜ c₂ → ( v₁ , (pc ⊔ ℓ₁) ) ≈⟨ β ⟩ᶜ ( v₂ , (pc ⊔ ℓ₂) )
+≈ᶜ-⊑ pc (cellᴸ {ℓ = ℓ} x x₁) with (pc ⊔ ℓ) ⊑? A
+... | yes p = cellᴸ p x₁
+... | no ¬p = cellᴴ ¬p ¬p
+≈ᶜ-⊑ pc (cellᴴ x x₁) = cellᴴ (trans-⋤ (join-⊑₂ _ _) x) (trans-⋤ (join-⊑₂ _ _) x₁)
+
+
 -- Cells
 data _≅⟨_⟩ᶜ_ {τ} (c : Cell τ) (β : Bij) : ∀ {τ'} → Cell τ' → Set where
   ⌞_⌟ : ∀ {c' : Cell τ} → c ≈⟨ β ⟩ᶜ c' → c ≅⟨ β ⟩ᶜ c'
 
 open import Data.Empty
 open import Relation.Binary.PropositionalEquality
-open import Relation.Nullary
 
 -- Heterogenous equality implies equality of the types of the cells
 ≅ᶜ-type-≡ : ∀ {τ₁ τ₂ β} {c₁ : Cell τ₁} {c₂ : Cell τ₂} → c₁ ≅⟨ β ⟩ᶜ c₂ → τ₁ ≡ τ₂

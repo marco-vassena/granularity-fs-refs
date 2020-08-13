@@ -10,7 +10,7 @@ open import Lattice hiding (_≟_)
 module FG.Security {{𝑳 : Lattice}} (A : Label) where
 
 open import FG.Types hiding (_×_) renaming (_⊆_ to _⊆ᶜ_) hiding (refl-⊆)
-open import FG.Syntax hiding (_∘_)
+open import FG.Syntax hiding (_∘_ ; trans-⊆)
 open import FG.Semantics
 open import FG.LowEq A as E public
 
