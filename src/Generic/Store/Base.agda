@@ -60,6 +60,12 @@ _∈_ :  ℕ → Store → Set
 n ∈ Σ = ∃ (λ τ → P.Σ (Cell τ) (λ c → n ↦ c ∈ Σ))
   where import Data.Product as P
 
+open import Relation.Nullary
+
+_∉_ : ℕ → Store → Set
+n ∉ Σ = ¬ (n ∈ Σ)
+
+
 -- Extracts the value from a flow-insensitive cell
 -- _↦_∈ᴵ_ : ∀ {τ} → ℕ → Value τ → Store → Set
 -- _↦_∈ᴵ_ n v Σ = Lookup ⌞ v ⌟ᴵ n Σ
@@ -72,15 +78,21 @@ _⊆_ : Store → Store → Set
 Σ ⊆ Σ' = ∀ {τ n} {c : Cell τ} → n ↦ c ∈ Σ → P.Σ (Cell τ) (λ c' → n ↦ c' ∈ Σ')
   where import Data.Product as P
 
+trans-⊆ : ∀ {Σ₁ Σ₂ Σ₃} → Σ₁ ⊆ Σ₂ → Σ₂ ⊆ Σ₃ → Σ₁ ⊆ Σ₃
+trans-⊆ ⊆₁ ⊆₂ ∈₁ = ⊆₂ (proj₂ (⊆₁ ∈₁))
+
 _⊆′_ : Store → Store → Set
 Σ ⊆′ Σ' = ∀ {n} → n ∈ Σ → n ∈ Σ'
+
+⊆-⊆′ : ∀ {Σ Σ'} → Σ ⊆ Σ' → Σ ⊆′ Σ'
+⊆-⊆′ ⊆₁ (_ , _ , ∈₁) with ⊆₁ ∈₁
+... | _ ,  ∈₂ = _ , _ , ∈₂
 
 cons-∈ : ∀ {Σ τ n} {c : Cell τ} → n ∈ Σ → n ∈ (c ∷ Σ)
 cons-∈ (_ , _ , Here) = _ , _ , Here
 cons-∈ {c = c} (τ , c' , There x) with cons-∈ (τ , c' , x)
 ... | (τ' , c'' , x') = τ' , c'' , There x'
 
-open import Relation.Nullary
 open import Data.Empty
 
 foo : ∀ {n} → n ∈ [] → suc n ∈ []
@@ -167,15 +179,15 @@ wken-∈ (There x) = There (wken-∈ x)
 wken-∈′ : ∀ {n τ Σ} {c : Cell τ} → n ∈ Σ → n ∈ (Σ ∷ᴿ c)
 wken-∈′ (_ , _ , ∈₁) = (_ , _ , wken-∈ ∈₁)
 
+pred-∈ : ∀ {n τ Σ} {c : Cell τ} → suc n ∈ (c ∷ Σ) → n ∈ Σ
+pred-∈ (_ , _ , There x) = _ , _ , x
+
 write-length-≡ : ∀ {Σ Σ' n τ} {c : Cell τ} → Σ' ≔ Σ [ n ↦ c ] → ∥ Σ' ∥ ≡ ∥ Σ ∥
 write-length-≡ Here = refl
 write-length-≡ (There x) = cong suc (write-length-≡ x)
 
--- write-∈ : ∀ {n n' s s' τ τ' Σ Σ'} {c : Cell s τ} {c' : Cell s' τ'} →
---             n ↦ c ∈ Σ → Σ' ≔ Σ [ n' ↦ c' ] → n' ↦ c' ∈ Σ'
--- write-∈ = {!!}
-
 -- Lemmas
+-- TODO: Probably not needed this one in the end
 ≤-⊆ : ∀ {Σ₁ Σ₂} → ∥ Σ₁ ∥ ≤ ∥ Σ₂ ∥ → Σ₁ ⊆′ Σ₂
 ≤-⊆ {[]} {Σ₂} z≤n ()
 ≤-⊆ {v₁ ∷ Σ₁} {[]} () x
@@ -185,20 +197,17 @@ write-length-≡ (There x) = cong suc (write-length-≡ x)
 
 open import Data.Sum
 
--- Maybe we don't need this one ...
--- ⊆-≤ : ∀ {Σ₁ Σ₂} → Σ₁ ⊆′ Σ₂ →  ∥ Σ₁ ∥ ≤ ∥ Σ₂ ∥
--- ⊆-≤ {Σ₁} {Σ₂} ⊆₁ with ≤-total ∥ Σ₁ ∥ ∥ Σ₂ ∥
--- ⊆-≤ {Σ₁} {Σ₂} ⊆₁ | inj₁ x = x
--- ⊆-≤ {[]} {[]} ⊆₁ | inj₂ y = y
--- ⊆-≤ {[]} {x ∷ Σ₂} ⊆₁ | inj₂ y = z≤n
--- ⊆-≤ {x ∷ Σ₁} {[]} ⊆₁ | inj₂ z≤n = {!∈-< (_ , x , Here)!}
--- ⊆-≤ {x ∷ Σ₁} {x₁ ∷ Σ₂} ⊆₁ | inj₂ y = {!!}
+≰-∉ : ∀ {Σ₁ Σ₂} → ∥ Σ₁ ∥ ≰ ∥ Σ₂ ∥ → ∃ (λ n → n ∈ Σ₁ × n ∉ Σ₂)
+≰-∉ {[]} {Σ₂} ≰ = ⊥-elim (≰ z≤n)
+≰-∉ {x ∷ Σ₁} {[]} ≰ = 0 , (_ , _ , Here) , ⊥-∉[]
+≰-∉ {x ∷ Σ₁} {x₁ ∷ Σ₂} ≰ with ≰-∉ {Σ₁} {Σ₂} (λ ≤₁ → ≰ (s≤s ≤₁) )
+... | n , (_ , _ , ∈₁) , ∉₂ = suc n , (_ , _ , There ∈₁) , (λ ∈₂ → ∉₂ (pred-∈ ∈₂) )
 
--- ⊆-≤ {[]} {[]} ⊆₁ = z≤n
--- ⊆-≤ {[]} {c₁ ∷ Σ₂} ⊆₁ = z≤n
--- ⊆-≤ {c₁ ∷ Σ₁} {[]} ⊆₁ with ⊆₁ (_ , c₁ , Here)
--- ⊆-≤ {c₁ ∷ Σ₁} {[]} ⊆₁ | _ , _ , ()
--- ⊆-≤ {c₁ ∷ Σ₁} {c₂ ∷ Σ₂} ⊆₁ = s≤s (⊆-≤ {Σ₁} {Σ₂} (tail-⊆′ ⊆₁))
+⊆-≤ : ∀ {Σ₁ Σ₂} → Σ₁ ⊆′ Σ₂ →  ∥ Σ₁ ∥ ≤ ∥ Σ₂ ∥
+⊆-≤ {Σ₁} {Σ₂} ⊆ with ∥ Σ₁ ∥ ≤? ∥ Σ₂ ∥
+⊆-≤ {Σ₁} {Σ₂} ⊆ | yes p = p
+⊆-≤ {Σ₁} {Σ₂} ⊆ | no ¬p with ≰-∉ ¬p
+... | n , ∈₁ , ∉₂ = ⊥-elim (∉₂ (⊆ ∈₁))
 
 pred-≢ : ∀ {n n'} → suc n ≢ suc n' → n ≢ n'
 pred-≢ {n} {.n} ¬p refl = ⊥-elim (¬p refl)
@@ -222,6 +231,11 @@ inj-∈ x y with inj-∈′ x y
 -- inj-∈-snoc : ∀ {n τ₁ τ₂ τ₃} {Σ : Store} {c₁ : Cell τ₁} {c₂ : Cell τ₂} {c₃ : Cell τ₃} →
 --              n ↦ c₁ ∈ Σ → n ↦ c₂ ∈ Σ → P.Σ (τ₁ ≡ τ₂) (λ {refl → c₁ ≡ c₂})
 -- inj-∈-snoc
+
+lookup-∈ : ∀ {Σ n τ} {c : Cell τ} → n ↦ c ∈ Σ → n ∈ Σ
+lookup-∈ Here = _ , _ , Here
+lookup-∈ (There x) with lookup-∈ x
+... | _ , _ , ∈₁ = _ , _ , There ∈₁
 
 write-only-one : ∀ {Σ Σ' n τ} {c : Cell τ} → Σ' ≔ Σ [ n ↦ c ] →
                    (∀ {n' τ' τ''} {c' : Cell τ'} {c'' : Cell τ''}

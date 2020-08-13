@@ -1,8 +1,7 @@
+-- TODO: this module should be simplified and split in different modules
+
 -- Generic pointwise L-equivalence for stores and memories and their
 -- properties.
-
-{-# OPTIONS --allow-unsolved-metas #-}
-
 
 open import Lattice hiding (_≟_)
 open import Relation.Binary
@@ -15,7 +14,7 @@ module Generic.Store.LowEq
   (_≈⟨_⟩ⱽ_ : IProps.Relᴮ Ty Value)
   (A : Label) where
 
-open import Generic.Store.Base Ty Value as S renaming (_⊆_ to _⊆ˢ_)
+open import Generic.Store.Base Ty Value as S renaming (_⊆_ to _⊆ˢ_ ; trans-⊆ to trans-⊆ˢ)
 -- open import Generic.Memory.LowEq {Ty} {Value} _≈ⱽ_ A as M using (_≈⟨_⟩ᴹ_ ; _≈⟨_,_⟩ᴹ_ ; ⌞_⌟ᴹ) public
 
 open IProps Ty Value
@@ -40,7 +39,9 @@ open import Data.Empty
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
 
---------------------------------------------------------------------------------
+-- Heterogenous equality implies equality of the types of the cells
+≅ᶜ-type-≡ : ∀ {τ₁ τ₂ β} {c₁ : Cell τ₁} {c₂ : Cell τ₂} → c₁ ≅⟨ β ⟩ᶜ c₂ → τ₁ ≡ τ₂
+≅ᶜ-type-≡ ⌞ x ⌟ = refl
 
 open import Data.Product
 open import Data.Fin hiding (_<_ ; _≤_)
@@ -240,58 +241,6 @@ module Props (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ) where
     where open _≈⟨_⟩ˢ_ ≈
           open Bijectionᴾ β
 
-  -- Where are we supposed to use wken-≈ˢ ?
-
-  -- Define Σ₁ ⊆ᴴ Σ₂ such that Σ₂ only adds secret (H) cells
-  --
-  -- Add  Σ₁ ⊆ᴴ Σ₂ as an assumption
-  -- Rename wken-≈ to high-extension, we probably need similar lemmas for values etc.
-  --   --> How does this work for FS references? We don't know the label.
-  --   --> For v : Ref n, v' : Ref n', such that v ≈⟨ ι m ⟩ v', we know n ≡ n',
-  --       Then, if n <= m, v ≈⟨ ι n ⟩ v' (low allocation)
-  --       Otherwise, if n > m then v ≈⟨ ι m ⟩ v' because n ≡ n' are not in the bijection (high allocation)
-  --   --> How does this work for FI references? Maybe we need extra assumptions.
-  --
-  -- TODO: remove
-  -- Maybe it's too strong Σ and Σ'
-  -- It should be the smallest!
-  -- The bijection decides what should be related. So I must keep the smalles
-  -- otherwise I would need to relate secret (new) cells
-  -- Do we need this?
-  -- postulate wken-≈ˢ : ∀ {Σ Σ' β₁ β₂} → β₁ ⊆ β₂ → Σ ≈⟨ β₁ ⟩ˢ Σ' → Σ ≈⟨ β₂ ⟩ˢ Σ'
-  -- wken-≈ˢ {Σ} {Σ'} {β₁} {β₂}  ⊆₁ ≈₁ = record { dom-⊆ = {!dom-⊆′!} ; rng-⊆ = {!!} ; lift-≅ = {!!} }
-  --   where open _≈⟨_⟩ˢ_ ≈₁
-
-  --         dom-⊆′ : β₂ ⊆ᴰ Σ
-  --         dom-⊆′ x = {!!}
-
---   wken-≈ˢ {Σ} {Σ'} {n} {m} n≤m ≈ =
---     record { dom-⊆ = dom-⊆ᴰ
---            ; rng-⊆ = rng-⊆ᴿ
---            ; lift-≅ = lift-≅′  }
-
---     where open _≈⟨_⟩ˢ_ ≈
-
---           dom-⊆ᴰ : ι n ⊆ᴰ Σ
---           dom-⊆ᴰ (n , ∈₁) = dom-⊆ (_ , (ι-⊆ n≤m ∈₁))
-
---           rng-⊆ᴿ : ι n ⊆ᴿ Σ'
---           rng-⊆ᴿ (n , ∈₁) = rng-⊆ (_ , ι-⊆ n≤m ∈₁)
-
---           lift-≅′ : Lift-≅ Σ Σ' (ι n)
---           lift-≅′ {a} {b} {τ} {τ'} {v₁} {v₂} ∈ᴮ ∈₁ ∈₂ = {!!}
---           -- (a , b) ∈ᵗ ι n ⇒ a = b
---           -- a ≤? m
---           -- yes: a ≤ m ∧ b ≤ m: lift from old
---           -- no:
-
---           -- wken-≅ᶜ {!n≤m!} (lift-≅ (ι-⊆ n≤m ∈ᴮ) ∈₁ ∈₂)
---           -- with ι-≡ ∈ᴮ
---           -- lift-≅′ {n₁} {.n₁} {τ₁} {τ₂} {s₁} {s₂} ∈ᴮ ∈₁ ∈₂ | refl with ι-⊆ n≤m ∈ᴮ
---           -- ... | r = {!lift-≅ r ∈₁ ∈₂!}
--- -- {!lift-≅ ∈ᴮ!}
-
-
   trans-≈ˢ : ∀ {Σ₁ Σ₂ Σ₃} {β₁ β₂} →
                Σ₁ ≈⟨ β₁ ⟩ˢ Σ₂ →
                Σ₂ ≈⟨ β₂ ⟩ˢ Σ₃ →
@@ -341,43 +290,6 @@ module Props (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ) where
 
 --------------------------------------------------------------------------------
 
-  -- TODO: remove
-  -- Safe bijection-indexed extension: Σ₁ ⊆⟨ β ⟩ Σ₂
-  -- _⊆⟨_⟩ˢ′_ : Store → Bij → Store → Set
-  -- Σ₁ ⊆⟨ β ⟩ˢ′ Σ₂ = ∀ {n₁ n₂ s₁ s₂ τ₁ τ₂} {c₁ : Cell s₁ τ₁} {c₂ : Cell s₂ τ₂} →
-  --                   (n₁ , n₂) ∈ᵗ β → n₁ ↦ c₁ ∈ Σ₁ → n₂ ↦ c₂ ∈ Σ₂
-
-  -- TODO: remove
-  -- Store-⊆ : Bij → Store → Store → Set
-  -- Store-⊆ β Σ₁ Σ₂ = ∀ {n₁ n₂ τ} {c : Cell τ} → (n₁ , n₂) ∈ᵗ β → n₁ ↦ c ∈ Σ₁ → n₂ ↦ c ∈ Σ₂
-
-  -- record _⊆⟨_⟩ˢ_ (Σ₁ : Store) (β : Bij) (Σ₂ : Store) : Set where
-  --   field store-⊆ : Store-⊆ β Σ₁ Σ₂
-  --         -- Intuitively this should follow from store-⊆, but it is hard to prove it constructively
-  --         store-≤ : ∥ Σ₁ ∥ ≤ ∥ Σ₂ ∥
-
-  -- refl-⊆ˢ : ∀ {Σ} → Σ ⊆⟨ ι ∥ Σ ∥ ⟩ˢ Σ
-  -- refl-⊆ˢ {Σ} = record { store-⊆ = store-⊆ ; store-≤ = ≤-refl }
-  --   where store-⊆ : Store-⊆ (ι ∥ Σ ∥) Σ Σ
-  --         store-⊆ ∈-ι ∈₁ rewrite Id.idᴾ-≡ ∣ Σ ∣ˢ ∈-ι = ∈₁
-
-  -- trans-⊆ˢ : ∀ {Σ₁ Σ₂ Σ₃} → Σ₁ ⊆⟨ ι ∥ Σ₁ ∥ ⟩ˢ Σ₂ → Σ₂ ⊆⟨ ι ∥ Σ₂ ∥ ⟩ˢ Σ₃ → Σ₁ ⊆⟨ ι ∥ Σ₁ ∥ ⟩ˢ Σ₃
-  -- trans-⊆ˢ {Σ₁} {Σ₂} {Σ₃} ⊆₁ ⊆₂  = record { store-⊆ = store-⊆ ; store-≤ = ≤-trans S₁.store-≤ S₂.store-≤ }
-  --   where module S₁ = _⊆⟨_⟩ˢ_ ⊆₁
-  --         module S₂ = _⊆⟨_⟩ˢ_ ⊆₂
-
-  --         store-⊆ : Store-⊆ (ι ∥ Σ₁ ∥) Σ₁ Σ₃
-  --         store-⊆ {n₁} {n₂} ∈-ι ∈₁ with Id.lemma ∣ Σ₁ ∣ˢ ∈-ι
-  --         ... | refl , n< = S₂.store-⊆ (ι-⊆ S₁.store-≤ ∈-ι) (S₁.store-⊆ ∈-ι ∈₁)
-
-  -- TODO: remove
-  -- snoc-⊆ˢ : ∀ {Σ₁ Σ₂ τ} {c : Cell τ} → Σ₁ ⊆⟨ ι ∥ Σ₁ ∥ ⟩ˢ Σ₂ → Σ₁ ⊆⟨ ι ∥ Σ₁ ∥ ⟩ˢ (Σ₂ ∷ᴿ c)
-  -- snoc-⊆ˢ {Σ₁} {Σ₂} {c = c} ⊆₁ = record { store-⊆ = store-⊆ ; store-≤ = ≤-trans S₁.store-≤ snoc-≤ }
-  --   where module S₁ = _⊆⟨_⟩ˢ_ ⊆₁
-  --         open Id ∣ Σ₁ ∣ˢ
-  --         store-⊆ : Store-⊆ (ι ∥ Σ₁ ∥) Σ₁ (Σ₂ ∷ᴿ c)
-  --         store-⊆ ∈-ι ∈₁ = wken-∈ (S₁.store-⊆ ∈-ι ∈₁)
-
   snoc-≈ˢ : ∀ {β Σ₁ Σ₂ τ} (c : Cell τ) → Σ₁ ≈⟨ β ⟩ˢ Σ₂ → Σ₁ ≈⟨ β ⟩ˢ (Σ₂ ∷ᴿ c)
   snoc-≈ˢ {β} {Σ₁} {Σ₂} c ≈₁ =
     record { dom-⊆ = dom-⊆
@@ -389,74 +301,6 @@ module Props (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ) where
           lift-≅′ x ∈₁ ∈₂ with rng-⊆ (_ , right-inverse-of x)
           ... | τ' , c' , ∈₂′ with inj-∈′ ∈₂ (wken-∈ ∈₂′)
           ... | refl , refl = lift-≅ x ∈₁ ∈₂′
-
-
-  -- TODO: Reduced to the more general lemma above ?
-  -- snoc-≈ˢ : ∀ {Σ₁ Σ₂ τ} {c : Cell τ} → Σ₁ ≈⟨ ι ∥ Σ₁ ∥ ⟩ˢ Σ₂ → Σ₁ ≈⟨ ι ∥ Σ₁ ∥ ⟩ˢ (Σ₂ ∷ᴿ c)
-  -- snoc-≈ˢ {Σ₁} {Σ₂} {c = c} ≈₁ = record { dom-⊆ = refl-⊆ᴰ ; rng-⊆ = rng-⊆ ; lift-≅ = lift-≅ }
-  --   where
-  --     postulate ≤₁ : ∥ Σ₁ ∥ ≤ ∥ Σ₂ ∥ -- TODO: extra assumption ? or can be derived from dom-⊆ and rng-⊆ ?
-  --     open Id ∣ Σ₁ ∣ˢ
-  --     rng-⊆ : ι ∥ Σ₁ ∥ ⊆ᴿ (Σ₂ ∷ᴿ c)
-  --     rng-⊆ (n , ∈ᴮ) with lemma ∈ᴮ
-  --     ... | refl , n< = <-∈ (≤-trans n< (≤-trans ≤₁ snoc-≤))
-
-  --     module S₁ = _≈⟨_⟩ˢ_ ≈₁
-
-  --     lift-≅ : Lift-≅ Σ₁ (Σ₂ ∷ᴿ c) (ι ∥ Σ₁ ∥)
-  --     lift-≅ x ∈₁ ∈₂ with lemma x
-  --     ... | refl , n< = S₁.lift-≅ x ∈₁ (lookup-snoc ∈₂ (≤-trans n< ≤₁))
-
-  -- write-⊆ˢ : ∀ {Σ Σ' Σ'' n τ ℓ ℓ'} {v v' : Value τ} → ℓ ⋤ A → ℓ' ⋤ A →
-  --            n ↦ ⌞ v , ℓ ⌟ ∈ Σ' → Σ'' ≔ Σ' [ n ↦ ⌞ v' , ℓ' ⌟ ] →
-  --            Σ ⊆⟨ ι ∥ Σ ∥ ⟩ˢ Σ' → Σ ⊆⟨ ι ∥ Σ ∥ ⟩ˢ Σ''
-  -- write-⊆ˢ {Σ} {Σ'} {Σ''} {v = v} ℓ⋤A ℓ'⋤A n∈Σ' x ⊆₁ = record { store-⊆ = store-⊆ ; store-≤ = store-≤ }
-  --   where module S₁ = _⊆⟨_⟩ˢ_ ⊆₁
-  --         open Id ∣ Σ ∣ˢ
-
-  --         store-≤ : ∥ Σ ∥ ≤ ∥ Σ'' ∥
-  --         store-≤ with S₁.store-≤
-  --         ... | ≤₁ rewrite write-length-≡ x = ≤₁
-
-  --         store-⊆ : Store-⊆ (ι ∥ Σ ∥) Σ Σ''
-  --         store-⊆ {n₁} {n₂} {τ} {c'} ∈-ι ∈₁ with lemma ∈-ι
-  --         ... | refl , n< with S₁.store-⊆ ∈-ι ∈₁
-  --         ... | ∈₂ = {!∈₂!}
-
---          aux : n₁ ↦ c Σ' Σ'' ≔ Σ' [ n ↦ c ]
--- with <-∈ {n} {Σ''} {!!}
---           ... | _ , _ , _ , ∈₂ = {!∈₂!}
-
-
-  -- TODO: remove
-  -- Could be worth to add ∥ Σ₁ ∥ ≤ ∥ Σ₂ ∥ in the def of ⊆
-  -- ⊆-≈ˢ : ∀ {Σ₁ Σ₂} → {{validˢ : Validˢ Σ₁}} → Σ₁ ⊆⟨ ι ∥ Σ₁ ∥ ⟩ˢ Σ₂ → Σ₁ ≈⟨ ι ∥ Σ₁ ∥ ⟩ˢ Σ₂
-  -- ⊆-≈ˢ {Σ₁} {Σ₂} {{validˢ}} ⊆₁ =
-  --   record { dom-⊆ = dom-⊆
-  --          ; rng-⊆ = rng-⊆
-  --          ; lift-≅ = lift-≅ }
-  --   where
-
-  --     open Id ∣ Σ₁ ∣ˢ
-  --     dom-⊆ : ι ∣ Σ₁ ∣ˢ ⊆ᴰ Σ₁
-  --     dom-⊆ (n , ∈ᴮ) with lemma ∈ᴮ
-  --     ... | refl , n< = <-∈ n<
-
-  --     open _⊆⟨_⟩ˢ_ ⊆₁
-
-  --     rng-⊆ : ι ∥ Σ₁ ∥ ⊆ᴿ Σ₂
-  --     rng-⊆ (n , ∈ᴮ) with lemma ∈ᴮ
-  --     ... | refl , n< = <-∈ (≤-trans n< store-≤)
-
-  --     lift-≅ : Lift-≅ Σ₁ Σ₂ (ι ∥ Σ₁ ∥)
-  --     lift-≅ {n₁} {n₂} {τ₁} {τ₂} {c₁} {c₂} x ∈₁ ∈₂ with idᴾ-≡ x
-  --     ... | refl with store-⊆ x ∈₁
-  --     ... | ∈₂′ with inj-∈′ ∈₂ ∈₂′
-  --     ... | refl , refl = ⌞ (wken-≈ᶜ (validˢ ∈₁) refl-≈ᶜ) ⌟
-
-  writeᴴ-≈ˢ′ : ∀ {Σ Σ' n τ} {c c' : Cell τ} {{validˢ : Validˢ Σ}} →
-                n ↦ c ∈ Σ → Σ' ≔ Σ [ n ↦ c' ] → Σ ≈⟨ ι ∥ Σ ∥ ⟩ˢ Σ'
-  writeᴴ-≈ˢ′ = {!!}
 
   writeᴴ-≈ˢ : ∀ {Σ Σ' n τ} {c c' : Cell τ} {{validˢ : Validˢ Σ}} →
               n ↦ c ∈ Σ → Σ' ≔ Σ [ n ↦ c' ] → c ≅⟨ ι ∥ Σ ∥ ⟩ᶜ c' →
@@ -483,59 +327,20 @@ module Props (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ) where
       lift-≅ {n₁} {.n₁} ∈ᴮ ∈₁ ∈₂ | refl , _ | no n₁≠n with write-only-one w n₁≠n ∈₁ ∈₂
       lift-≅ {n₁} {.n₁} ∈ᴮ ∈₁ ∈₂ | refl , _ | no n₁≠n | refl , refl = ⌞ (wken-≈ᶜ (ι-⊆ (validˢ ∈₁)) refl-≈ᶜ) ⌟
 
-
-  -- write-⊆ˢ {Σ} {Σ'} {Σ''} {v = v} ℓ⋤A ℓ'⋤A n∈Σ' x ⊆₁ = record { store-⊆ = store-⊆ ; store-≤ = store-≤ }
-  --   where module S₁ = _⊆⟨_⟩ˢ_ ⊆₁
-  --         open Id ∣ Σ ∣ˢ
-
-  --         store-≤ : ∥ Σ ∥ ≤ ∥ Σ'' ∥
-  --         store-≤ with S₁.store-≤
-  --         ... | ≤₁ rewrite write-length-≡ x = ≤₁
-
-  --         store-⊆ : Store-⊆ (ι ∥ Σ ∥) Σ Σ''
-  --         store-⊆ {n₁} {n₂} {τ} {c'} ∈-ι ∈₁ with lemma ∈-ι
-  --         ... | refl , n< with S₁.store-⊆ ∈-ι ∈₁
-  --         ... | ∈₂ = {!∈₂!}
-
-
-  trans-≈ˢ-ι : ∀ {Σ₁ Σ₂ Σ₃} → Σ₁ ≈⟨ ι ∥ Σ₁ ∥ ⟩ˢ Σ₂ → Σ₂ ≈⟨ ι ∥ Σ₂ ∥ ⟩ˢ Σ₃ → Σ₁ ≈⟨ ι ∥ Σ₁ ∥ ⟩ˢ Σ₃
-  trans-≈ˢ-ι {Σ₁} {Σ₂} {Σ₃} ≈₁ ≈₂ =
-     record { dom-⊆ = dom-⊆
-            ; rng-⊆ = rng-⊆
-            ; lift-≅ = lift-≅ }
-     where
-       open Id ∣ Σ₁ ∣ˢ
-       dom-⊆ : ι ∣ Σ₁ ∣ˢ ⊆ᴰ Σ₁
-       dom-⊆ (n , ∈ᴮ) with lemma ∈ᴮ
-       ... | refl , n< = <-∈ n<
-
-       -- TODO: Extra arguments
-       postulate ≤₁ : ∥ Σ₁ ∥ ≤ ∥ Σ₂ ∥
-       postulate ≤₂ : ∥ Σ₂ ∥ ≤ ∥ Σ₃ ∥
-
-       open Data.Nat.Properties
-       rng-⊆ : ι ∥ Σ₁ ∥ ⊆ᴿ Σ₃
-       rng-⊆ (n , ∈ᴮ) with lemma ∈ᴮ
-       rng-⊆ (n , ∈ᴮ) | refl , n< = <-∈ (≤-trans n< (≤-trans ≤₁ ≤₂))
-
-       module S₁ =  _≈⟨_⟩ˢ_ ≈₁
-       module S₂ = _≈⟨_⟩ˢ_ ≈₂
-
-       -- Can be obtained from ≤
-       postulate ⊆₁ : Σ₁ ⊆ˢ Σ₂
-       postulate ⊆₂ : Σ₂ ⊆ˢ Σ₃
-       postulate ⊆₃ : Σ₁ ⊆ˢ Σ₃
-
-       lift-≅ : Lift-≅ Σ₁ Σ₃ (ι ∥ Σ₁ ∥)
-       lift-≅ {n₁} {n₃} {τ₁} {τ₃} {c₁} {c₃} x ∈₁ ∈₃ with idᴾ-≡ x
-       ... | refl with ⊆₁ ∈₁
-       ... | c₂ , ∈₂ with ⊆₂ ∈₂
-       ... | c₃' , ∈₃' with S₁.lift-≅ x ∈₁ ∈₂ | S₂.lift-≅ (ι-extends ≤₁ x) ∈₂ ∈₃
-       ... | c₁≈c₂ | c₂≈c₃ with  trans-≅ᶜ c₁≈c₂ c₂≈c₃
-       ... | c₁≈c₃ rewrite (absorb-ι ≤₁) = c₁≈c₃
+  -- Low-equivalence over the identity bijection implies containment of stores
+  ≈ˢ-⊆ : ∀ {Σ₁ Σ₂} → Σ₁ ≈⟨ ι ∥ Σ₁ ∥ ⟩ˢ Σ₂ → Σ₁ ⊆ˢ Σ₂
+  ≈ˢ-⊆ ≈₁ ∈₁ with ι-∈ (∈-< (lookup-∈ ∈₁))
+  ... | ∈ι with _≈⟨_⟩ˢ_.rng-⊆ ≈₁ (_ , ∈ι)
+  ... | _ , _ , ∈₂ with _≈⟨_⟩ˢ_.lift-≅ ≈₁ ∈ι ∈₁ ∈₂
+  ... | ≅ᶜ with ≅ᶜ-type-≡ ≅ᶜ
+  ... | refl = _ , ∈₂
 
   with-≡ : ∀ {Σ Σ' β β'} → Σ ≈⟨ β ⟩ˢ Σ' → β ≡ β' → Σ ≈⟨ β' ⟩ˢ Σ'
   with-≡ x eq rewrite eq = x
+
+  trans-≈ˢ-ι : ∀ {Σ₁ Σ₂ Σ₃} → Σ₁ ≈⟨ ι ∥ Σ₁ ∥ ⟩ˢ Σ₂ → Σ₂ ≈⟨ ι ∥ Σ₂ ∥ ⟩ˢ Σ₃ → Σ₁ ≈⟨ ι ∥ Σ₁ ∥ ⟩ˢ Σ₃
+  trans-≈ˢ-ι {Σ₁} {Σ₂} {Σ₃} ≈₁ ≈₂ = with-≡ (trans-≈ˢ ≈₁ ≈₂) (absorb-ι (⊆-≤ (⊆-⊆′ ⊆₁)))
+    where ⊆₁ = ≈ˢ-⊆ ≈₁
 
   square-≈ˢ-ι : ∀ {Σ₁ Σ₁' Σ₂ Σ₂' β} →
                 Σ₁ ≈⟨ β ⟩ˢ Σ₂ →
@@ -663,16 +468,11 @@ module Props (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ) where
   readᴸ-≈ᶜ {β} ∈β ∈₁ ∈₂ Σ≈ = lift-≈ ∈β ∈₁ ∈₂
     where open _≈⟨_⟩ˢ_ Σ≈
 
-  -- Generalize lemma writeᴴ-≈ˢ ?
-  -- writeᴴ-≈ˢ′ : ∀ {Σ Σ' n τ} {c c' : Cell τ} {{validˢ : Validˢ Σ}} →
-  --             n ↦ c ∈ Σ → Σ' ≔ Σ [ n ↦ c' ] → c ≅⟨ ι ∥ Σ ∥ ⟩ᶜ c' →
-  --             Σ ≈⟨ ι ∥ Σ ∥ ⟩ˢ Σ'
-  -- writeᴴ-≈ˢ′ {Σ} {Σ'} {n} {{validˢ}} n∈Σ w ≈₁ =
 
-  postulate writeᴸ-≈ˢ : ∀ {β Σ₁ Σ₂ Σ₁' Σ₂' n₁ n₂ τ} {c₁ c₂ : Cell τ} →
+  writeᴸ-≈ˢ : ∀ {β Σ₁ Σ₂ Σ₁' Σ₂' n₁ n₂ τ} {c₁ c₂ : Cell τ} →
               Σ₁ ≈⟨ β ⟩ˢ Σ₂ →
               c₁ ≈⟨ β ⟩ᶜ c₂ →
               Σ₁' ≔ Σ₁ [ n₁ ↦ c₁ ] → Σ₂' ≔ Σ₂ [ n₂ ↦ c₂ ] →
               (n₁ , n₂) ∈ᵗ β →
               Σ₁' ≈⟨ β ⟩ˢ Σ₂'
-  -- writeᴸ-≈ˢ = ?
+  writeᴸ-≈ˢ = {!!}
