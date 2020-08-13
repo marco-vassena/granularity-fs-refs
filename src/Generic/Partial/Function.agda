@@ -174,8 +174,6 @@ module Util {A B : Set} {{ _≟ᴬ_ : DecEq A }}  where
   trivial x y | yes refl = refl
   trivial x y | no ¬p = ⊥-elim (¬p refl)
 
-  postulate only-one′ : ∀ {a b a' b'} → (a' , b') ∈ (a ↦ b) → a' ≡ a × b' ≡ b
-
   -- TODO: needed?
   -- back↦ : ∀ x' x y → x' ∈ (x ↦ y) → x' ≡ x
   -- back↦ x' x y p with x ≟ᴬ x'
