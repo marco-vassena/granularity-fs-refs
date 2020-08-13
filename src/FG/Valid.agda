@@ -45,14 +45,18 @@ mutual
   -- TODO: there could be some (equivalent) alternatives.  E.g.,
   -- define a special (unlabelde) cell type for flow-insensitive
   -- references and ask that it has the right type.
+  -- TODO: if we have a separate store do we need validity at all?
+  -- Maybe just for the store?
   Validᴿ Σ (Refᴵ {τ = τ} ℓ m) = P.Σ (Raw τ) (λ v → m ↦ (v , ℓ) ∈ Σ )
   -- TODO: should I have any requirement on the label of the cell for flow-sensitve refs?
-  Validᴿ {τ} Σ (Refˢ m) = P.Σ (Cell τ) (λ c → m ↦ c ∈ Σ) -- Probably this is not needed.
+  Validᴿ {τ} Σ (Refˢ m) = ⊤ -- P.Σ (Cell τ) (λ c → m ↦ c ∈ Σ) -- Probably this is not needed.
   Validᴿ Σ ⌞ ℓ ⌟ = ⊤
   Validᴿ Σ (Id v) = Validⱽ Σ v
 
   Validⱽ : ∀ {τ} → Store → Value τ → Set
   Validⱽ Σ (r ^ ℓ) = Validᴿ Σ r
+
+-- TODO: If we split the store for FS from FI all these definitions can be substituted by ∥ v ∥ ≤ ∥ Σ ∥
 
 open Conf
 open import Generic.Store.Valid Ty Raw ∥_∥ᴿ hiding (Validᶜ)
