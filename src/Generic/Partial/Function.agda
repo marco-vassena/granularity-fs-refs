@@ -163,11 +163,12 @@ module Util {A B : Set} {{ _≟ᴬ_ : DecEq A }}  where
 
   infixr 1 _↦_
 
+  -- Does not seem is ever used
   -- Only one mapping
-  only-one : ∀ a b a' b' → (a' , b') ∈ (a ↦ b) → a' ≡ a × b' ≡ b
-  only-one a b a' b' x with a ≟ᴬ a'
-  only-one a b .a .b refl | yes refl = refl , refl
-  only-one a b a' b' () | no ¬p
+  -- only-one : ∀ a b a' b' → (a' , b') ∈ (a ↦ b) → a' ≡ a × b' ≡ b
+  -- only-one a b a' b' x with a ≟ᴬ a'
+  -- only-one a b .a .b refl | yes refl = refl , refl
+  -- only-one a b a' b' () | no ¬p
 
   trivial : ∀ x y → (x , y) ∈ (x ↦ y)
   trivial x y with x ≟ᴬ x

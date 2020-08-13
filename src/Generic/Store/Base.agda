@@ -86,7 +86,7 @@ _⊆′_ : Store → Store → Set
 
 ⊆-⊆′ : ∀ {Σ Σ'} → Σ ⊆ Σ' → Σ ⊆′ Σ'
 ⊆-⊆′ ⊆₁ (_ , _ , ∈₁) with ⊆₁ ∈₁
-... | _ ,  ∈₂ = _ , _ , ∈₂
+... | _ , ∈₂ = _ , _ , ∈₂
 
 cons-∈ : ∀ {Σ τ n} {c : Cell τ} → n ∈ Σ → n ∈ (c ∷ Σ)
 cons-∈ (_ , _ , Here) = _ , _ , Here
@@ -247,9 +247,37 @@ write-only-one Here n≠n' (There ∈₁) (There ∈₂) with inj-∈′ ∈₁ 
 write-only-one (There w) n≠n' (There ∈₁) (There ∈₂) with write-only-one w (pred-≢ n≠n') ∈₁ ∈₂
 ... | refl , refl = refl , refl
 
+write-only-one′ : ∀ {Σ Σ' n n' τ τ' τ''} {c : Cell τ}  {c' : Cell τ'} {c'' : Cell τ''} →
+                    Σ' ≔ Σ [ n ↦ c ] →
+                    n ≢ n' →
+                    n' ↦ c' ∈ Σ →
+                    n' ↦ c'' ∈ Σ'
+                    → P.Σ (τ' ≡ τ'') (λ { refl → c' ≡ c''})
+write-only-one′ Here n≠n' Here Here = ⊥-elim (n≠n' refl)
+write-only-one′ Here n≠n' (There ∈₁) (There ∈₂) with inj-∈′ ∈₁ ∈₂
+... | refl , refl =  refl , refl
+write-only-one′ (There w) n≠n' Here Here = refl , refl
+write-only-one′ (There w) n≠n' (There ∈₁) (There ∈₂) with write-only-one′ w (pred-≢ n≠n') ∈₁ ∈₂
+... | refl , refl = refl , refl
+
+
+-- TODO: better switch name in write-∈ ?
+
 write-∈ : ∀ {Σ Σ' τ n} {c : Cell τ} → Σ' ≔ Σ [ n ↦ c ] → n ↦ c ∈ Σ'
 write-∈ Here = Here
 write-∈ (There x) = There (write-∈ x)
+
+write-∈′ : ∀ {Σ Σ' τ n} {c : Cell τ} → Σ' ≔ Σ [ n ↦ c ] → n  ∈ Σ
+write-∈′ Here = _ , _ , Here
+write-∈′ (There x) with write-∈′ x
+... | _ , _ , y = _ , _ , There y
+
+write-∈′′ : ∀ {Σ Σ' τ n n'} {c : Cell τ} → Σ' ≔ Σ [ n ↦ c ] → n' ∈ Σ' → n' ∈ Σ
+write-∈′′ Here (_ , _ , Here) = _ , _ , Here
+write-∈′′ (There w) (_ , _ , Here) = _ , _ , Here
+write-∈′′ Here (_ , _ , There x) = _ , _ , There x
+write-∈′′ (There w) (_ , _ , There x) with write-∈′′ w (_ , _ , x)
+... | _ , _ , y =  _ , _ , There y
 
 n≮0 : ∀ {n} → n ≮ 0
 n≮0 {n} ()

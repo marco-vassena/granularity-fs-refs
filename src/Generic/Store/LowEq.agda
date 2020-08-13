@@ -303,7 +303,7 @@ module Props (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ) where
           ... | refl , refl = lift-≅ x ∈₁ ∈₂′
 
   writeᴴ-≈ˢ : ∀ {Σ Σ' n τ} {c c' : Cell τ} {{validˢ : Validˢ Σ}} →
-              n ↦ c ∈ Σ → Σ' ≔ Σ [ n ↦ c' ] → c ≅⟨ ι ∥ Σ ∥ ⟩ᶜ c' →
+              n ↦ c ∈ Σ → Σ' ≔ Σ [ n ↦ c' ] → c ≅⟨ ι ∥ Σ ∥ ⟩ᶜ c' → -- Probably should be ≈
               Σ ≈⟨ ι ∥ Σ ∥ ⟩ˢ Σ'
   writeᴴ-≈ˢ {Σ} {Σ'} {n} {{validˢ}} n∈Σ w ≈₁ =
     record { dom-⊆ = refl-⊆ᴰ ; rng-⊆ = rng-⊆ ; lift-≅ = lift-≅ }
@@ -475,4 +475,30 @@ module Props (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ) where
               Σ₁' ≔ Σ₁ [ n₁ ↦ c₁ ] → Σ₂' ≔ Σ₂ [ n₂ ↦ c₂ ] →
               (n₁ , n₂) ∈ᵗ β →
               Σ₁' ≈⟨ β ⟩ˢ Σ₂'
-  writeᴸ-≈ˢ = {!!}
+  writeᴸ-≈ˢ {β} {Σ₁} {Σ₂} {Σ₁'} {Σ₂'} {n₁} {n₂} Σ≈ c≈ w₁ w₂ ∈β
+    = record { dom-⊆ = dom-⊆′ ; rng-⊆ = rng-⊆′ ; lift-≅ = lift-≅′ }
+
+    where open _≈⟨_⟩ˢ_ Σ≈
+
+          dom-⊆′ : β ⊆ᴰ Σ₁'
+          dom-⊆′ ∈β with ∈-< (dom-⊆ ∈β)
+          ... | n≤Σ₁ rewrite sym (write-length-≡ w₁) = <-∈ n≤Σ₁
+
+          rng-⊆′ : β ⊆ᴿ Σ₂'
+          rng-⊆′ ∈β with ∈-< (rng-⊆ ∈β)
+          ... | n≤Σ₂ rewrite sym (write-length-≡ w₂) = <-∈ n≤Σ₂
+
+          lift-≅′ : Lift-≅ Σ₁' Σ₂' β
+          lift-≅′ {n₁'} {n₂'} ∈β' ∈₁ ∈₂ with n₁' ≟ n₁ | n₂' ≟ n₂
+          -- The updated cells are looked up, they are related by hypothesis
+          lift-≅′ {_} {_} ∈β' ∈₁ ∈₂ | yes refl | yes refl with inj-∈′ ∈₁ (write-∈ w₁) | inj-∈′ ∈₂ (write-∈ w₂)
+          ... | refl , refl | refl , refl = ⌞ c≈ ⌟
+          -- Spurious cases, the bijection has multiple images/pre-images
+          lift-≅′ {_} {n₂'} ∈β' ∈₁ ∈₂ | yes refl | no ¬p = ⊥-elim (¬p (only-oneᵗ β ∈β' ∈β) )
+          lift-≅′ {n₁'} {_} ∈β' ∈₁ ∈₂ | no ¬p | yes refl = ⊥-elim (¬p (only-oneᶠ β ∈β' ∈β) )
+          -- All the other cells are unchanged and remain related
+          lift-≅′ {_} {_} ∈β' ∈₁ ∈₂ | no ¬p₁ | no ¬p₂ with write-∈′′ w₁ (_ , _ , ∈₁)
+          ... | _ , _ , ∈₁' with write-only-one′ w₁ (λ p₁ → ¬p₁ (sym p₁)) ∈₁' ∈₁
+          ... | refl , refl with write-∈′′ w₂ (_ , _ , ∈₂)
+          ... | _ , _ , ∈₂' with write-only-one′ w₂ (λ p₂ → ¬p₂ (sym p₂)) ∈₂' ∈₂
+          ... | refl , refl = lift-≅ ∈β' ∈₁' ∈₂'

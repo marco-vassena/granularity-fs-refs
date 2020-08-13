@@ -86,6 +86,16 @@ b ∈ᴿ′ β = ∃ (λ a → (a , b) ∈ᶠ β)
 -- ∈-∈ᴿ : ∀ {A B} {x : A × B} {β : A ⤖ᴾ B} → x ∈ᵗ β → (proj₂ x) ∈ᴿ β
 -- ∈-∈ᴿ p = _ , p
 
+
+-- only-oneᶠ {β = β} {x} {y₁ = y₁} {y₂} ∈₁ ∈₂ = just-injective proof
+--   where open Bijectionᴾ β
+--         open ≡-Reasoning
+--         proof : just x₁ ≡ (just x₂)
+--         proof =
+--           begin just x₁ ≡⟨ sym (right-inverse-of ∈₁) ⟩
+--           from y ≡⟨ right-inverse-of ∈₂ ⟩
+--           just x₂ ∎
+
 --------------------------------------------------------------------------------
 -- Bijection extension
 
@@ -292,7 +302,7 @@ join-∈ᵗ {a = a} {b} {c} {β₁} {β₂} () y | nothing
 
 --------------------------------------------------------------------------------
 
-open Bijectionᴾ
+-- open Bijectionᴾ
 
 
 -- lemma : ∀ {A} {a a' : A} {β} → to β a ≡ just a' → to β a' ≡ just a → a ≡ a'
@@ -343,3 +353,24 @@ open Bijectionᴾ
 -- ∘-⊆′ {β₁ = β₁} {β₂} (a , b) x∈β₁ with Bijectionᴾ.to β₁ a
 -- ∘-⊆′ {β₁ = β₁} {β₂} (a , .x) refl | just x = {!!}
 -- ∘-⊆′ {β₁ = β₁} {β₂} (a , b) () | nothing
+
+--------------------------------------------------------------------------------
+-- More lemmas
+
+-- Only one pre-image
+only-oneᶠ : ∀ {A B} {x₁ x₂ y} (β : Bijectionᴾ A B)  →
+             (x₁ , y) ∈ᵗ β → (x₂ , y) ∈ᵗ β → x₁ ≡ x₂
+only-oneᶠ {x₁ = x₁} {x₂} {y} β ∈₁ ∈₂ = just-injective proof
+  where open Bijectionᴾ β
+        open ≡-Reasoning
+        proof : just x₁ ≡ (just x₂)
+        proof =
+          begin just x₁ ≡⟨ sym (right-inverse-of ∈₁) ⟩
+          from y ≡⟨ right-inverse-of ∈₂ ⟩
+          just x₂ ∎
+
+-- Only one image
+only-oneᵗ : ∀ {A B} {x y₁ y₂} (β : Bijectionᴾ A B) →
+             (x , y₁) ∈ᵗ β → (x , y₂) ∈ᵗ β → y₁ ≡ y₂
+only-oneᵗ β ∈₁ ∈₂ = only-oneᶠ (β ⁻¹) (left-inverse-of ∈₁) (left-inverse-of ∈₂)
+  where open Bijectionᴾ (β ⁻¹)
