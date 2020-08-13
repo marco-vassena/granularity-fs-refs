@@ -124,8 +124,8 @@ mutual
     -- ⊔ ℓ. The combination pc ⊑ ℓ' (step-⊑) and ℓ' ⊑ ℓ implies pc ⊑
     -- ℓ, thus the rule would not allow to read lower references.
     Read : ∀ {Σ Σ' ℓ ℓ' ℓ'' n τ} {e : Expr _ (Ref I τ)} {r : Raw τ } →
-           ⟨ Σ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , (Refᴵ ℓ n) ^ ℓ' ⟩ →
-           n ↦ (r , ℓ) ∈ Σ' →
+           ⟨ Σ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , (Refᴵ ℓ' n) ^ ℓ ⟩ →
+           n ↦ (r , ℓ') ∈ Σ' →
            (eq : ℓ'' ≡ (ℓ ⊔ ℓ')) →
            Step θ pc ⟨ Σ , ! e ⟩  ⟨ Σ' ,  r ^ ℓ'' ⟩
 
@@ -152,7 +152,7 @@ mutual
                   (eq : ℓ₃ ≡ ℓ₁ ⊔ ℓ₂) →
                   Step θ pc ⟨ Σ , labelOfRef e ⟩ ⟨ Σ' , ⌞ ℓ₂ ⌟ ^ ℓ₃ ⟩
 
-    New-FS : ∀ {τ Σ Σ' v} {e : Expr Γ (Ref S τ)} →
+    New-FS : ∀ {τ Σ Σ'} {v : Value τ} {e : Expr Γ τ} →
              ⟨ Σ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , v ⟩ →
              let r ^ ℓ = v in
              Step θ pc ⟨ Σ , new {s = S} e ⟩  ⟨  Σ' ∷ᴿ (r , ℓ) , Refˢ ∥ Σ' ∥ ^ pc ⟩
@@ -172,6 +172,9 @@ mutual
              ⟨ Σ₂ , e₂ ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ₃ , r₂ ^ ℓ₂ ⟩ →
              n ↦ (r₁ , ℓ₁) ∈ Σ₃ →
              ℓ ⊑ ℓ₁ →
+             -- Is ℓ ⊔ ℓ₂ correct? Does this allow to lower the sensitivity of the label?
+             -- E.g ℓ₁ = H, ℓ = L, ℓ₂ = L. However this should be secure because pc ≡ L.
+             -- This could be a good motivating case for FS references
              (eq : ℓ₂' ≡ ℓ ⊔ ℓ₂) →
              Σ₃' ≔ Σ₃ [ n ↦ (r₂ , ℓ₂') ] →
              Step θ pc ⟨ Σ₁ , e₁ ≔ e₂ ⟩ ⟨ Σ₃' , （） ^ pc ⟩
@@ -245,7 +248,7 @@ step-⊑ (Wken p x) = step-⊑ x
 step-⊑ {pc = pc} (Taint {ℓ = ℓ} refl x₁ x₂ _) = trans-⊑ (join-⊑₁ pc ℓ ) (step-⊑ x₂)
 step-⊑ (LabelOfRef x refl) = trans-⊑ (step-⊑ x) (join-⊑₂ _ _)
 step-⊑ (New x) = refl-⊑
-step-⊑ {pc = pc} (Read {ℓ = ℓ} {ℓ' = ℓ'} x x₁ refl) = trans-⊑ {pc} {ℓ'} {ℓ ⊔ ℓ'} (step-⊑ x) (join-⊑₂ ℓ' ℓ)
+step-⊑ {pc = pc} (Read {ℓ = ℓ} {ℓ' = ℓ'} x x₁ refl) = trans-⊑  (step-⊑ x) (join-⊑₁ _ _)
 step-⊑ (Write x x₁ eq x₂ x₃) = refl-⊑
 step-⊑ (LabelOfRef-FS x x₁ refl) = trans-⊑ (step-⊑ x) (join-⊑₁ _ _)
 step-⊑ (New-FS x) = refl-⊑
