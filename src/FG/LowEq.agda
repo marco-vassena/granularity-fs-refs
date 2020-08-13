@@ -22,7 +22,7 @@ open import Relation.Binary
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
 open import Generic.Bijection renaming (_∘_ to _∘ᴮ_)
-open import Data.Product renaming (_,_ to ⟨_,_⟩)
+open import Data.Product as P renaming (_,_ to ⟨_,_⟩)
 open import FG.Valid
 
 -- mutual
@@ -161,9 +161,17 @@ Falseᴸ ℓ⊑A = Inr (Valueᴸ ℓ⊑A Unit)
 ... | no ¬p = Valueᴴ ¬p ¬p
 ≈ⱽ-⊑ pc (Valueᴴ x x₁) = Valueᴴ (trans-⋤ (join-⊑₂ _ _) x) (trans-⋤ (join-⊑₂ _ _) x₁)
 
+
 -- Derive L-equivalence for stores,
 open import Generic.Store.LowEq {Ty} {Raw} _≈⟨_⟩ᴿ_ A as S
-  using (_≈⟨_⟩ˢ_ ; cellᴸ ; cellᴴ ) public
+  using (_≈⟨_⟩ˢ_ ; cellᴸ ; cellᴴ ; ⌞_⌟) public
+
+-- TODO: move to Store.LowEq
+postulate ≈ᶜ-⊑ :  ∀ {τ β} {c₁ c₂ : Cell τ} (pc : Label) →
+                   let ⟨ v₁ , ℓ₁ ⟩ = c₁
+                       ⟨ v₂ , ℓ₂ ⟩ = c₂ in
+                       c₁ S.≈⟨ β ⟩ᶜ c₂ → ⟨ v₁ , (pc ⊔ ℓ₁) ⟩ S.≈⟨ β ⟩ᶜ ⟨ v₂ , (pc ⊔ ℓ₂) ⟩
+
 
 -- open import Generic.Store.LowEq {Ty} {Raw} A renaming (_≈⟨_⟩ᶜ_ to _≈⟨_⟩ᶜ′_)
 -- _≈⟨_⟩ˢ_ : Store → Bij → Store → Set
@@ -178,13 +186,63 @@ open import Generic.Store.LowEq {Ty} {Raw} _≈⟨_⟩ᴿ_ A as S
 -- --
 -- -- using (_≈⟨_⟩ᴴ_ ; _≈ᴴ_ ; new-≈ᴴ ; Bij⟨_,_⟩)
 
--- TODO: this hints that maybe we should put values in the store
+-- TODO: these hint that cells and values are isomorphic
+-- and then we might as well put values in the store
 ≈ⱽ-≈ᶜ : ∀ {τ β} {v₁ v₂ : Value τ} → v₁ ≈⟨ β ⟩ⱽ v₂ →
         let r₁ ^ ℓ₁ = v₁
             r₂ ^ ℓ₂ = v₂ in
             ⟨ r₁ , ℓ₁ ⟩ S.≈⟨ β ⟩ᶜ ⟨ r₂ , ℓ₂ ⟩
 ≈ⱽ-≈ᶜ (Valueᴸ ℓ⊑A r≈) = cellᴸ ℓ⊑A r≈
 ≈ⱽ-≈ᶜ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = cellᴴ ℓ₁⋤A ℓ₂⋤A
+
+lemma-≈ᶜ : ∀ {τ β} {c₁ c₂ : Cell τ} → c₁ S.≈⟨ β ⟩ᶜ c₂ →
+                let ⟨ r₁ , ℓ₁ ⟩ = c₁
+                    ⟨ r₂ , ℓ₂ ⟩ = c₂ in
+                ℓ₁ ⊑ A → ℓ₂ ⊑ A → (r₁ ≈⟨ β ⟩ᴿ r₂) P.× (ℓ₁ ≡ ℓ₂)
+lemma-≈ᶜ (cellᴸ x ≈ᴿ) ℓ₁⊑A ℓ₂⊑A = ⟨ ≈ᴿ , refl ⟩
+lemma-≈ᶜ (cellᴴ ℓ₁⋤A _) ℓ₁⊑A ℓ₂⊑A = ⊥-elim (ℓ₁⋤A ℓ₁⊑A)
+
+≈ᶜ-≈ᴿ : ∀ {τ β} {c₁ c₂ : Cell τ} → c₁ S.≈⟨ β ⟩ᶜ c₂ →
+                let ⟨ r₁ , ℓ₁ ⟩ = c₁
+                    ⟨ r₂ , ℓ₂ ⟩ = c₂ in
+                ℓ₁ ⊑ A → ℓ₂ ⊑ A → r₁ ≈⟨ β ⟩ᴿ r₂
+≈ᶜ-≈ᴿ ≈ᶜ ℓ₁⊑A ℓ₂⊑A = proj₁ (lemma-≈ᶜ ≈ᶜ ℓ₁⊑A ℓ₂⊑A)
+
+≈ᶜ-≡  :  ∀ {τ β} {c₁ c₂ : Cell τ} → c₁ S.≈⟨ β ⟩ᶜ c₂ →
+                let ⟨ r₁ , ℓ₁ ⟩ = c₁
+                    ⟨ r₂ , ℓ₂ ⟩ = c₂ in
+                ℓ₁ ⊑ A → ℓ₂ ⊑ A → ℓ₁ ≡ ℓ₂
+≈ᶜ-≡ ≈ᶜ ℓ₁⊑A ℓ₂⊑A = proj₂ (lemma-≈ᶜ ≈ᶜ ℓ₁⊑A ℓ₂⊑A)
+
+≈ᶜ-≈ⱽ : ∀ {τ β} {c₁ c₂ : Cell τ} → c₁ S.≈⟨ β ⟩ᶜ c₂ →
+                let ⟨ r₁ , ℓ₁ ⟩ = c₁
+                    ⟨ r₂ , ℓ₂ ⟩ = c₂ in (r₁ ^ ℓ₁) ≈⟨ β ⟩ⱽ (r₂ ^ ℓ₂)
+≈ᶜ-≈ⱽ (cellᴸ x x₁) = Valueᴸ x x₁
+≈ᶜ-≈ⱽ (cellᴴ x x₁) = Valueᴴ x x₁
+
+taint-update-≈ᶜ :  ∀ {τ β} {c₁ c₂ : Cell τ} {v₁ v₂ : Value τ} →
+                     c₁ S.≈⟨ β ⟩ᶜ c₂ →  v₁ ≈⟨ β ⟩ⱽ v₂ →
+                let ⟨ r₁ , ℓ₁ ⟩ = c₁
+                    ⟨ r₂ , ℓ₂ ⟩ = c₂
+                    r₁' ^ ℓ₁' = v₁
+                    r₂' ^ ℓ₂' = v₂ in
+                    ⟨ r₁' , ℓ₁' ⟩  S.≈⟨ β ⟩ᶜ ⟨ r₂' , ℓ₂' ⟩
+taint-update-≈ᶜ (cellᴸ ⊑₁ r≈) (Valueᴸ ℓ⊑A r≈₁) = cellᴸ ℓ⊑A r≈₁
+taint-update-≈ᶜ (cellᴸ ⊑₁ r≈) (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = cellᴴ ℓ₁⋤A ℓ₂⋤A
+taint-update-≈ᶜ (cellᴴ ⋤₁ ⋤₂) (Valueᴸ ℓ⊑A r≈₁) = cellᴸ ℓ⊑A r≈₁ -- This gives more expressivity
+taint-update-≈ᶜ (cellᴴ ⋤₁ ⋤₂) (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = cellᴴ ℓ₁⋤A ℓ₂⋤A
+
+label-of≈ᶜ-≈ⱽ : ∀ {τ β} {c₁ c₂ : Cell τ} → c₁ S.≈⟨ β ⟩ᶜ c₂ →
+                let ⟨ r₁ , ℓ₁ ⟩ = c₁
+                    ⟨ r₂ , ℓ₂ ⟩ = c₂ in (⌞ ℓ₁ ⌟ ^ ℓ₁) ≈⟨ β ⟩ⱽ (⌞ ℓ₂ ⌟ ^ ℓ₂)
+label-of≈ᶜ-≈ⱽ (cellᴸ x x₁) = Valueᴸ x (Lbl _)
+label-of≈ᶜ-≈ⱽ (cellᴴ x x₁) = Valueᴴ x x₁
+
+extract-≈ᴿ : ∀ {τ β} {v₁ v₂ : Value τ} → v₁ ≈⟨ β ⟩ⱽ v₂ →
+               let r₁ ^ ℓ₁ = v₁
+                   r₂ ^ ℓ₂ = v₂ in ℓ₁ ⊑ A → r₁ ≈⟨ β ⟩ᴿ r₂
+extract-≈ᴿ (Valueᴸ ℓ⊑A r≈) ⊑₁ = r≈
+extract-≈ᴿ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) ⊑₁ = ⊥-elim (ℓ₁⋤A ⊑₁)
 
 -- Lift low-equivalence to configurations
 open Conf
@@ -385,4 +443,4 @@ open import Generic.Bijection
 -- Define the "Equivalence up to bijection" class.
 
 -- TODO: fix the export here ...
-open S.Props 𝑹 using (square-≈ˢ ; ∣_∣ˢ ; refl-≈ˢ ; trans-≈ˢ ; trans-≈ˢ-ι ; snoc-≈ˢ ; writeᴴ-≈ˢ ; square-≈ˢ-ι ; sym-≈ˢ ; newᴴ-≈ˢ ; newᴸ-≈ˢ ; ≈-# ) public
+open S.Props 𝑹 using (square-≈ˢ ; ∣_∣ˢ ; refl-≈ˢ ; trans-≈ˢ ; trans-≈ˢ-ι ; snoc-≈ˢ ; writeᴴ-≈ˢ ; square-≈ˢ-ι ; sym-≈ˢ ; newᴴ-≈ˢ ; newᴸ-≈ˢ ; ≈-# ; readᴸ-≈ᶜ ; writeᴸ-≈ˢ ) public
