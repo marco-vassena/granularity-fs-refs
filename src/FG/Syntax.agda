@@ -146,18 +146,19 @@ if_then_else_ c t e = case c (wken t (drop refl-⊆)) (wken e (drop refl-⊆))
 --------------------------------------------------------------------------------
 -- Implementation of the HasLabel generic interface
 
-open import Generic.LValue
+-- TODO: remove?
+-- open import Generic.LValue
 
-𝑯 : HasLabel Ty Value
-𝑯 = record { F = id ; value = id ; label = lbl }
-  where open import Function
+-- 𝑯 : HasLabel Ty Value
+-- 𝑯 = record { F = id ; value = id ; label = lbl }
+--   where open import Function
 
 --------------------------------------------------------------------------------
 -- Configurations
 
 -- Generic store and flow-sensitive heap
-open import Generic.Store.Base Ty Raw hiding (_∈_ ; Write ; _⊆_) public
--- open import Generic.Heap 𝑯 hiding (_∈_) public
+open import Generic.Store.Base Ty Raw public
+open import Generic.Heap public -- hiding (_∈_ ; Write ; _⊆_)
 
 -- Generic configuration container.
 record Conf (A : Set) : Set where

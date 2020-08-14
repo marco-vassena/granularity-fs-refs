@@ -275,7 +275,7 @@ mutual
   wken-≈ᴱ β⊆β' [] = []
   wken-≈ᴱ β⊆β' (≈ⱽ ∷ ≈ᴱ) = wken-≈ⱽ β⊆β' ≈ⱽ ∷ wken-≈ᴱ β⊆β' ≈ᴱ
 
-  wken-≈ᴿ : ∀ {τ β β'} {r₁ r₂ : Raw τ} → β ⊆ β' → r₁ ≈⟨ β  ⟩ᴿ r₂ → r₁ ≈⟨ β' ⟩ᴿ r₂
+  wken-≈ᴿ : Wkenᴮ -- ∀ {τ β β'} {r₁ r₂ : Raw τ} → β ⊆ β' → r₁ ≈⟨ β  ⟩ᴿ r₂ → r₁ ≈⟨ β' ⟩ᴿ r₂
   wken-≈ᴿ β⊆β' Unit = Unit
   wken-≈ᴿ β⊆β' (Lbl ℓ) = Lbl ℓ
   wken-≈ᴿ β⊆β' (Inl x) = Inl (wken-≈ⱽ β⊆β' x)

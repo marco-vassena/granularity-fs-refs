@@ -3,6 +3,6 @@ open import Generic.LValue
 
 -- There is no particular reason for calling this heap.
 -- It is mostly to avoid clashing names with memory and store.
-module Generic.Heap {{𝑳 : Lattice}} {Ty : Set} {Value : Ty → Set} (𝑯 : HasLabel Ty Value) where
+module Generic.Heap {{𝑳 : Lattice}} (Ty : Set) (Value : Ty → Set) where
 
-open import Generic.Heap.Base 𝑯 public
+open import Generic.Heap.Base public

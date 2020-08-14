@@ -16,6 +16,8 @@ open import Function
 -- LValue : Ty → Set
 -- LValue τ = Value (F τ)
 
+open import Generic.Container ⊤ Ty Value using ([] ; _∷_) public
+
 -- TODO: should we constraint the type of the values (for CG?)
 -- yes, we must be able to project the label to identify secret
 -- values.
@@ -27,9 +29,10 @@ open import Generic.Container ⊤ Ty Value
            ; _∷ᴿ_ to snocᴴ
            ; ∥_∥ to ∥_∥ᴴ
            ; _⊆_ to _⊆ᴴ_
+           ; _∈_ to _∈ᴴ_
+           ; _∉_ to _∉ᴴ_
+           ; _⊆′_ to _⊆ᴴ′_
            ) public
-
-open import Generic.Container.Base ⊤ Ty Value using (_∈_) public
 
 Heap : Set
 Heap = Container tt
