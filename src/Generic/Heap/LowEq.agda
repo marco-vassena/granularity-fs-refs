@@ -128,7 +128,7 @@ module Props′ (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ) where
   -- open L.HasLabel 𝑯
   -- open import Generic.Value.HLowEq {Ty} {Value} _≈⟨_⟩ⱽ_
   -- open import Generic.Heap.Lemmas 𝑯
-  open Props 𝑽
+  open Props 𝑽 -- Can we get this as a renaming as below?
   open import Relation.Binary.PropositionalEquality
   import Function as F
 

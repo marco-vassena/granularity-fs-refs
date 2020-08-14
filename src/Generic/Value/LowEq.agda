@@ -1,14 +1,18 @@
+-- TODO: remove this module
+
 open import Relation.Binary
 open import Generic.Bijection
 
 module Generic.Value.LowEq
   {Ty : Set} {Value : Ty → Set}
-  (_≈⟨_⟩ⱽ_ : Relᴮ {Ty} Value) where
+  (_≈⟨_⟩ⱽ_ : IProps.Relᴮ Ty Value) where
 
 -- TODO: is not this just a renaming?
 
+open IProps Ty Value
+
 -- TODO: why do we need the inner module?
-module Props (𝑽 : IsEquivalenceᴮ {Ty} {Value} _≈⟨_⟩ⱽ_) where
+module Props (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_) where
 
   open IsEquivalenceᴮ 𝑽 renaming
     ( Dom to ∣_∣ⱽ

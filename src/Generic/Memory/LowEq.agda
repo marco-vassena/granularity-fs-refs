@@ -6,8 +6,11 @@ module Generic.Memory.LowEq
   {Ty : Set}
   {Value : Ty → Set}
   {{𝑳 : Lattice}}
-  (_≈⟨_⟩ⱽ_ : Relᴮ {Ty} Value)
+  (_≈⟨_⟩ⱽ_ : IProps.Relᴮ Ty Value)
   (A : Label) where
+
+module V = IProps Ty Value
+
 
 open import Generic.Memory Ty Value public
 open import Data.Unit hiding (_≟_)
@@ -37,11 +40,21 @@ M₁ ≈⟨ β ⟩ᴹ′ M₂ = M₁ ≈⟨ β , _ ⊑? A ⟩ᴹ M₂
 ... | yes ℓ⊑A = M₁≈M₂
 ... | no ℓ⋤A = tt
 
-module Props (𝑽 : IsEquivalenceᴮ {Ty} {Value} _≈⟨_⟩ⱽ_) where
+-- open IProps Ty Value
+
+module ≈ᴹ-Props (𝑽 : IProps.IsEquivalenceᴮ Ty Value _≈⟨_⟩ⱽ_) where
 
   open import Generic.Value.LowEq {Ty} {Value} _≈⟨_⟩ⱽ_
-  open Props 𝑽
-  open IsEquivalenceᴮ
+
+  open V.IsEquivalenceᴮ 𝑽 renaming
+    ( Dom to ∣_∣ⱽ
+    ; reflᴮ to refl-≈ⱽ
+    ; symᴮ to sym-≈ⱽ
+    ; transᴮ to trans-≈ⱽ
+    ; wkenᴮ to wken-≈ⱽ) public
+
+
+  open IProps.IsEquivalenceᴮ -- Label ?
   open import Data.Nat using (ℕ ; _≤_ ; _<_ ; s≤s ; z≤n) renaming (_⊔_ to _⊔ᴺ_)
   open import Data.Nat.Properties
 
@@ -53,35 +66,39 @@ module Props (𝑽 : IsEquivalenceᴮ {Ty} {Value} _≈⟨_⟩ⱽ_) where
 
   module ≈ᴹ-Equivalence where
 
-    wken-≈ᴹ : Wkenᴮ {F = Memory} _≈⟨_⟩ᴹ_
+    open IProps Label Memory
+    open import Generic.Memory.Valid Ty Value ∣_∣ⱽ
+    open import Data.Product
+
+    wken-≈ᴹ : Wkenᴮ _≈⟨_⟩ᴹ_
     wken-≈ᴹ n≤m [] = []
     wken-≈ᴹ n≤m (v₁≈v₂ ∷ M₁≈M₂) = wken-≈ⱽ n≤m v₁≈v₂ ∷ wken-≈ᴹ n≤m M₁≈M₂
 
-
     -- Reflexive
-    refl-≈ᴹ :  Reflexiveᴮ {F = Memory} _≈⟨_⟩ᴹ_ ∣_∣ᴹ
-    refl-≈ᴹ {x = []} = []
-    refl-≈ᴹ {x = v ∷ M} = ≈ⱽ ∷ ≈ᴹ
-      where ≈ⱽ = wken-≈ⱽ (m≤m⊔n ∣ v ∣ⱽ ∣ M ∣ᴹ) refl-≈ⱽ
-            ≈ᴹ = wken-≈ᴹ (n≤m⊔n ∣ v ∣ⱽ ∣ M ∣ᴹ) refl-≈ᴹ
+    refl-≈ᴹ :  ∀ {ℓ n} {M : Memory ℓ} {{validᴹ : Validᴹ n M}} → M ≈⟨ ι n ⟩ᴹ M
+    refl-≈ᴹ {M = []} {{validᴹ}} = []
+    refl-≈ᴹ {M = v ∷ M} {{validⱽ , validᴹ}} = ≈ⱽ ∷ refl-≈ᴹ {{validᴹ}}
+      where ≈ⱽ = wken-≈ⱽ (ι-⊆ validⱽ) refl-≈ⱽ
+
 
     -- Symmetric
-    sym-≈ᴹ : Symmetricᴮ {F = Memory} _≈⟨_⟩ᴹ_
+    sym-≈ᴹ : Symmetricᴮ  _≈⟨_⟩ᴹ_
     sym-≈ᴹ [] = []
     sym-≈ᴹ (v₁≈v₂ ∷ M₁≈M₂) = sym-≈ⱽ v₁≈v₂ ∷ sym-≈ᴹ M₁≈M₂
 
     -- Transitive
-    trans-≈ᴹ : Transitiveᴮ {F = Memory} _≈⟨_⟩ᴹ_ -- {ℓ} → {M₁ M₂ M₃ : Memory ℓ} → M₁ ≈ᴹ M₂ → M₂ ≈ᴹ M₃ → M₁ ≈ᴹ M₃
+    trans-≈ᴹ : Transitiveᴮ _≈⟨_⟩ᴹ_ -- {ℓ} → {M₁ M₂ M₃ : Memory ℓ} → M₁ ≈ᴹ M₂ → M₂ ≈ᴹ M₃ → M₁ ≈ᴹ M₃
     trans-≈ᴹ [] [] = []
     trans-≈ᴹ (v₁≈v₂ ∷ M₁≈M₂) (v₂≈v₃ ∷ M₂≈M₃) = trans-≈ⱽ v₁≈v₂ v₂≈v₃ ∷ trans-≈ᴹ M₁≈M₂ M₂≈M₃
 
-    ≈ᴹ-isEquivalence : IsEquivalenceᴮ {F = Memory} _≈⟨_⟩ᴹ_
-    ≈ᴹ-isEquivalence =
-      record { Dom = ∣_∣ᴹ
-             ; wkenᴮ = wken-≈ᴹ
-             ; reflᴮ = refl-≈ᴹ
-             ; symᴮ = sym-≈ᴹ
-             ; transᴮ = trans-≈ᴹ }
+    -- Does not hold because we have side-conditions on the domain
+    -- ≈ᴹ-isEquivalence : IsEquivalenceᴮ _≈⟨_⟩ᴹ_
+    -- ≈ᴹ-isEquivalence =
+    --   record { Dom = ∣_∣ᴹ
+    --          ; wkenᴮ = wken-≈ᴹ
+    --          ; reflᴮ = refl-≈ᴹ
+    --          ; symᴮ = sym-≈ᴹ
+    --          ; transᴮ = trans-≈ᴹ }
 
   open ≈ᴹ-Equivalence public
 
@@ -89,33 +106,36 @@ module Props (𝑽 : IsEquivalenceᴮ {Ty} {Value} _≈⟨_⟩ⱽ_) where
 
   module ≈ᴹ′-Equivalence  where
 
-  wken-≈ᴹ′ : Wkenᴮ {F = Memory} _≈⟨_⟩ᴹ′_
+  open IProps Label Memory
+  open import Generic.Memory.Valid Ty Value ∣_∣ⱽ
+
+  wken-≈ᴹ′ : Wkenᴮ _≈⟨_⟩ᴹ′_
   wken-≈ᴹ′ {a = ℓ} n≤m x with ℓ ⊑? A
   wken-≈ᴹ′ {a} n≤m x | yes p = wken-≈ᴹ n≤m x
   wken-≈ᴹ′ {a} n≤m x | no ¬p = tt
 
-  refl-≈ᴹ′ : Reflexiveᴮ {F = Memory}  _≈⟨_⟩ᴹ′_ ∣_∣ᴹ
+  refl-≈ᴹ′ : ∀ {ℓ n} {M : Memory ℓ} {{validᴹ : Validᴹ n M}} → M ≈⟨ ι n ⟩ᴹ′ M
   refl-≈ᴹ′ = ⌞ refl-≈ᴹ ⌟ᴹ
 
-  sym-≈ᴹ′ : Symmetricᴮ {F = Memory} _≈⟨_⟩ᴹ′_
+  sym-≈ᴹ′ : Symmetricᴮ  _≈⟨_⟩ᴹ′_
   sym-≈ᴹ′ {a = ℓ} x with ℓ ⊑? A
   sym-≈ᴹ′ {a} x | yes p = sym-≈ᴹ x
   sym-≈ᴹ′ {a} x | no ¬p = tt
 
-  trans-≈ᴹ′ : Transitiveᴮ {F = Memory} _≈⟨_⟩ᴹ′_
+  trans-≈ᴹ′ : Transitiveᴮ  _≈⟨_⟩ᴹ′_
   trans-≈ᴹ′ {a = ℓ} x y with ℓ ⊑? A
   trans-≈ᴹ′ {a} x y | yes p = trans-≈ᴹ x y
   trans-≈ᴹ′ {a} x y | no ¬p = tt
 
-  ≈ᴹ′-isEquivalence : IsEquivalenceᴮ {F = Memory} _≈⟨_⟩ᴹ′_
-  ≈ᴹ′-isEquivalence =
-    record { Dom = ∣_∣ᴹ
-           ; wkenᴮ = wken-≈ᴹ′
-           ; reflᴮ = refl-≈ᴹ′
-           ; symᴮ = sym-≈ᴹ′
-           ; transᴮ = trans-≈ᴹ′ }
+  -- ≈ᴹ′-isEquivalence : IsEquivalenceᴮ _≈⟨_⟩ᴹ′_
+  -- ≈ᴹ′-isEquivalence =
+  --   record { Dom = ∣_∣ᴹ
+  --          ; wkenᴮ = wken-≈ᴹ′
+  --          ; reflᴮ = refl-≈ᴹ′
+  --          ; symᴮ = sym-≈ᴹ′
+  --          ; transᴮ = trans-≈ᴹ′ }
 
-  open ≈ᴹ′-Equivalence public
+  -- open ≈ᴹ′-Equivalence public
 
 
   -- Not sure if this API is better, but they don't fix exactly our Equivalenceᴮ definitions
@@ -123,13 +143,14 @@ module Props (𝑽 : IsEquivalenceᴮ {Ty} {Value} _≈⟨_⟩ⱽ_) where
   -- refl-≈⟨ yes p ⟩ᴹ = refl-≈ᴹ
   -- refl-≈⟨ no ¬p ⟩ᴹ = tt
 
---     sym-≈⟨_⟩ᴹ : ∀ {ℓ} {M₁ M₂ : Memory ℓ} (x : Dec (ℓ ⊑ A)) → M₁ ≈⟨ x ⟩ᴹ M₂ → M₂ ≈⟨ x ⟩ᴹ M₁
---     sym-≈⟨ yes p ⟩ᴹ M₁≈M₂ = sym-≈ᴹ M₁≈M₂
---     sym-≈⟨ no ¬p ⟩ᴹ M₁≈M₂ = tt
+  sym-≈⟨_⟩ᴹ : ∀ {ℓ β} {M₁ M₂ : Memory ℓ} (x : Dec (ℓ ⊑ A)) → M₁ ≈⟨ β , x ⟩ᴹ M₂ → M₂ ≈⟨ β ⁻¹ , x ⟩ᴹ M₁
+  sym-≈⟨ yes p ⟩ᴹ M₁≈M₂ = sym-≈ᴹ M₁≈M₂
+  sym-≈⟨ no ¬p ⟩ᴹ M₁≈M₂ = tt
 
---     trans-≈⟨_⟩ᴹ : ∀ {ℓ} {M₁ M₂ M₃ : Memory ℓ} → (x : Dec (ℓ ⊑ A)) →  M₁ ≈⟨ x ⟩ᴹ M₂ → M₂ ≈⟨ x ⟩ᴹ M₃ → M₁ ≈⟨ x ⟩ᴹ M₃
---     trans-≈⟨ yes p ⟩ᴹ M₁≈M₂ M₂≈M₃ = trans-≈ᴹ M₁≈M₂ M₂≈M₃
---     trans-≈⟨ no ¬p ⟩ᴹ M₁≈M₂ M₂≈M₃ = tt
+  trans-≈⟨_⟩ᴹ : ∀ {ℓ β₁ β₂} {M₁ M₂ M₃ : Memory ℓ} → (x : Dec (ℓ ⊑ A)) →
+                M₁ ≈⟨ β₁ , x ⟩ᴹ M₂ → M₂ ≈⟨ β₂ , x ⟩ᴹ M₃ → M₁ ≈⟨ β₂ ∘ β₁ , x ⟩ᴹ M₃
+  trans-≈⟨ yes p ⟩ᴹ M₁≈M₂ M₂≈M₃ = trans-≈ᴹ M₁≈M₂ M₂≈M₃
+  trans-≈⟨ no ¬p ⟩ᴹ M₁≈M₂ M₂≈M₃ = tt
 
     -- ≈⟨_⟩ᴹ-isEquivalence : ∀ {ℓ} (x : Dec (ℓ ⊑ A)) → IsEquivalence (λ (M₁ M₂ : Memory ℓ) → M₁ ≈⟨ x ⟩ᴹ M₂)
     -- ≈⟨ x ⟩ᴹ-isEquivalence = record { refl = refl-≈⟨ x ⟩ᴹ ; sym = sym-≈⟨ x ⟩ᴹ ; trans = trans-≈⟨ x ⟩ᴹ }
