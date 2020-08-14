@@ -22,7 +22,7 @@ open import Generic.Bijection as B hiding (_∈_)
 import Generic.Store.LowEq {Ty} {Raw} _≈⟨_⟩ᴿ_ as S
 
 --------------------------------------------------------------------------------
--- TODO: move this to FG LowEq module?
+-- TODO: move this to.FG LowEq module?
 -- Lemmas on L-equivalent environments.
 
 -- Lookup in L-equivalent envs gives L-equivalent values
