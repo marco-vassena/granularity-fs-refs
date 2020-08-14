@@ -5,4 +5,4 @@ open import Generic.LValue
 -- It is mostly to avoid clashing names with memory and store.
 module Generic.Heap {{𝑳 : Lattice}} (Ty : Set) (Value : Ty → Set) where
 
-open import Generic.Heap.Base public
+open import Generic.Heap.Base Ty Value public

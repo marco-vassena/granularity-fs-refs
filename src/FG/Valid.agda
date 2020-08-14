@@ -2,9 +2,9 @@ open import Lattice
 
 module FG.Valid {{𝑳 : Lattice}} where
 
-open import FG.Types using (Ty ; _⊆_ ; I ; S)
+open import FG.Types hiding (_×_) renaming ( _⊆_ to  _⊆ᶜ_) --  (Ty ; _⊆_ ; I ; S)
 open import FG.Syntax
-open import Data.Product as P
+open import Data.Product as P hiding (_,_)
 open import Data.Nat renaming (_⊔_ to _⊔ᴺ_)
 open import Data.Unit hiding (_≤_)
 
@@ -32,34 +32,35 @@ mutual
 -- Needed?
 mutual
 
-  Validᴱ : ∀ {Γ} → Store → Env Γ → Set
-  Validᴱ Σ [] = ⊤
-  Validᴱ Σ (v ∷ θ) = Validⱽ Σ v × Validᴱ Σ θ
+  Validᴱ : ∀ {Γ} → ℕ → Env Γ → Set
+  Validᴱ n [] = ⊤
+  Validᴱ n (v ∷ θ) = Validⱽ n v × Validᴱ n θ
 
-  Validᴿ : ∀ {τ} → Store → Raw τ → Set
-  Validᴿ Σ （） = ⊤
-  Validᴿ Σ ⟨ x , θ ⟩ᶜ = Validᴱ Σ θ
-  Validᴿ Σ (inl v) = Validⱽ Σ v
-  Validᴿ Σ (inr v) = Validⱽ Σ v
-  Validᴿ Σ ⟨ v₁ , v₂ ⟩ = Validⱽ Σ v₁ × Validⱽ Σ v₂
+  Validᴿ : ∀ {τ} → ℕ → Raw τ → Set
+  Validᴿ n （） = ⊤
+  Validᴿ n ⟨ x , θ ⟩ᶜ = Validᴱ n θ
+  Validᴿ n (inl v) = Validⱽ n v
+  Validᴿ n (inr v) = Validⱽ n v
+  Validᴿ n ⟨ v₁ , v₂ ⟩ = Validⱽ n v₁ × Validⱽ n v₂
   -- TODO: there could be some (equivalent) alternatives.  E.g.,
   -- define a special (unlabelde) cell type for flow-insensitive
   -- references and ask that it has the right type.
   -- TODO: if we have a separate store do we need validity at all?
   -- Maybe just for the store?
-  Validᴿ Σ (Refᴵ {τ = τ} ℓ m) = P.Σ (Raw τ) (λ v → m ↦ (v , ℓ) ∈ Σ )
+  Validᴿ n (Refᴵ {τ = τ} ℓ m) = ⊤ -- This is ok because it is the store Σ
   -- TODO: should I have any requirement on the label of the cell for flow-sensitve refs?
-  Validᴿ {τ} Σ (Refˢ m) = ⊤ -- P.Σ (Cell τ) (λ c → m ↦ c ∈ Σ) -- Probably this is not needed.
-  Validᴿ Σ ⌞ ℓ ⌟ = ⊤
-  Validᴿ Σ (Id v) = Validⱽ Σ v
+  Validᴿ {τ} n (Refˢ m) = ⊤ -- This does not seem to be needed
+  Validᴿ n ⌞ ℓ ⌟ = ⊤
+  Validᴿ n (Id v) = Validⱽ n v
 
-  Validⱽ : ∀ {τ} → Store → Value τ → Set
-  Validⱽ Σ (r ^ ℓ) = Validᴿ Σ r
+  Validⱽ : ∀ {τ} → ℕ → Value τ → Set
+  Validⱽ n (r ^ ℓ) = Validᴿ n r
 
--- TODO: If we split the store for FS from FI all these definitions can be substituted by ∥ v ∥ ≤ ∥ Σ ∥
+-- -- TODO: If we split the store for FS from FI all these definitions can be substituted by ∥ v ∥ ≤ ∥ Σ ∥
 
 open Conf
-open import Generic.Store.Valid Ty Raw ∥_∥ᴿ hiding (Validᶜ)
+-- open import Generic.Heap.Valid Ty Value ∥_∥ⱽ public
+-- open import Generic.Store.Valid Ty Raw ∥_∥ᴿ public
 
 -- record Valid-Conf (A : Set) (Validᵗ : A → Set) (c : Conf A) : Set where
 --   constructor ⟨_,_⟩
@@ -78,42 +79,56 @@ open import Generic.Store.Valid Ty Raw ∥_∥ᴿ hiding (Validᶜ)
 
 open import FG.Semantics
 
+open import Generic.PState.Base Ty Ty Raw Value
+open import Generic.PState.Valid {Ty} {Ty} {Raw} {Value} ∥_∥ᴿ ∥_∥ⱽ public
+
 record Valid-Inputs {Γ} {τ} (c : IConf Γ τ) (θ : Env Γ) : Set where
   constructor ⟨_,_⟩
   field
-    validˢ : Validˢ (store c)
-    validᴱ : Validᴱ (store c) θ
+    validᴾ : Validᴾ ⟨ store c , heap c ⟩
+    validᴱ : Validᴱ ∥ heap c ∥ᴴ θ
 
--- open Valid-Inputs {{...}} public
+  open Validᴾ
+
+open Valid-Inputs {{...}} public
 
 Valid-Outputs : ∀ {τ} → FConf τ → Set
-Valid-Outputs ⟨ Σ , v ⟩ = Validˢ Σ × Validⱽ Σ v
+Valid-Outputs ⟨ Σ , μ , v ⟩ = Validᴾ ⟨ Σ , μ ⟩ × Validⱽ ∥ μ ∥ᴴ v
+
+-- record Valid-Outputs {τ} (c : FConf τ) : Set where
+--   constructor ⟨_,_⟩
+--   field
+--     validᴾ : Validᴾ ⟨ store c , heap c ⟩
+--     validⱽ : Validⱽ ∥ heap c ∥ᴴ (term c)
+
 
 -- TODO: prove
 instance
   postulate valid-invariant : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
                               c ⇓⟨ θ , ℓ ⟩ c' →
-                              Valid-Inputs c θ → Validᴱ (store c') θ × Valid-Outputs c'
--- Validᶜ c'
+                              Valid-Inputs c θ → Validᴱ ∥ heap c' ∥ᴴ θ × Valid-Outputs c'
+-- -- Validᶜ c'
 
-  -- postulate validⱽ-⇓ :  ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
+--   -- postulate validⱽ-⇓ :  ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
 
-  --                             c ⇓⟨ θ , ℓ ⟩ c' →
-  --                             Valid-Inputs c θ → Validᴱ (store c') θ
+--   --                             c ⇓⟨ θ , ℓ ⟩ c' →
+--   --                             Valid-Inputs c θ → Validᴱ (store c') θ
 
-import Generic.Store Ty Raw as S
+-- import Generic.Store Ty Raw as S
 
-postulate validᴿ-⊆ : ∀ {τ Σ Σ'} {r : Raw τ} → Σ S.⊆ Σ' → Validᴿ Σ r → Validᴿ Σ' r
+-- TODO: maybe it'd be more convenient to take the big-step in the main proof
+-- and use these in this module
+postulate validᴿ-⊆ᴴ : ∀ {τ μ μ'} {r : Raw τ} → μ ⊆ᴴ μ' → Validᴿ ∥ μ ∥ᴴ r → Validᴿ ∥ μ' ∥ᴴ r
 
-postulate validⱽ-⊆ : ∀ {τ Σ Σ'} {v : Value τ} → Σ S.⊆ Σ' → Validⱽ Σ v → Validⱽ Σ' v
+postulate validⱽ-⊆ᴴ : ∀ {τ μ μ'} {v : Value τ} → μ ⊆ᴴ μ' → Validⱽ ∥ μ ∥ᴴ v → Validⱽ ∥ μ' ∥ᴴ v
 
-postulate validᴱ-⊆ : ∀ {Γ Σ Σ'} {θ : Env Γ} → Σ S.⊆ Σ' → Validᴱ Σ θ → Validᴱ Σ' θ
+postulate validᴱ-⊆ᴴ : ∀ {Γ μ μ'} {θ : Env Γ} → μ ⊆ᴴ μ' → Validᴱ ∥ μ ∥ᴴ θ → Validᴱ ∥ μ' ∥ᴴ θ
 
-postulate validᴱ-⊆ᶜ : ∀ {Γ Γ' Σ} {θ : Env Γ} → (p : Γ' ⊆ Γ) → Validᴱ Σ θ → Validᴱ Σ (slice θ p)
+postulate validᴱ-⊆ᶜ : ∀ {Γ Γ' μ} {θ : Env Γ} → (p : Γ' ⊆ᶜ Γ) → Validᴱ μ θ → Validᴱ μ (slice θ p)
 
--- Do we need this?
-postulate step-≤ : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
-                              c ⇓⟨ θ , ℓ ⟩ c' → ∥ store c ∥ ≤ ∥ store c' ∥
+postulate validˢ-⊆ᴴ : ∀ {Σ μ μ'} → μ ⊆ᴴ μ' → Validˢ ∥ μ ∥ᴴ Σ → Validˢ ∥ μ' ∥ᴴ Σ
 
-postulate step-⊆ :  ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
-               c ⇓⟨ θ , pc ⟩ c' → (store c) S.⊆ (store c')
+-- -- Do we need this?
+-- postulate step-≤ : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
+--                               c ⇓⟨ θ , ℓ ⟩ c' → ∥ store c ∥ ≤ ∥ store c' ∥
+postulate step-⊆ᴴ :  ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} → c ⇓⟨ θ , pc ⟩ c' → (heap c) ⊆ᴴ (heap c')

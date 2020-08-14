@@ -6,8 +6,6 @@ module Generic.Value.HLowEq
   {Ty : Set} {Value : Ty → Set}
   (_≈⟨_⟩ⱽ_ :  IProps.Relᴮ Ty Value) where
 
-open IProps Ty Value
-
 -- Heterogeneous version of low-equivlence (accepts values with different types).
 data _≅⟨_⟩ⱽ_ {τ} (v : Value τ) (β : Bij) : ∀ {τ} → Value τ → Set where
   ⌞_⌟ : ∀ {v' : Value τ} → v ≈⟨ β ⟩ⱽ v' → v ≅⟨ β ⟩ⱽ v'
@@ -16,9 +14,11 @@ data _≅⟨_⟩ⱽ_ {τ} (v : Value τ) (β : Bij) : ∀ {τ} → Value τ → 
 ≅ⱽ-type-≡ : ∀ {τ₁ τ₂ β} {v₁ : Value τ₁} {v₂ : Value τ₂} → v₁ ≅⟨ β ⟩ⱽ v₂ → τ₁ ≡ τ₂
 ≅ⱽ-type-≡ ⌞ x ⌟ = refl
 
+private module V = IProps Ty Value
+
 -- Why two modules?
-module Props (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_) where
-  open IsEquivalenceᴮ 𝑽
+module Props (𝑽 : V.IsEquivalenceᴮ  _≈⟨_⟩ⱽ_) where
+  open V.IsEquivalenceᴮ 𝑽
   open import Data.Nat
 
   Domⱽ : ∀ {τ} → Value τ → ℕ

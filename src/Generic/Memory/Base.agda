@@ -2,8 +2,6 @@ open import Lattice
 
 module Generic.Memory.Base {{𝑳 : Lattice}} (Ty : Set) (Value : Ty → Set) where
 
-open import Generic.Container Label Ty Value using ([] ; _∷_) public
-
 open import Generic.Container Label Ty Value
   renaming ( Lookup to Lookupᴹ
            ; _↦_∈_ to _↦_∈ᴹ_
@@ -15,7 +13,7 @@ open import Generic.Container Label Ty Value
            ; _∈_ to _∈ᴹ_
            ; _∉_ to _∉ᴹ_
            ; _⊆′_ to _⊆ᴹ′_
-           )
+           ) public
 
 Memory : Label → Set
 Memory ℓ = Container ℓ

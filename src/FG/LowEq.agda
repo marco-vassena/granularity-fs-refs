@@ -108,7 +108,7 @@ mutual
 
     -- Flow-insensitive refs
     Ref-Iᴸ : ∀ {β} {ℓ τ n m} →
-               (ℓ⊑A : ℓ ⊑ A) → ⟨ n , m ⟩ ∈ᵗ β →
+               (ℓ⊑A : ℓ ⊑ A) → ⟨ n , m ⟩ ∈ᵗ β → -- We should not need the bijection anymore
                Refᴵ {τ = τ} ℓ n ≈⟨ β ⟩ᴿ Refᴵ ℓ m
 
     Ref-Iᴴ : ∀ {β} {ℓ₁ ℓ₂ n₁ n₂ τ} →
@@ -162,91 +162,90 @@ Falseᴸ ℓ⊑A = Inr (Valueᴸ ℓ⊑A Unit)
 ≈ⱽ-⊑ pc (Valueᴴ x x₁) = Valueᴴ (trans-⋤ (join-⊑₂ _ _) x) (trans-⋤ (join-⊑₂ _ _) x₁)
 
 
--- Derive L-equivalence for stores,
-open import Generic.Store.LowEq {Ty} {Raw} _≈⟨_⟩ᴿ_ A as S
-  using (_≈⟨_⟩ˢ_ ; cellᴸ ; cellᴴ ; ⌞_⌟ ; ≈ᶜ-⊑) public
 
--- open import Generic.Store.LowEq {Ty} {Raw} A renaming (_≈⟨_⟩ᶜ_ to _≈⟨_⟩ᶜ′_)
--- _≈⟨_⟩ˢ_ : Store → Bij → Store → Set
--- Σ₁ ≈⟨ β ⟩ˢ Σ₂ = Σ₁ ≈ˢ Σ₂
---   where open import Generic.Store.LowEq {Ty} {Raw} (λ r₁ r₂ → r₁ ≈⟨ β ⟩ᴿ r₂) A
-
+-- Subsumed by the above
 -- -- Derive L-equivalence for heaps
--- _≈⟨_⟩ᴴ_ : ∀ (μ₁ : Heap) → Bij → (μ₂ : Heap) → Set
--- μ₁ ≈⟨ β ⟩ᴴ μ₂ = μ₁ H.≈⟨ β ⟩ᴴ μ₂
---   where open import Generic.Heap.LowEq {Ty} {Value} 𝑯 (λ v₁ v₂ → v₁ ≈⟨ β ⟩ⱽ v₂) A as H
+-- open import Generic.Heap.LowEq {Ty} {Value} _≈⟨_⟩ⱽ_ A public -- TODO: using just that?
 
--- --
--- -- using (_≈⟨_⟩ᴴ_ ; _≈ᴴ_ ; new-≈ᴴ ; Bij⟨_,_⟩)
+-- -- Derive L-equivalence for stores,
+-- open import Generic.Store.LowEq {Ty} {Raw} _≈⟨_⟩ᴿ_ A public -- TODO: using just that?
+
+--------------------------------------------------------------------------------
+-- TODO: these should either not be needed anymore or moved to HLowEq (e.g., ⌞_⌟ ; ≈ᶜ-⊑)
+open import Generic.Value.HLowEq {Ty} {Value} _≈⟨_⟩ⱽ_ public
 
 -- TODO: these hint that cells and values are isomorphic
 -- and then we might as well put values in the store
-≈ⱽ-≈ᶜ : ∀ {τ β} {v₁ v₂ : Value τ} → v₁ ≈⟨ β ⟩ⱽ v₂ →
-        let r₁ ^ ℓ₁ = v₁
-            r₂ ^ ℓ₂ = v₂ in
-            ⟨ r₁ , ℓ₁ ⟩ S.≈⟨ β ⟩ᶜ ⟨ r₂ , ℓ₂ ⟩
-≈ⱽ-≈ᶜ (Valueᴸ ℓ⊑A r≈) = cellᴸ ℓ⊑A r≈
-≈ⱽ-≈ᶜ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = cellᴴ ℓ₁⋤A ℓ₂⋤A
+-- ≈ⱽ-≈ᶜ : ∀ {τ β} {v₁ v₂ : Value τ} → v₁ ≈⟨ β ⟩ⱽ v₂ →
+--         let r₁ ^ ℓ₁ = v₁
+--             r₂ ^ ℓ₂ = v₂ in
+--             ⟨ r₁ , ℓ₁ ⟩ S.≈⟨ β ⟩ᶜ ⟨ r₂ , ℓ₂ ⟩
+-- ≈ⱽ-≈ᶜ (Valueᴸ ℓ⊑A r≈) = cellᴸ ℓ⊑A r≈
+-- ≈ⱽ-≈ᶜ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = cellᴴ ℓ₁⋤A ℓ₂⋤A
 
-lemma-≈ᶜ : ∀ {τ β} {c₁ c₂ : Cell τ} → c₁ S.≈⟨ β ⟩ᶜ c₂ →
-                let ⟨ r₁ , ℓ₁ ⟩ = c₁
-                    ⟨ r₂ , ℓ₂ ⟩ = c₂ in
-                ℓ₁ ⊑ A → ℓ₂ ⊑ A → (r₁ ≈⟨ β ⟩ᴿ r₂) P.× (ℓ₁ ≡ ℓ₂)
-lemma-≈ᶜ (cellᴸ x ≈ᴿ) ℓ₁⊑A ℓ₂⊑A = ⟨ ≈ᴿ , refl ⟩
-lemma-≈ᶜ (cellᴴ ℓ₁⋤A _) ℓ₁⊑A ℓ₂⊑A = ⊥-elim (ℓ₁⋤A ℓ₁⊑A)
+-- lemma-≈ᶜ : ∀ {τ β} {c₁ c₂ : Cell τ} → c₁ S.≈⟨ β ⟩ᶜ c₂ →
+--                 let ⟨ r₁ , ℓ₁ ⟩ = c₁
+--                     ⟨ r₂ , ℓ₂ ⟩ = c₂ in
+--                 ℓ₁ ⊑ A → ℓ₂ ⊑ A → (r₁ ≈⟨ β ⟩ᴿ r₂) P.× (ℓ₁ ≡ ℓ₂)
+-- lemma-≈ᶜ (cellᴸ x ≈ᴿ) ℓ₁⊑A ℓ₂⊑A = ⟨ ≈ᴿ , refl ⟩
+-- lemma-≈ᶜ (cellᴴ ℓ₁⋤A _) ℓ₁⊑A ℓ₂⊑A = ⊥-elim (ℓ₁⋤A ℓ₁⊑A)
 
-≈ᶜ-≈ᴿ : ∀ {τ β} {c₁ c₂ : Cell τ} → c₁ S.≈⟨ β ⟩ᶜ c₂ →
-                let ⟨ r₁ , ℓ₁ ⟩ = c₁
-                    ⟨ r₂ , ℓ₂ ⟩ = c₂ in
-                ℓ₁ ⊑ A → ℓ₂ ⊑ A → r₁ ≈⟨ β ⟩ᴿ r₂
-≈ᶜ-≈ᴿ ≈ᶜ ℓ₁⊑A ℓ₂⊑A = proj₁ (lemma-≈ᶜ ≈ᶜ ℓ₁⊑A ℓ₂⊑A)
+-- ≈ᶜ-≈ᴿ : ∀ {τ β} {c₁ c₂ : Cell τ} → c₁ S.≈⟨ β ⟩ᶜ c₂ →
+--                 let ⟨ r₁ , ℓ₁ ⟩ = c₁
+--                     ⟨ r₂ , ℓ₂ ⟩ = c₂ in
+--                 ℓ₁ ⊑ A → ℓ₂ ⊑ A → r₁ ≈⟨ β ⟩ᴿ r₂
+-- ≈ᶜ-≈ᴿ ≈ᶜ ℓ₁⊑A ℓ₂⊑A = proj₁ (lemma-≈ᶜ ≈ᶜ ℓ₁⊑A ℓ₂⊑A)
 
-≈ᶜ-≡  :  ∀ {τ β} {c₁ c₂ : Cell τ} → c₁ S.≈⟨ β ⟩ᶜ c₂ →
-                let ⟨ r₁ , ℓ₁ ⟩ = c₁
-                    ⟨ r₂ , ℓ₂ ⟩ = c₂ in
-                ℓ₁ ⊑ A → ℓ₂ ⊑ A → ℓ₁ ≡ ℓ₂
-≈ᶜ-≡ ≈ᶜ ℓ₁⊑A ℓ₂⊑A = proj₂ (lemma-≈ᶜ ≈ᶜ ℓ₁⊑A ℓ₂⊑A)
+-- ≈ᶜ-≡  :  ∀ {τ β} {c₁ c₂ : Cell τ} → c₁ S.≈⟨ β ⟩ᶜ c₂ →
+--                 let ⟨ r₁ , ℓ₁ ⟩ = c₁
+--                     ⟨ r₂ , ℓ₂ ⟩ = c₂ in
+--                 ℓ₁ ⊑ A → ℓ₂ ⊑ A → ℓ₁ ≡ ℓ₂
+-- ≈ᶜ-≡ ≈ᶜ ℓ₁⊑A ℓ₂⊑A = proj₂ (lemma-≈ᶜ ≈ᶜ ℓ₁⊑A ℓ₂⊑A)
 
-≈ᶜ-≈ⱽ : ∀ {τ β} {c₁ c₂ : Cell τ} → c₁ S.≈⟨ β ⟩ᶜ c₂ →
-                let ⟨ r₁ , ℓ₁ ⟩ = c₁
-                    ⟨ r₂ , ℓ₂ ⟩ = c₂ in (r₁ ^ ℓ₁) ≈⟨ β ⟩ⱽ (r₂ ^ ℓ₂)
-≈ᶜ-≈ⱽ (cellᴸ x x₁) = Valueᴸ x x₁
-≈ᶜ-≈ⱽ (cellᴴ x x₁) = Valueᴴ x x₁
+-- ≈ᶜ-≈ⱽ : ∀ {τ β} {c₁ c₂ : Cell τ} → c₁ S.≈⟨ β ⟩ᶜ c₂ →
+--                 let ⟨ r₁ , ℓ₁ ⟩ = c₁
+--                     ⟨ r₂ , ℓ₂ ⟩ = c₂ in (r₁ ^ ℓ₁) ≈⟨ β ⟩ⱽ (r₂ ^ ℓ₂)
+-- ≈ᶜ-≈ⱽ (cellᴸ x x₁) = Valueᴸ x x₁
+-- ≈ᶜ-≈ⱽ (cellᴴ x x₁) = Valueᴴ x x₁
 
-taint-update-≈ᶜ :  ∀ {τ β} {c₁ c₂ : Cell τ} {v₁ v₂ : Value τ} →
-                     c₁ S.≈⟨ β ⟩ᶜ c₂ →  v₁ ≈⟨ β ⟩ⱽ v₂ →
-                let ⟨ r₁ , ℓ₁ ⟩ = c₁
-                    ⟨ r₂ , ℓ₂ ⟩ = c₂
-                    r₁' ^ ℓ₁' = v₁
-                    r₂' ^ ℓ₂' = v₂ in
-                    ⟨ r₁' , ℓ₁' ⟩  S.≈⟨ β ⟩ᶜ ⟨ r₂' , ℓ₂' ⟩
-taint-update-≈ᶜ (cellᴸ ⊑₁ r≈) (Valueᴸ ℓ⊑A r≈₁) = cellᴸ ℓ⊑A r≈₁
-taint-update-≈ᶜ (cellᴸ ⊑₁ r≈) (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = cellᴴ ℓ₁⋤A ℓ₂⋤A
-taint-update-≈ᶜ (cellᴴ ⋤₁ ⋤₂) (Valueᴸ ℓ⊑A r≈₁) = cellᴸ ℓ⊑A r≈₁ -- This gives more expressivity
-taint-update-≈ᶜ (cellᴴ ⋤₁ ⋤₂) (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = cellᴴ ℓ₁⋤A ℓ₂⋤A
+-- taint-update-≈ᶜ :  ∀ {τ β} {c₁ c₂ : Cell τ} {v₁ v₂ : Value τ} →
+--                      c₁ S.≈⟨ β ⟩ᶜ c₂ →  v₁ ≈⟨ β ⟩ⱽ v₂ →
+--                 let ⟨ r₁ , ℓ₁ ⟩ = c₁
+--                     ⟨ r₂ , ℓ₂ ⟩ = c₂
+--                     r₁' ^ ℓ₁' = v₁
+--                     r₂' ^ ℓ₂' = v₂ in
+--                     ⟨ r₁' , ℓ₁' ⟩  S.≈⟨ β ⟩ᶜ ⟨ r₂' , ℓ₂' ⟩
+-- taint-update-≈ᶜ (cellᴸ ⊑₁ r≈) (Valueᴸ ℓ⊑A r≈₁) = cellᴸ ℓ⊑A r≈₁
+-- taint-update-≈ᶜ (cellᴸ ⊑₁ r≈) (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = cellᴴ ℓ₁⋤A ℓ₂⋤A
+-- taint-update-≈ᶜ (cellᴴ ⋤₁ ⋤₂) (Valueᴸ ℓ⊑A r≈₁) = cellᴸ ℓ⊑A r≈₁ -- This gives more expressivity
+-- taint-update-≈ᶜ (cellᴴ ⋤₁ ⋤₂) (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = cellᴴ ℓ₁⋤A ℓ₂⋤A
 
-label-of≈ᶜ-≈ⱽ : ∀ {τ β} {c₁ c₂ : Cell τ} → c₁ S.≈⟨ β ⟩ᶜ c₂ →
-                let ⟨ r₁ , ℓ₁ ⟩ = c₁
-                    ⟨ r₂ , ℓ₂ ⟩ = c₂ in (⌞ ℓ₁ ⌟ ^ ℓ₁) ≈⟨ β ⟩ⱽ (⌞ ℓ₂ ⌟ ^ ℓ₂)
-label-of≈ᶜ-≈ⱽ (cellᴸ x x₁) = Valueᴸ x (Lbl _)
-label-of≈ᶜ-≈ⱽ (cellᴴ x x₁) = Valueᴴ x x₁
+-- label-of≈ᶜ-≈ⱽ : ∀ {τ β} {c₁ c₂ : Cell τ} → c₁ S.≈⟨ β ⟩ᶜ c₂ →
+--                 let ⟨ r₁ , ℓ₁ ⟩ = c₁
+--                     ⟨ r₂ , ℓ₂ ⟩ = c₂ in (⌞ ℓ₁ ⌟ ^ ℓ₁) ≈⟨ β ⟩ⱽ (⌞ ℓ₂ ⌟ ^ ℓ₂)
+-- label-of≈ᶜ-≈ⱽ (cellᴸ x x₁) = Valueᴸ x (Lbl _)
+-- label-of≈ᶜ-≈ⱽ (cellᴴ x x₁) = Valueᴴ x x₁
 
-extract-≈ᴿ : ∀ {τ β} {v₁ v₂ : Value τ} → v₁ ≈⟨ β ⟩ⱽ v₂ →
-               let r₁ ^ ℓ₁ = v₁
-                   r₂ ^ ℓ₂ = v₂ in ℓ₁ ⊑ A → r₁ ≈⟨ β ⟩ᴿ r₂
-extract-≈ᴿ (Valueᴸ ℓ⊑A r≈) ⊑₁ = r≈
-extract-≈ᴿ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) ⊑₁ = ⊥-elim (ℓ₁⋤A ⊑₁)
+-- extract-≈ᴿ : ∀ {τ β} {v₁ v₂ : Value τ} → v₁ ≈⟨ β ⟩ⱽ v₂ →
+--                let r₁ ^ ℓ₁ = v₁
+--                    r₂ ^ ℓ₂ = v₂ in ℓ₁ ⊑ A → r₁ ≈⟨ β ⟩ᴿ r₂
+-- extract-≈ᴿ (Valueᴸ ℓ⊑A r≈) ⊑₁ = r≈
+-- extract-≈ᴿ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) ⊑₁ = ⊥-elim (ℓ₁⋤A ⊑₁)
 
 -- Lift low-equivalence to configurations
 open Conf
 
 -- open import Generic.Bijection as B
 
+open import Generic.PState.LowEq {Ty} {Ty} {Raw} {Value} _≈⟨_⟩ᴿ_ _≈⟨_⟩ⱽ_ A public
+
 record _≈⟨_,_⟩ᴬ_ {V : Set} (c₁ : Conf V) (R : V  → V → Set) (β : Bij) (c₂ : Conf V) : Set where
   constructor ⟨_,_⟩
   field
-    store-≈ˢ : store c₁ ≈⟨ β ⟩ˢ store c₂
+    pstate-≈ᴾ : ⟨ store c₁ , heap c₁ ⟩ ≈⟨ β ⟩ᴾ ⟨ store c₂ , heap c₂ ⟩
     term-≈ : R (term c₁) (term c₂)
+
+  open _≈⟨_⟩ᴾ_ pstate-≈ᴾ public
 
 open _≈⟨_,_⟩ᴬ_ {{ ... }}
 
@@ -262,20 +261,26 @@ c₁ ≈⟨ β ⟩ᶜ c₂ = c₁ ≈⟨ _≈⟨ β ⟩ⱽ_ , β ⟩ᴬ c₂
 --------------------------------------------------------------------------------
 -- Properties: L-equivalence is an equivalence relation.
 
+open import Generic.Bijection
+
+private module R = IProps Ty Raw
+private module V = IProps Ty Value
+private module E = IProps Ctx Env
+
 mutual
 
   -- TODO: update description
   -- Weaken the identity bijection to progressively construct a bijection
   -- large enough for all the references in a value.
-  wken-≈ⱽ : ∀ {β β' τ} {v₁ v₂ : Value τ} → β ⊆ β' → v₁ ≈⟨ β  ⟩ⱽ v₂ → v₁ ≈⟨ β' ⟩ⱽ v₂
+  wken-≈ⱽ : V.Wkenᴮ _≈⟨_⟩ⱽ_
   wken-≈ⱽ β⊆β' (Valueᴸ ℓ⊑A r≈) = Valueᴸ ℓ⊑A (wken-≈ᴿ β⊆β' r≈)
   wken-≈ⱽ β⊆β' (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = Valueᴴ ℓ₁⋤A ℓ₂⋤A
 
-  wken-≈ᴱ : ∀ {β β' Γ} {θ₁ θ₂ : Env Γ} → β ⊆ β' → θ₁ ≈⟨ β  ⟩ᴱ θ₂ → θ₁ ≈⟨ β' ⟩ᴱ θ₂
+  wken-≈ᴱ : E.Wkenᴮ _≈⟨_⟩ᴱ_
   wken-≈ᴱ β⊆β' [] = []
   wken-≈ᴱ β⊆β' (≈ⱽ ∷ ≈ᴱ) = wken-≈ⱽ β⊆β' ≈ⱽ ∷ wken-≈ᴱ β⊆β' ≈ᴱ
 
-  wken-≈ᴿ : Wkenᴮ -- ∀ {τ β β'} {r₁ r₂ : Raw τ} → β ⊆ β' → r₁ ≈⟨ β  ⟩ᴿ r₂ → r₁ ≈⟨ β' ⟩ᴿ r₂
+  wken-≈ᴿ : R.Wkenᴮ _≈⟨_⟩ᴿ_
   wken-≈ᴿ β⊆β' Unit = Unit
   wken-≈ᴿ β⊆β' (Lbl ℓ) = Lbl ℓ
   wken-≈ᴿ β⊆β' (Inl x) = Inl (wken-≈ⱽ β⊆β' x)
@@ -290,31 +295,31 @@ mutual
 --------------------------------------------------------------------------------
 
   -- Reflexive
-  refl-≈ⱽ : ∀ {τ} (v : Value τ) → v ≈⟨ ι ∥ v ∥ⱽ ⟩ⱽ v
-  refl-≈ⱽ (r ^ ℓ) with ℓ ⊑? A
-  refl-≈ⱽ (r ^ ℓ) | yes ℓ⊑A = Valueᴸ ℓ⊑A (refl-≈ᴿ r)
-  refl-≈ⱽ (r ^ ℓ) | no ℓ⋤A = Valueᴴ ℓ⋤A ℓ⋤A
+  refl-≈ⱽ : V.Reflexiveᴮ _≈⟨_⟩ⱽ_ ∥_∥ⱽ
+  refl-≈ⱽ {x = r ^ ℓ} with ℓ ⊑? A
+  refl-≈ⱽ {x = r ^ ℓ} | yes ℓ⊑A = Valueᴸ ℓ⊑A refl-≈ᴿ
+  refl-≈ⱽ {x = r ^ ℓ} | no ℓ⋤A = Valueᴴ ℓ⋤A ℓ⋤A
 
-  refl-≈ᴿ : ∀ {τ} (r : Raw τ) → r ≈⟨ ι ∥ r ∥ᴿ ⟩ᴿ r
-  refl-≈ᴿ （） = Unit
-  refl-≈ᴿ ⟨ x , θ ⟩ᶜ = Fun (refl-≈ᴱ θ)
-  refl-≈ᴿ (inl v) = Inl (refl-≈ⱽ v)
-  refl-≈ᴿ (inr v) = Inr (refl-≈ⱽ v)
-  refl-≈ᴿ ⟨ v₁ , v₂ ⟩ = Pair ≈₁′ ≈₂′
-    where ≈₁′ = wken-≈ⱽ (ι-⊆ (m≤m⊔n ∥ v₁ ∥ⱽ ∥ v₂ ∥ⱽ)) (refl-≈ⱽ v₁)
-          ≈₂′ = wken-≈ⱽ (ι-⊆ (n≤m⊔n ∥ v₁ ∥ⱽ ∥ v₂ ∥ⱽ)) (refl-≈ⱽ v₂)
-  refl-≈ᴿ (Refᴵ ℓ n) with ℓ ⊑? A
+  refl-≈ᴿ : R.Reflexiveᴮ _≈⟨_⟩ᴿ_ ∥_∥ᴿ
+  refl-≈ᴿ {x = （）} = Unit
+  refl-≈ᴿ {x = ⟨ _ , θ ⟩ᶜ} = Fun refl-≈ᴱ
+  refl-≈ᴿ {x = (inl v)} = Inl refl-≈ⱽ
+  refl-≈ᴿ {x = (inr v)} = Inr refl-≈ⱽ
+  refl-≈ᴿ {x = ⟨ v₁ , v₂ ⟩} = Pair ≈₁′ ≈₂′
+    where ≈₁′ = wken-≈ⱽ (ι-⊆ (m≤m⊔n ∥ v₁ ∥ⱽ ∥ v₂ ∥ⱽ)) refl-≈ⱽ
+          ≈₂′ = wken-≈ⱽ (ι-⊆ (n≤m⊔n ∥ v₁ ∥ⱽ ∥ v₂ ∥ⱽ)) refl-≈ⱽ
+  refl-≈ᴿ {x = (Refᴵ ℓ n)} with ℓ ⊑? A
   ... | yes ℓ⊑A = Ref-Iᴸ ℓ⊑A (ι-∈ (s≤s ≤-refl))
   ... | no ℓ⋤A = Ref-Iᴴ ℓ⋤A ℓ⋤A
-  refl-≈ᴿ (Refˢ n) = Ref-S (ι-∈ (s≤s ≤-refl))
-  refl-≈ᴿ ⌞ ℓ ⌟ = Lbl ℓ
-  refl-≈ᴿ (Id v) = Id (refl-≈ⱽ v)
+  refl-≈ᴿ {x = (Refˢ n)} = Ref-S (ι-∈ (s≤s ≤-refl))
+  refl-≈ᴿ {x = ⌞ ℓ ⌟} = Lbl ℓ
+  refl-≈ᴿ {x = (Id v)} = Id refl-≈ⱽ
 
-  refl-≈ᴱ : ∀ {Γ} (θ : Env Γ) → θ ≈⟨ ι ∥ θ ∥ᴱ ⟩ᴱ θ
-  refl-≈ᴱ [] = []
-  refl-≈ᴱ (v ∷ θ) = ≈₁ ∷ ≈₂
-    where ≈₁ = wken-≈ⱽ (ι-⊆ (m≤m⊔n ∥ v ∥ⱽ ∥ θ ∥ᴱ)) (refl-≈ⱽ v)
-          ≈₂ = wken-≈ᴱ (ι-⊆ (n≤m⊔n ∥ v ∥ⱽ ∥ θ ∥ᴱ)) (refl-≈ᴱ θ)
+  refl-≈ᴱ : E.Reflexiveᴮ _≈⟨_⟩ᴱ_ ∥_∥ᴱ
+  refl-≈ᴱ {x = []} = []
+  refl-≈ᴱ {x = (v ∷ θ)} = ≈₁ ∷ ≈₂
+    where ≈₁ = wken-≈ⱽ (ι-⊆ (m≤m⊔n ∥ v ∥ⱽ ∥ θ ∥ᴱ)) refl-≈ⱽ
+          ≈₂ = wken-≈ᴱ (ι-⊆ (n≤m⊔n ∥ v ∥ⱽ ∥ θ ∥ᴱ)) refl-≈ᴱ
 
 ----------------------------------------------------------------------------------
 
@@ -374,20 +379,28 @@ mutual
 open import Generic.Bijection
 
 -- Why do we need this?
-𝑽 : IProps.IsEquivalenceᴮ Ty Value  _≈⟨_⟩ⱽ_
+𝑽 : V.IsEquivalenceᴮ  _≈⟨_⟩ⱽ_
 𝑽 = record { Dom = ∥_∥ⱽ
-           ; reflᴮ = refl-≈ⱽ _
+           ; reflᴮ = refl-≈ⱽ
            ; wkenᴮ = wken-≈ⱽ
            ; symᴮ = sym-≈ⱽ
            ; transᴮ = trans-≈ⱽ }
 
-𝑹 : IProps.IsEquivalenceᴮ Ty Raw  _≈⟨_⟩ᴿ_
+𝑹 : R.IsEquivalenceᴮ  _≈⟨_⟩ᴿ_
 
 𝑹 = record { Dom = ∥_∥ᴿ
-           ; reflᴮ = refl-≈ᴿ _
+           ; reflᴮ = refl-≈ᴿ
            ; wkenᴮ = wken-≈ᴿ
            ; symᴮ = sym-≈ᴿ
            ; transᴮ = trans-≈ᴿ }
+
+𝑬 : E.IsEquivalenceᴮ  _≈⟨_⟩ᴱ_
+
+𝑬 = record { Dom = ∥_∥ᴱ
+           ; reflᴮ = refl-≈ᴱ
+           ; wkenᴮ = wken-≈ᴱ
+           ; symᴮ = sym-≈ᴱ
+           ; transᴮ = trans-≈ᴱ }
 
 -- TODO: remove
   -- Make them instance of my own Equivalence bijection-indexed relation
@@ -436,4 +449,13 @@ open import Generic.Bijection
 -- Define the "Equivalence up to bijection" class.
 
 -- TODO: fix the export here ...
-open S.Props 𝑹 using (square-≈ˢ ; ∣_∣ˢ ; refl-≈ˢ ; trans-≈ˢ ; trans-≈ˢ-ι ; snoc-≈ˢ ; writeᴴ-≈ˢ ; square-≈ˢ-ι ; sym-≈ˢ ; newᴴ-≈ˢ ; newᴸ-≈ˢ ; ≈-# ; readᴸ-≈ᶜ ; writeᴸ-≈ˢ ) public
+-- Move this to Security where they are needed
+
+--------------------------------------------------------------------------------
+-- Subsumed by Generic.LowEq
+-- open ≈ᴴ-Props 𝑽 public
+-- -- (square-≈ᴴ ; ∣_∣ᴴ ; refl-≈ᴴ ; trans-≈ᴴ ; trans-≈ᴴ-ι ; snoc-≈ᴴ ; writeᴴ-≈ᴴ ; square-≈ᴴ-ι ; sym-≈ᴴ ; newᴴ-≈ᴴ ; newᴸ-≈ᴴ ; ≈-# ; readᴸ-≈ᶜ ; writeᴸ-≈ᴴ ) public
+
+-- open ≈ˢ-Props 𝑹 public
+
+open ≈ᴾ-Props 𝑹 𝑽 public

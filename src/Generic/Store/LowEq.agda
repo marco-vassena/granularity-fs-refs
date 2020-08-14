@@ -1,15 +1,15 @@
 -- Generic pointwise L-equivalence for stores and memories and their
 -- properties.
-{-# OPTIONS --allow-unsolved-metas #-}
+-- {-# OPTIONS --allow-unsolved-metas #-}
 
 open import Lattice
-open import Relation.Binary
+open import Relation.Binary -- Can be removed
 open import Generic.Bijection
 
 module Generic.Store.LowEq
+  {{𝑳 : Lattice}}
   {Ty : Set}
   {Value : Ty → Set}
-  {{𝑳 : Lattice}}
   (_≈⟨_⟩ⱽ_ :  IProps.Relᴮ Ty Value)
   (A : Label) where
 
@@ -38,64 +38,71 @@ module Store-≈ˢ where
 
 open Store-≈ˢ public
 
-module ≈ˢ-Props (𝑽 : IProps.IsEquivalenceᴮ Ty Value _≈⟨_⟩ⱽ_) where
+private module V = IProps Ty Value
 
-  module ≈ˢ-Equivalence where
+module ≈ˢ-Props (𝑽 : V.IsEquivalenceᴮ _≈⟨_⟩ⱽ_) where
 
-    open M.≈ᴹ-Props 𝑽 public
-    open import Generic.Store.Valid Ty Value ∣_∣ⱽ
+  open M.≈ᴹ-Props 𝑽 public
+  open import Generic.Store.Valid Ty Value (V.Dom 𝑽)
 
-    open SProps Store
+  open SProps Store
 
-    -- What size should I use here for the identity bijection?
-    -- Maybe it's not the right thing to compute it.
+  -- What size should I use here for the identity bijection?
+  -- Maybe it's not the right thing to compute it.
 
-    -- Reflexive
-    refl-≈ˢ : ∀ {Σ n} {{validˢ : Validˢ n Σ}} → Σ ≈⟨ ι n ⟩ˢ Σ
-    refl-≈ˢ {{validˢ}} ℓ = refl-≈ᴹ′ {{validˢ ℓ}}
+  -- Reflexive
+  refl-≈ˢ : ∀ {Σ n} {{validˢ : Validˢ n Σ}} → Σ ≈⟨ ι n ⟩ˢ Σ
+  refl-≈ˢ {{validˢ}} ℓ = refl-≈ᴹ′ {{validˢ ℓ}}
 
-    -- Symmetric
-    sym-≈ˢ : Symmetricᴮ _≈⟨_⟩ˢ_
-    sym-≈ˢ Σ₁≈Σ₂ ℓ = sym-≈⟨ _ ⟩ᴹ (Σ₁≈Σ₂ ℓ)
+  -- Symmetric
+  sym-≈ˢ : Symmetricᴮ _≈⟨_⟩ˢ_
+  sym-≈ˢ Σ₁≈Σ₂ ℓ = sym-≈⟨ _ ⟩ᴹ (Σ₁≈Σ₂ ℓ)
 
-    -- Transitive
-    trans-≈ˢ : Transitiveᴮ _≈⟨_⟩ˢ_ -- ∀ {Σ₁ Σ₂ Σ₃} → Σ₁ ≈ˢ Σ₂ → Σ₂ ≈ˢ Σ₃ → Σ₁ ≈ˢ Σ₃
-    trans-≈ˢ Σ₁≈Σ₂ Σ₂≈Σ₃ = λ ℓ → trans-≈⟨ _  ⟩ᴹ (Σ₁≈Σ₂ ℓ) (Σ₂≈Σ₃ ℓ)
+  -- Transitive
+  trans-≈ˢ : Transitiveᴮ _≈⟨_⟩ˢ_ -- ∀ {Σ₁ Σ₂ Σ₃} → Σ₁ ≈ˢ Σ₂ → Σ₂ ≈ˢ Σ₃ → Σ₁ ≈ˢ Σ₃
+  trans-≈ˢ Σ₁≈Σ₂ Σ₂≈Σ₃ = λ ℓ → trans-≈⟨ _  ⟩ᴹ (Σ₁≈Σ₂ ℓ) (Σ₂≈Σ₃ ℓ)
 
-  --   ≈ˢ-isEquivalence : IsEquivalence _≈ˢ_
-  --   ≈ˢ-isEquivalence = record { refl = refl-≈ˢ ; sym = sym-≈ˢ ; trans = trans-≈ˢ }
+--   ≈ˢ-isEquivalence : IsEquivalence _≈ˢ_
+--   ≈ˢ-isEquivalence = record { refl = refl-≈ˢ ; sym = sym-≈ˢ ; trans = trans-≈ˢ }
 
-  --   Store-≈ˢ : Setoid _ _
-  --   Store-≈ˢ = record { Carrier = Store ; _≈_ = _≈ˢ_ ; isEquivalence = ≈ˢ-isEquivalence }
+--   Store-≈ˢ : Setoid _ _
+--   Store-≈ˢ = record { Carrier = Store ; _≈_ = _≈ˢ_ ; isEquivalence = ≈ˢ-isEquivalence }
 
-  -- open ≈ˢ-Equivalence public
+-- open ≈ˢ-Equivalence public
 
-    --------------------------------------------------------------------------------
-    -- Store properties
+  --------------------------------------------------------------------------------
+  -- Store properties
 
-    -- Updating the store with low-equivalent memories preserves low-equivalence
-    updateᴸ-≈ˢ : ∀ {ℓ β Σ₁ Σ₂} {M₁ M₂ : Memory ℓ} →
-                   Σ₁ ≈⟨ β ⟩ˢ Σ₂ →
-                   M₁ ≈⟨ β ⟩ᴹ M₂ →
-                   (Σ₁ [ ℓ ↦ M₁ ]ˢ) ≈⟨ β ⟩ˢ (Σ₂ [ ℓ ↦ M₂ ]ˢ)
-    updateᴸ-≈ˢ {ℓ} Σ₁≈Σ₂ M₁≈M₂ ℓ' with ℓ ≟ ℓ'
-    ... | yes refl = ⌞ M₁≈M₂ ⌟ᴹ
-    ... | no ℓ≠ℓ' = Σ₁≈Σ₂ ℓ'
+  -- Updating the store with low-equivalent memories preserves low-equivalence
+  updateᴸ-≈ˢ : ∀ {ℓ β Σ₁ Σ₂} {M₁ M₂ : Memory ℓ} →
+                 Σ₁ ≈⟨ β ⟩ˢ Σ₂ →
+                 M₁ ≈⟨ β ⟩ᴹ M₂ →
+                 (Σ₁ [ ℓ ↦ M₁ ]ˢ) ≈⟨ β ⟩ˢ (Σ₂ [ ℓ ↦ M₂ ]ˢ)
+  updateᴸ-≈ˢ {ℓ} Σ₁≈Σ₂ M₁≈M₂ ℓ' with ℓ ≟ ℓ'
+  ... | yes refl = ⌞ M₁≈M₂ ⌟ᴹ
+  ... | no ℓ≠ℓ' = Σ₁≈Σ₂ ℓ'
 
-    open import Generic.Memory.Valid Ty Value ∣_∣ⱽ
+--  open import Generic.Memory.Valid Ty Value ∣_∣ⱽ
 
-    -- Modifying a high memory preserves low-equivalence of the store
-    updateᴴ-≈ˢ : ∀ {ℓ n} Σ (M : Memory ℓ) {{validˢ : Validˢ n Σ}} →
-                    ℓ ⋤ A → Σ ≈⟨ ι n ⟩ˢ (Σ [ ℓ ↦ M ]ˢ)
-    updateᴴ-≈ˢ {ℓ} Σ M ℓ⋤A ℓ' with ℓ' ⊑? A
-    updateᴴ-≈ˢ {ℓ} Σ M ℓ⋤A ℓ' | yes ℓ'⊑A with ℓ ≟ ℓ'
-    updateᴴ-≈ˢ {ℓ} Σ M ℓ⋤A ℓ' | yes ℓ⊑A | yes refl = ⊥-elim (ℓ⋤A ℓ⊑A)
-    updateᴴ-≈ˢ {ℓ} Σ M {{validˢ}} ℓ⋤A ℓ' | yes ℓ'⊑A | no ℓ≠ℓ' = refl-≈ᴹ {{ validˢ ℓ' }}
-    updateᴴ-≈ˢ {ℓ} Σ M ℓ⋤A ℓ' | no ℓ'⋤A = tt
+  -- Modifying a high memory preserves low-equivalence of the store
+  updateᴴ-≈ˢ : ∀ {ℓ n} Σ (M : Memory ℓ) {{validˢ : Validˢ n Σ}} →
+                  ℓ ⋤ A → Σ ≈⟨ ι n ⟩ˢ (Σ [ ℓ ↦ M ]ˢ)
+  updateᴴ-≈ˢ {ℓ} Σ M ℓ⋤A ℓ' with ℓ' ⊑? A
+  updateᴴ-≈ˢ {ℓ} Σ M ℓ⋤A ℓ' | yes ℓ'⊑A with ℓ ≟ ℓ'
+  updateᴴ-≈ˢ {ℓ} Σ M ℓ⋤A ℓ' | yes ℓ⊑A | yes refl = ⊥-elim (ℓ⋤A ℓ⊑A)
+  updateᴴ-≈ˢ {ℓ} Σ M {{validˢ}} ℓ⋤A ℓ' | yes ℓ'⊑A | no ℓ≠ℓ' = refl-≈ᴹ {{ validˢ ℓ' }}
+  updateᴴ-≈ˢ {ℓ} Σ M ℓ⋤A ℓ' | no ℓ'⋤A = tt
 
-    square-≈ˢ : ∀ {β β₁ β₂ Σ₁ Σ₁' Σ₂ Σ₂'} →
-                  Σ₁ ≈⟨ β ⟩ˢ Σ₂ →
-                  Σ₁ ≈⟨ β₁ ⟩ˢ Σ₁' →
-                  Σ₂ ≈⟨ β₂ ⟩ˢ Σ₂' →
-                  Σ₁' ≈⟨ β₂ ∘ β ∘ (β₁ ⁻¹) ⟩ˢ Σ₂'
-    square-≈ˢ Σ₁≈Σ₂ Σ₁≈Σ₁' Σ₂≈Σ₂' = trans-≈ˢ (trans-≈ˢ (sym-≈ˢ Σ₁≈Σ₁') Σ₁≈Σ₂) Σ₂≈Σ₂'
+  square-≈ˢ : ∀ {β β₁ β₂ Σ₁ Σ₁' Σ₂ Σ₂'} →
+                Σ₁ ≈⟨ β ⟩ˢ Σ₂ →
+                Σ₁ ≈⟨ β₁ ⟩ˢ Σ₁' →
+                Σ₂ ≈⟨ β₂ ⟩ˢ Σ₂' →
+                Σ₁' ≈⟨ β₂ ∘ β ∘ (β₁ ⁻¹) ⟩ˢ Σ₂'
+  square-≈ˢ Σ₁≈Σ₂ Σ₁≈Σ₁' Σ₂≈Σ₂' = trans-≈ˢ (trans-≈ˢ (sym-≈ˢ Σ₁≈Σ₁') Σ₁≈Σ₂) Σ₂≈Σ₂'
+
+  -- Here we should be able to derive n₁ ≤ n₂ from β
+  postulate trans-≈ˢ-ι : ∀ {Σ₁ Σ₁' Σ₂ Σ₂' β n₁ n₂} →
+                            Σ₁ ≈⟨ β ⟩ˢ Σ₂ →
+                            Σ₁ ≈⟨ ι n₁ ⟩ˢ Σ₁' →
+                            Σ₂ ≈⟨ ι n₂ ⟩ˢ Σ₂' →
+                            Σ₁' ≈⟨ β ⟩ˢ Σ₂'

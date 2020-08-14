@@ -161,7 +161,7 @@ module Util {A B : Set} {{ _≟ᴬ_ : DecEq A }}  where
   _↦_ : A → B →  A ⇀ B
   a ↦ b = ∅ [ a ↦ b ]
 
-  infixr 1 _↦_
+  infixr 7 _↦_
 
   -- Does not seem is ever used
   -- Only one mapping

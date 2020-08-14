@@ -51,7 +51,7 @@ Bij = ℕ ⤖ᴾ ℕ
 ι-≤ᴰ {c = c} = idᴾ-<ᴰ
   where open Id c
 
-open Bijectionᴾ
+open Bijectionᴾ  -- Why?
 
 
 ι-extends : ∀ {n m} → n ≤ m → (ι m) Extends (ι n)
@@ -451,6 +451,7 @@ absorb-ι {n} {m} m≤n = bij-≡ (ι n ∘ ι m) (ι m) (funext _ _ (ι-∘ᵀ 
 --------------------------------------------------------------------------------
 -- Explicitly indexed
 
+-- TODO: I would even remove the ᴮ from the names
 module IProps (A : Set) (F : A → Set) where
 
   Relᴮ : Set₁
@@ -475,6 +476,7 @@ module IProps (A : Set) (F : A → Set) where
           symᴮ : Symmetricᴮ R
           transᴮ : Transitiveᴮ R
 
+  open IsEquivalenceᴮ public
 
 -- Simple (not indexed) props
 -- It does not seem we need this because store

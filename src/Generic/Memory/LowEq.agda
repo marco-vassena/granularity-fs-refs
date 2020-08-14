@@ -1,6 +1,6 @@
 open import Lattice
 open import Relation.Binary
-open import Generic.Bijection
+open import Generic.Bijection hiding (_↦_)
 
 module Generic.Memory.LowEq
   {Ty : Set}
@@ -8,9 +8,6 @@ module Generic.Memory.LowEq
   {{𝑳 : Lattice}}
   (_≈⟨_⟩ⱽ_ : IProps.Relᴮ Ty Value)
   (A : Label) where
-
-module V = IProps Ty Value
-
 
 open import Generic.Memory Ty Value public
 open import Data.Unit hiding (_≟_)
@@ -40,7 +37,7 @@ M₁ ≈⟨ β ⟩ᴹ′ M₂ = M₁ ≈⟨ β , _ ⊑? A ⟩ᴹ M₂
 ... | yes ℓ⊑A = M₁≈M₂
 ... | no ℓ⋤A = tt
 
--- open IProps Ty Value
+module V = IProps Ty Value
 
 module ≈ᴹ-Props (𝑽 : IProps.IsEquivalenceᴮ Ty Value _≈⟨_⟩ⱽ_) where
 
@@ -51,7 +48,7 @@ module ≈ᴹ-Props (𝑽 : IProps.IsEquivalenceᴮ Ty Value _≈⟨_⟩ⱽ_) wh
     ; reflᴮ to refl-≈ⱽ
     ; symᴮ to sym-≈ⱽ
     ; transᴮ to trans-≈ⱽ
-    ; wkenᴮ to wken-≈ⱽ) public
+    ; wkenᴮ to wken-≈ⱽ)
 
 
   open IProps.IsEquivalenceᴮ -- Label ?
@@ -161,12 +158,12 @@ module ≈ᴹ-Props (𝑽 : IProps.IsEquivalenceᴮ Ty Value _≈⟨_⟩ⱽ_) wh
   open import Relation.Binary.PropositionalEquality
 
   -- Low memories have the same length
-  ∥_∥-≡ : ∀ {ℓ β} {M₁ M₂ : Memory ℓ} → M₁ ≈⟨ β ⟩ᴹ M₂ → ∥ M₁ ∥ ≡ ∥ M₂ ∥
+  ∥_∥-≡ : ∀ {ℓ β} {M₁ M₂ : Memory ℓ} → M₁ ≈⟨ β ⟩ᴹ M₂ → ∥ M₁ ∥ᴹ ≡ ∥ M₂ ∥ᴹ
   ∥ [] ∥-≡ = refl
   ∥ x ∷ M₁≈M₂ ∥-≡ rewrite ∥ M₁≈M₂ ∥-≡ = refl
 
   new-≈ᴹ : ∀ {τ ℓ β} {M₁ M₂ : Memory ℓ} {v₁ v₂ : Value τ} →
-                M₁ ≈⟨ β ⟩ᴹ M₂ → v₁ ≈⟨ β ⟩ⱽ v₂ → (M₁ ∷ᴿ v₁) ≈⟨ β ⟩ᴹ (M₂ ∷ᴿ v₂)
+                M₁ ≈⟨ β ⟩ᴹ M₂ → v₁ ≈⟨ β ⟩ⱽ v₂ → (snocᴹ M₁ v₁) ≈⟨ β ⟩ᴹ (snocᴹ M₂ v₂)
   new-≈ᴹ [] v₁≈v₂ = v₁≈v₂ ∷ []
   new-≈ᴹ (v₁≈v₂' ∷ M₁≈M₂) v₁≈v₂ = v₁≈v₂' ∷ (new-≈ᴹ M₁≈M₂ v₁≈v₂)
 

@@ -62,10 +62,10 @@ open import Data.Maybe
 
 -- Domain inclusion between bijection and heap
 _⊆ᴰ_ : Bij → Heap → Set
-β ⊆ᴰ μ = ∀ {n : ℕ} → n ∈ᴰ β → n ∈ μ
+β ⊆ᴰ μ = ∀ {n : ℕ} → n ∈ᴰ β → n ∈ᴴ μ
 
 _⊆ᴿ_ : Bij → Heap → Set
-β ⊆ᴿ μ = ∀ {n : ℕ} → n ∈ᴿ′ β → n ∈ μ
+β ⊆ᴿ μ = ∀ {n : ℕ} → n ∈ᴿ′ β → n ∈ᴴ μ
 
 -- With the new definitions these seems not needed
 -- ⊆ᴰ-⊆ᴿ : ∀ {β μ} → β ⊆ᴰ μ → (β ⁻¹) ⊆ᴿ μ
@@ -122,7 +122,7 @@ record _≈⟨_⟩ᴴ_ (μ₁ : Heap) (β : Bij) (μ₂ : Heap) : Set where
 -- -- _≈ᴴ_ : Heap → Heap → Set
 -- -- μ₁ ≈ᴴ μ₂ = μ Bij⟨ μ₁ , μ₂ ⟩ (λ β → μ₁ ≈⟨ β ⟩ᴴ μ₂)
 
-module Props′ (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ) where
+module ≈ᴴ-Props (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ) where
 
   open import Generic.LValue Ty Value
   -- open L.HasLabel 𝑯
@@ -137,7 +137,7 @@ module Props′ (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ) where
     ; reflᴮ to refl-≈ⱽ
     ; symᴮ to sym-≈ⱽ
     ; transᴮ to trans-≈ⱽ
-    ; wkenᴮ to wken-≈ⱽ) public
+    ; wkenᴮ to wken-≈ⱽ)
 
 
   open import Generic.Heap.Valid Ty Value ∣_∣ⱽ -- renaming (∥_∥ᶜ to ∣_∣ᶜ)
@@ -260,7 +260,7 @@ module Props′ (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ) where
           ... | refl , refl = lift-≅ x ∈₁ ∈₂′
 
   writeᴴ-≈ᴴ : ∀ {μ μ' n τ} {v v' : Value τ} {{validᴴ : Validᴴ μ}} →
-              n ↦ v ∈ᴴ μ → μ' ≔ μ [ n ↦ v' ]ᴴ → v ≅⟨ ι ∥ μ ∥ᴴ ⟩ⱽ v' → -- Probably should be ≈
+              n ↦ v ∈ᴴ μ → μ' ≔ μ [ n ↦ v' ]ᴴ → v ≈⟨ ι ∥ μ ∥ᴴ ⟩ⱽ v' → -- Probably should be ≈
               μ ≈⟨ ι ∥ μ ∥ᴴ ⟩ᴴ μ'
   writeᴴ-≈ᴴ {μ} {μ'} {n} {{validᴴ}} n∈μ w ≈₁ =
     record { dom-⊆ = refl-⊆ᴰ ; rng-⊆ = rng-⊆ ; lift-≅ = lift-≅ }
@@ -279,7 +279,7 @@ module Props′ (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ) where
        -- The written cell is secret
       lift-≅ {n₁} {.n₁} ∈ᴮ ∈₁ ∈₂ | refl , _ | yes refl with inj-∈′ ∈₁ n∈μ
       lift-≅ {n₁} {.n₁} ∈ᴮ ∈₁ ∈₂ | refl , _ | yes refl | refl , refl with inj-∈′ ∈₂ (write-∈ w)
-      ... | refl , refl = ≈₁
+      ... | refl , refl = ⌞ ≈₁ ⌟
 
       -- Identical cells are looked up, use reflexivity.
       lift-≅ {n₁} {.n₁} ∈ᴮ ∈₁ ∈₂ | refl , _ | no n₁≠n with write-only-one w n₁≠n ∈₁ ∈₂
