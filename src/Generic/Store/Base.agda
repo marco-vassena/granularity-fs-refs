@@ -95,19 +95,19 @@ cons-∈ {c = c} (τ , c' , There x) with cons-∈ (τ , c' , x)
 
 open import Data.Empty
 
-foo : ∀ {n} → n ∈ [] → suc n ∈ []
-foo (_ , _ , ())
+-- foo : ∀ {n} → n ∈ [] → suc n ∈ []
+-- foo (_ , _ , ())
 
 open import Relation.Binary.PropositionalEquality
 
 ⊥-∉[] : ∀ {n} → n ∈ [] → ⊥
 ⊥-∉[] (_ , _ , ())
 
-[]⊆ : ∀ {Σ} → Σ ⊆′ [] → Σ ≡ []
-[]⊆ {[]} ⊆₁ = refl
-[]⊆ {c ∷ Σ₁} ⊆₁ = ⊥-elim (⊥-∉[] (⊆₁ (_ , c , Here)))
-  where aux : ∀ {τ} {c : Cell τ} → 1 ∈ (c ∷ []) → ⊥
-        aux (_ , _ , There ())
+-- []⊆ : ∀ {Σ} → Σ ⊆′ [] → Σ ≡ []
+-- []⊆ {[]} ⊆₁ = refl
+-- []⊆ {c ∷ Σ₁} ⊆₁ = ⊥-elim (⊥-∉[] (⊆₁ (_ , c , Here)))
+--   where aux : ∀ {τ} {c : Cell τ} → 1 ∈ (c ∷ []) → ⊥
+--         aux (_ , _ , There ())
 
 -- Write v n C₁ C₂ is the proof that updating container C₁ with v at
 -- position n gives container C₂: C₂ ≔ C₁ [ n ↦ v ]
@@ -155,9 +155,9 @@ infix 1 ∥_∥
 -- tail-⊆′ {Σ₂ = Σ₂} {c₁ = c₁} {c₂} ⊆₁ x | x' | proj₃ , proj₄ , y' | s≤s n<Σ₂ with ∈-< x | ∈-< x'
 -- ... | a | (s≤s b) =  <-∈ {Σ = Σ₂} {!!}
 
-_++ˢ_ : Store → Store → Store
-[] ++ˢ Σ' = Σ'
-(c ∷ Σ) ++ˢ Σ' = c ∷ (Σ ++ˢ Σ')
+-- _++ˢ_ : Store → Store → Store
+-- [] ++ˢ Σ' = Σ'
+-- (c ∷ Σ) ++ˢ Σ' = c ∷ (Σ ++ˢ Σ')
 
 open import Data.Nat
 open import Relation.Binary.PropositionalEquality
