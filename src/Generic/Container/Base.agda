@@ -50,3 +50,15 @@ _∷ᴿ_ : ∀ {ℓ τ} → Container ℓ → Value τ → Container ℓ
 ∥ _ ∷ C ∥ = suc ∥ C ∥
 
 infix 1 ∥_∥
+
+open import Relation.Nullary
+
+_∉_ : ∀ {ℓ} →  ℕ → Container ℓ → Set
+n ∉ Σ = ¬ (n ∈ Σ)
+
+_⊆_ : ∀ {ℓ} → Container ℓ → Container ℓ → Set
+Σ ⊆ Σ' = ∀ {τ n} {c : Value τ} → n ↦ c ∈ Σ → P.Σ (Value τ) (λ c' → n ↦ c' ∈ Σ')
+  where import Data.Product as P
+
+_⊆′_ : ∀ {ℓ} → Container ℓ → Container ℓ → Set
+Σ ⊆′ Σ' = ∀ {n} → n ∈ Σ → n ∈ Σ'

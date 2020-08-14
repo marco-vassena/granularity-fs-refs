@@ -19,6 +19,7 @@ inj-∈ : ∀ {ℓ n τ} {C : Container ℓ} {v₁ v₂ : Value τ} →
 inj-∈ x y with inj-∈′ x y
 ... | refl , eq = eq
 
+-- TODO: fix this import
 open import Lattice hiding (Label) -- Here just because it defines the pragma {#- BUILTIN REWRITE #-}
 open import Data.Nat
 
@@ -48,12 +49,6 @@ open import Data.Nat
 -- n ∈ Σ = ∃ (λ τ → P.Σ (Value τ) (λ c → n ↦ c ∈ Σ))
 --   where import Data.Product as P
 
-open import Relation.Nullary
-
-_∉_ : ∀ {ℓ} →  ℕ → Container ℓ → Set
-n ∉ Σ = ¬ (n ∈ Σ)
-
-
 -- Extracts the value from a flow-insensitive cell
 -- _↦_∈ᴵ_ : ∀ {τ} → ℕ → Value τ → Container ℓ → Set
 -- _↦_∈ᴵ_ n v Σ = Lookup ⌞ v ⌟ᴵ n Σ
@@ -62,15 +57,9 @@ n ∉ Σ = ¬ (n ∈ Σ)
 -- _↦_∈ˢ_ : ∀ {τ} → ℕ → (Value τ × Label) → Container ℓ → Set
 -- _↦_∈ˢ_ n x Σ = Lookup ⌞ x ⌟ˢ n Σ
 
-_⊆_ : ∀ {ℓ} → Container ℓ → Container ℓ → Set
-Σ ⊆ Σ' = ∀ {τ n} {c : Value τ} → n ↦ c ∈ Σ → P.Σ (Value τ) (λ c' → n ↦ c' ∈ Σ')
-  where import Data.Product as P
 
 trans-⊆ : ∀ {ℓ} {Σ₁ Σ₂ Σ₃ : Container ℓ} → Σ₁ ⊆ Σ₂ → Σ₂ ⊆ Σ₃ → Σ₁ ⊆ Σ₃
 trans-⊆ ⊆₁ ⊆₂ ∈₁ = ⊆₂ (proj₂ (⊆₁ ∈₁))
-
-_⊆′_ : ∀ {ℓ} → Container ℓ → Container ℓ → Set
-Σ ⊆′ Σ' = ∀ {n} → n ∈ Σ → n ∈ Σ'
 
 ⊆-⊆′ : ∀ {ℓ} {Σ Σ' : Container ℓ} → Σ ⊆ Σ' → Σ ⊆′ Σ'
 ⊆-⊆′ ⊆₁ (_ , _ , ∈₁) with ⊆₁ ∈₁
@@ -149,13 +138,13 @@ write-length-≡ (There x) = cong suc (write-length-≡ x)
 ≤-⊆ {_} {v₁ ∷ Σ₁} {v₂ ∷ Σ₂} (s≤s n≤n') (τ , c , There x) with ≤-⊆ n≤n'(τ , c , x)
 ... | (τ' , c' , x') =  τ' , c' , (There x')
 
-open import Data.Sum
-
 ≰-∉ : ∀ {ℓ} {Σ₁ Σ₂ : Container ℓ} → ∥ Σ₁ ∥ ≰ ∥ Σ₂ ∥ → ∃ (λ n → n ∈ Σ₁ × n ∉ Σ₂)
 ≰-∉ {_} {[]} {Σ₂} ≰ = ⊥-elim (≰ z≤n)
 ≰-∉ {_} {x ∷ Σ₁} {[]} ≰ = 0 , (_ , _ , Here) , ⊥-∉[]
 ≰-∉ {_} {x ∷ Σ₁} {x₁ ∷ Σ₂} ≰ with ≰-∉ {_} {Σ₁} {Σ₂} (λ ≤₁ → ≰ (s≤s ≤₁) )
 ... | n , (_ , _ , ∈₁) , ∉₂ = suc n , (_ , _ , There ∈₁) , (λ ∈₂ → ∉₂ (pred-∈ ∈₂) )
+
+open import Relation.Nullary
 
 ⊆-≤ : ∀ {ℓ} {Σ₁ Σ₂ : Container ℓ} → Σ₁ ⊆′ Σ₂ →  ∥ Σ₁ ∥ ≤ ∥ Σ₂ ∥
 ⊆-≤ {_} {Σ₁} {Σ₂} ⊆ with ∥ Σ₁ ∥ ≤? ∥ Σ₂ ∥

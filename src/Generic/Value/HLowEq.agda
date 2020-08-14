@@ -1,23 +1,31 @@
 open import Relation.Binary
 open import Generic.Bijection
+open import Relation.Binary.PropositionalEquality
 
 module Generic.Value.HLowEq
   {Ty : Set} {Value : Ty → Set}
-  (_≈⟨_⟩ⱽ_ :  Relᴮ Value) where
+  (_≈⟨_⟩ⱽ_ :  IProps.Relᴮ Ty Value) where
+
+open IProps Ty Value
 
 -- Heterogeneous version of low-equivlence (accepts values with different types).
 data _≅⟨_⟩ⱽ_ {τ} (v : Value τ) (β : Bij) : ∀ {τ} → Value τ → Set where
   ⌞_⌟ : ∀ {v' : Value τ} → v ≈⟨ β ⟩ⱽ v' → v ≅⟨ β ⟩ⱽ v'
 
-module Props (𝑽 : IsEquivalenceᴮ {F = Value} _≈⟨_⟩ⱽ_) where
+-- Heterogenous L-equivalence implies equality of the types of the values
+≅ⱽ-type-≡ : ∀ {τ₁ τ₂ β} {v₁ : Value τ₁} {v₂ : Value τ₂} → v₁ ≅⟨ β ⟩ⱽ v₂ → τ₁ ≡ τ₂
+≅ⱽ-type-≡ ⌞ x ⌟ = refl
+
+-- Why two modules?
+module Props (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_) where
   open IsEquivalenceᴮ 𝑽
   open import Data.Nat
 
-  Dom′ : ∀ {τ} → Value τ → ℕ
-  Dom′ = IsEquivalenceᴮ.Dom 𝑽
+  Domⱽ : ∀ {τ} → Value τ → ℕ
+  Domⱽ = Dom
 
-  refl-≅ⱽ : ∀ {τ} {v : Value τ} → v ≅⟨ ι (Dom′ v) ⟩ⱽ v
-  refl-≅ⱽ = ⌞ IsEquivalenceᴮ.reflᴮ 𝑽 ⌟
+  refl-≅ⱽ : ∀ {τ} {v : Value τ} → v ≅⟨ ι (Domⱽ v) ⟩ⱽ v
+  refl-≅ⱽ = ⌞ reflᴮ ⌟
 
   sym-≅ⱽ : ∀ {τ₁ τ₂ β} {v₁ : Value τ₁} {v₂ : Value τ₂} → v₁ ≅⟨ β ⟩ⱽ v₂ → v₂ ≅⟨ β ⁻¹ ⟩ⱽ v₁
   sym-≅ⱽ ⌞ x ⌟ = ⌞ symᴮ x ⌟
@@ -25,6 +33,11 @@ module Props (𝑽 : IsEquivalenceᴮ {F = Value} _≈⟨_⟩ⱽ_) where
   trans-≅ⱽ : ∀ {τ₁ τ₂ τ₃ β₁ β₂} {v₁ : Value τ₁} {v₂ : Value τ₂} {v₃ : Value τ₃} →
                v₁ ≅⟨ β₁ ⟩ⱽ v₂ → v₂ ≅⟨ β₂ ⟩ⱽ v₃ → v₁ ≅⟨ β₂ ∘ β₁ ⟩ⱽ v₃
   trans-≅ⱽ ⌞ x ⌟ ⌞ y ⌟ = ⌞  transᴮ x y ⌟
+
+  wken-≅ⱽ : ∀ {τ₁ τ₂ β β'} {v₁ : Value τ₁} {v₂ : Value τ₂} →
+            β ⊆ β' → v₁ ≅⟨ β ⟩ⱽ v₂ → v₁ ≅⟨ β' ⟩ⱽ v₂
+  wken-≅ⱽ β⊆β' ⌞ x ⌟ = ⌞ wkenᴮ β⊆β' x ⌟
+
 
 --------------------------------------------------------------------------------
 -- Cleaner but gives us problem in the heap LowEq properties

@@ -1,18 +1,18 @@
-open import Lattice
-open import Generic.LValue
 open import Data.Nat
+open import Lattice
 
 module Generic.Heap.Valid
+  (Ty : Set)
+  (Value : Ty → Set)
   {{𝑳 : Lattice}}
-  {Ty : Set}
-  {Value : Ty → Set}
-  (𝑯 : HasLabel Ty Value)
-  (Dom : ∀ {τ} → Value τ → ℕ) where
+  (∥_∥ⱽ : ∀ {τ} → Value τ → ℕ) where
 
+open import Generic.Heap.Base Ty Value as S
 open import Data.Unit hiding (_≤_)
-open import Generic.Heap.Base {Ty} {Value} 𝑯
+open import Data.Product
 
-Validⱽ : ∀ {τ} → LValue τ → Heap → Set
-Validⱽ v μ = Dom v ≤ ∥ μ ∥ᴴ
+Validⱽ : ∀ {τ} → Heap → Value τ → Set
+Validⱽ Σ v = ∥ v ∥ⱽ ≤ ∥ Σ ∥ᴴ
 
-open import Generic.Container.Valid ⊤ Ty LValue Validⱽ renaming (Valid to Validᴴ) public
+Validᴴ : Heap → Set
+Validᴴ Σ = ∀ {n τ} {v : Value τ } → n ↦ v ∈ᴴ Σ → Validⱽ Σ v
