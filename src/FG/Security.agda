@@ -126,33 +126,33 @@ step-≈ᴴ {{isVᴾ}} {{isV₂}} (Taint refl x x₁ pc'⊑pc'') pc⋤A =
   in trans-≈ᴾ-ι μ⊆μ₁ μ₁⊆μ₂
 
 step-≈ᴴ {{isVᴾ}} {{isV₂}} (LabelOfRef x eq) pc⋤A = step-≈ᴴ {{ isVᴾ }} x pc⋤A
-step-≈ᴴ {{isVᴾ}} {{isV₂}} (New x) pc⋤A =
+step-≈ᴴ {{isVᴾ}} {{isV₂}} (New {μ = μ} {μ'} x) pc⋤A =
   -- TODO: should be like the previous formalization
   let ⟨ ≈ˢ , ≈ᴴ ⟩ = step-≈ᴴ {{ isVᴾ }} {{isV₂}} x pc⋤A
       _ ∧ ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ _ = valid-invariant x ⟨ isVᴾ , isV₂ ⟩
-      ≈ˢ′ = {!updateᴴ-≈ˢ ? ? {{ ? }} ?!} in -- updateᴴ-≈ˢ ? ? {{ ? }} ? ? ?
-      ⟨ ≈ˢ′ , ≈ᴴ ⟩ -- snoc-≈ᴴ _ (step-≈ᴴ {{ isVᴾ }} {{ isV₂ }} x pc⋤A)
--- ⟨ {!!} , {!refl-≈ᴴ!} ⟩ -- snoc-≈ᴴ _ (step-≈ᴴ {{isVᴾ}} {{isV₂}} x pc⋤A)
+      ≈ˢ′ = updateᴴ-≈ˢ _ _ {{ isVˢ′ }} (trans-⋤ (step-⊑ x) pc⋤A) in
+      ⟨ trans-≈ˢ-ι {n₁ = ∥ μ ∥ᴴ} {n₂ = ∥ μ' ∥ᴴ} ≈ˢ ≈ˢ′ , ≈ᴴ ⟩
 
 step-≈ᴴ {{isVᴾ}} {{isV₂}} (Read x x₁ eq) pc⋤A = step-≈ᴴ {{ isVᴾ }} x pc⋤A
-step-≈ᴴ {{isVᴾ}} {{isV₂}} (Write {ℓ = ℓ} {n = n} {τ = τ} x ⊑₁ x₁ ⊑₂ w) pc⋤A = {!!}
-  -- Outdated: This case should be the same as in the old formalizatiom
-  -- let isVᴱ ∧ isVᴾ′ ∧ isV₂′ = valid-invariant x ⟨ isVᴾ , isV₂ ⟩
-  --     isVᴱ′ ∧ isVᴾ′′ ∧ isV₂′′ = valid-invariant x₁ ⟨ isVᴾ′ , isVᴱ ⟩
-  --     -- ref ∧ ∈₂ = validᴿ-⊆ᴴ {r = Refᴵ {τ = τ} ℓ n} (step-⊆ᴴ x₁) isV₂′
-  --     μ⊆μ₁ = step-≈ᴴ {{ isVᴾ }} x pc⋤A
-  --     μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} {{ isVᴱ }} x₁ pc⋤A
-  --     ℓ⋤A = trans-⋤ (trans-⊑ (step-⊑ x) ⊑₁) pc⋤A
-  --     c≈c' = {!!} -- S.⌞ S.cellᴴ ℓ⋤A  ℓ⋤A ⌟
-  --     μ₂≈μ₃ = ⟨ {!!} , writeᴴ-≈ᴴ {{ {!!}  }} {!!} {!w!} {!!} ⟩ -- writeᴴ-≈ᴴ {{ isVᴾ′′  }} ∈₂ w c≈c' -- Do I need the valid assumption here?
-  -- in trans-≈ᴾ-ι μ⊆μ₁ (trans-≈ᴾ-ι μ₁⊆μ₂ μ₂≈μ₃)
+step-≈ᴴ {{isVᴾ}} {{isV₂}} (Write {ℓ = ℓ} {n = n} {τ = τ} x ⊑₁ x₁ ⊑₂ w) pc⋤A =
+--  Outdated: This case should be the same as in the old formalization
+  let isVᴱ ∧ isVᴾ′ ∧ isV₂′ = valid-invariant x ⟨ isVᴾ , isV₂ ⟩
+      isVᴱ′ ∧ ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ isV₂′′ = valid-invariant x₁ ⟨ isVᴾ′ , isVᴱ ⟩
+      -- ref ∧ ∈₂ = validᴿ-⊆ᴴ {r = Refᴵ {τ = τ} ℓ n} (step-⊆ᴴ x₁) isV₂′
+      μ⊆μ₁ = step-≈ᴴ {{ isVᴾ }} x pc⋤A
+      μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} {{ isVᴱ }} x₁ pc⋤A
+      ℓ⋤A = trans-⋤ (trans-⊑ (step-⊑ x) ⊑₁) pc⋤A
+      μ₂≈μ₃ = ⟨ updateᴴ-≈ˢ _ _ {{ isVˢ′ }} ℓ⋤A , refl-≈ᴴ {{ isVᴴ′ }} ⟩
+  -- writeᴴ-≈ᴴ {{ isVᴾ′′  }} ∈₂ w c≈c' -- Do I need the valid assumption here?
+  in trans-≈ᴾ-ι μ⊆μ₁ (trans-≈ᴾ-ι μ₁⊆μ₂ μ₂≈μ₃)
 
 step-≈ᴴ {{isVᴾ}} {{isV₂}} (LabelOfRef-FS x x₁ eq) pc⋤A = step-≈ᴴ {{ isVᴾ }} x pc⋤A
 step-≈ᴴ {{⟨ isVˢ , isVᴴ ⟩}} {{isV₂}} (New-FS x) pc⋤A =
   let ⟨ ≈ˢ , ≈ᴴ ⟩ = step-≈ᴴ {{ ⟨ isVˢ , isVᴴ ⟩ }} {{isV₂}} x pc⋤A
       _ ∧ ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ _ = valid-invariant x ⟨ ⟨ isVˢ , isVᴴ ⟩ , isV₂ ⟩
-      ≈ˢ′ =  trans-≈ˢ-ι ≈ˢ refl-≈ˢ (refl-≈ˢ {{ validˢ-⊆ᴴ (step-⊆ᴴ x) {!isVˢ′!} }}) in -- trans-≈ˢ-ι ≈ˢ refl-≈ˢ refl-≈ˢ in
-      ⟨ ≈ˢ′ , snoc-≈ᴴ _ ≈ᴴ ⟩ -- snoc-≈ᴴ _ (step-≈ᴴ {{ isVᴾ }} {{ isV₂ }} x pc⋤A)
+      -- TODO: Lemma about validity of store after heap extension.
+      ≈ˢ′ = trans-≈ˢ-ι ≈ˢ (refl-≈ˢ {{ validˢ-⊆ᴴ (step-⊆ᴴ x) {!isVˢ′!} }}) in
+      ⟨ ≈ˢ′ , snoc-≈ᴴ _ ≈ᴴ ⟩
 step-≈ᴴ {{isVᴾ}} {{isV₂}} (Read-FS x x₁ eq) pc⋤A = step-≈ᴴ {{ isVᴾ }} x pc⋤A
 
 step-≈ᴴ {{isVᴾ}} {{isV₂}} (Write-FS {ℓ = ℓ} {ℓ₁} {ℓ₂} {ℓ₂'} x x₁ ∈₁ ⊑₁ refl w) pc⋤A =
@@ -161,8 +161,9 @@ step-≈ᴴ {{isVᴾ}} {{isV₂}} (Write-FS {ℓ = ℓ} {ℓ₁} {ℓ₂} {ℓ�
       μ⊆μ₁ = step-≈ᴴ {{ isVᴾ }} x pc⋤A
       μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} {{ isVᴱ }} x₁ pc⋤A
       v≈ = Valueᴴ (trans-⋤ (trans-⊑ (step-⊑ x) ⊑₁) pc⋤A) (join-⋤₁ (trans-⋤ (step-⊑ x) pc⋤A))
-      μ₂≈μ₃ = writeᴴ-≈ᴴ {{ {!!} }} ∈₁ w v≈
-  in trans-≈ᴾ-ι μ⊆μ₁ (trans-≈ᴾ-ι μ₁⊆μ₂ ⟨ refl-≈ˢ {{ {!!} }} , μ₂≈μ₃ ⟩ )
+      μ₂≈μ₃ = writeᴴ-≈ᴴ {{ validᴴ isVᴾ′′ }} ∈₁ w v≈
+  in trans-≈ᴾ-ι μ⊆μ₁ (trans-≈ᴾ-ι μ₁⊆μ₂ ⟨ refl-≈ˢ {{ validˢ isVᴾ′′ }} , μ₂≈μ₃ ⟩ )
+  where open Validᴾ
 
 step-≈ᴴ {{isVᴾ}} {{isV₂}} (Id x) pc⋤A = step-≈ᴴ {{ isVᴾ }} {{ isV₂ }} x pc⋤A
 step-≈ᴴ {{isVᴾ}} {{isV₂}} (UnId x eq) pc⋤A = step-≈ᴴ {{ isVᴾ }} {{ isV₂ }} x pc⋤A
