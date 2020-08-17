@@ -115,6 +115,10 @@ postulate valid-invariant : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' 
                               c ⇓⟨ θ , ℓ ⟩ c' →
                               Valid-Inputs c θ → Validᴱ ∥ heap c' ∥ᴴ θ × Valid-Outputs c'
 
+postulate validᴾ-⇓ : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
+                              c ⇓⟨ θ , ℓ ⟩ c' →
+                              Valid-Inputs c θ → Validᴾ ⟨ store c' , heap c' ⟩
+
 -- postulate valid-invariant′ : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
 --                               c ⇓⟨ θ , ℓ ⟩ c' →
 --                               Valid-Inputs c θ → Valid-Outputs c'
