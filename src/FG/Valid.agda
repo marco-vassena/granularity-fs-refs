@@ -5,7 +5,7 @@ module FG.Valid {{𝑳 : Lattice}} where
 open import FG.Types hiding (_×_) renaming ( _⊆_ to  _⊆ᶜ_) --  (Ty ; _⊆_ ; I ; S)
 open import FG.Syntax
 open import Data.Product as P hiding (_,_)
-open import Data.Nat renaming (_⊔_ to _⊔ᴺ_)
+open import Data.Nat renaming (_⊔_ to _⊔ᴺ_) hiding (_^_)
 open import Data.Unit hiding (_≤_)
 
 mutual
@@ -49,7 +49,7 @@ mutual
   -- Maybe just for the store?
   Validᴿ n (Refᴵ {τ = τ} ℓ m) = ⊤ -- This is ok because it is the store Σ
   -- TODO: should I have any requirement on the label of the cell for flow-sensitve refs?
-  Validᴿ {τ} n (Refˢ m) = ⊤ -- This does not seem to be needed
+  Validᴿ {τ} n (Refˢ m) = ⊤ -- This does not seem to be needed. Answer: It will be needed when we prove the invariant!
   Validᴿ n ⌞ ℓ ⌟ = ⊤
   Validᴿ n (Id v) = Validⱽ n v
 
@@ -95,11 +95,12 @@ record Valid-Inputs {Γ} {τ} (c : IConf Γ τ) (θ : Env Γ) : Set where
 Valid-Outputs : ∀ {τ} → FConf τ → Set
 Valid-Outputs ⟨ Σ , μ , v ⟩ = Validᴾ ⟨ Σ , μ ⟩ × Validⱽ ∥ μ ∥ᴴ v
 
--- record Valid-Outputs′ {τ} (c : FConf τ) : Set where
---   constructor ⟨_,_⟩
---   field
---     validᴾ : Validᴾ ⟨ store c , heap c ⟩
---     validⱽ : Validⱽ ∥ heap c ∥ᴴ (term c)
+
+record Valid-Outputs′ {τ} (c : FConf τ) : Set where
+  constructor ⟨_,_⟩
+  field
+    validᴾ : Validᴾ ⟨ store c , heap c ⟩
+    validⱽ : Validⱽ ∥ heap c ∥ᴴ (term c)
 
 -- open Valid-Outputs′ {{...}} public
 
@@ -115,9 +116,15 @@ postulate valid-invariant : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' 
                               c ⇓⟨ θ , ℓ ⟩ c' →
                               Valid-Inputs c θ → Validᴱ ∥ heap c' ∥ᴴ θ × Valid-Outputs c'
 
+-- postulate valid-invariant′ : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
+--                               c ⇓⟨ θ , ℓ ⟩ c' →
+--                               Valid-Inputs c θ → Valid-Outputs′ c'
+
 postulate validᴾ-⇓ : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
                               c ⇓⟨ θ , ℓ ⟩ c' →
                               Valid-Inputs c θ → Validᴾ ⟨ store c' , heap c' ⟩
+
+postulate valid-lookup : ∀ {τ Γ θ n} → (τ∈Γ : τ ∈ Γ) → Validᴱ n θ → Validⱽ n (θ !! τ∈Γ )
 
 -- postulate valid-invariant′ : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
 --                               c ⇓⟨ θ , ℓ ⟩ c' →

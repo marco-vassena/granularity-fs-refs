@@ -53,10 +53,8 @@ open import Data.Nat.Properties
 
 import Generic.Heap.Lemmas Ty Value as H
 
--- TODO: trans-⋤ (join-⊑ ...) proofs are simplified by join-⋤₁
-
 -- TODO: rename high step and ᴾ
-postulate step-≈ᴴ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
+step-≈ᴴ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
              let ⟨ Σ , μ , _ ⟩ = c
                  ⟨ Σ' , μ' , _ ⟩ = c' in
                  {{validᴾ : Validᴾ ⟨ Σ , μ ⟩ }} {{validᴱ : Validᴱ ∥ μ ∥ᴴ θ}} →
@@ -64,115 +62,115 @@ postulate step-≈ᴴ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
                pc ⋤ A →
                ⟨ Σ , μ ⟩ ≈⟨ ι ∥ μ ∥ᴴ ⟩ᴾ ⟨ Σ' , μ' ⟩
 
--- step-≈ᴴ (Var τ∈Γ x) pc⋤A = refl-≈ᴾ
+step-≈ᴴ (Var τ∈Γ x) pc⋤A = refl-≈ᴾ
 
--- step-≈ᴴ Unit pc⋤A = refl-≈ᴾ
+step-≈ᴴ Unit pc⋤A = refl-≈ᴾ
 
--- step-≈ᴴ (Lbl ℓ) pc⋤A = refl-≈ᴾ
+step-≈ᴴ (Lbl ℓ) pc⋤A = refl-≈ᴾ
 
--- step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Test₁ x x₁ ℓ⊑ refl) pc⋤A =
---   let _ ∧ isVᴾ′ ∧ _ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
---       μ⊆μ₁ = step-≈ᴴ x pc⋤A
---       μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′}} x₁ pc⋤A
---   in trans-≈ᴾ-ι μ⊆μ₁ μ₁⊆μ₂
+step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Test₁ x x₁ ℓ⊑ refl) pc⋤A =
+  let _ ∧ isVᴾ′ ∧ _ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
+      μ⊆μ₁ = step-≈ᴴ x pc⋤A
+      μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′}} x₁ pc⋤A
+  in trans-≈ᴾ-ι μ⊆μ₁ μ₁⊆μ₂
 
--- step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Test₂ x x₁ ℓ⊑ refl) pc⋤A =
---   let _ ∧ isVᴾ′ ∧ isVᴱ′ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
---       μ⊆μ₁ = step-≈ᴴ x pc⋤A
---       μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} x₁ pc⋤A
---   in trans-≈ᴾ-ι μ⊆μ₁ μ₁⊆μ₂
+step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Test₂ x x₁ ℓ⊑ refl) pc⋤A =
+  let _ ∧ isVᴾ′ ∧ isVᴱ′ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
+      μ⊆μ₁ = step-≈ᴴ x pc⋤A
+      μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} x₁ pc⋤A
+  in trans-≈ᴾ-ι μ⊆μ₁ μ₁⊆μ₂
 
--- step-≈ᴴ Fun pc⋤A = refl-≈ᴾ
+step-≈ᴴ Fun pc⋤A = refl-≈ᴾ
 
--- step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (App {θ' = θ'} x₁ x₂ refl x₃) pc⋤A =
---   let isV₁ᴱ ∧ isVᴾ′ ∧ isVᴱ′ = valid-invariant x₁ ⟨ isVᴾ , isVᴱ ⟩
---       _ ∧ isVᴾ′′ ∧ isVⱽ = valid-invariant x₂ ⟨ isVᴾ′ , isV₁ᴱ ⟩
---       μ⊆μ₁ = step-≈ᴴ x₁ pc⋤A
---       μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} {{ isVᴱ }} x₂ pc⋤A
---       isVᴱ′′ = validᴱ-⊆ᴴ {θ = θ'} (step-⊆ᴴ x₂) isVᴱ′
---       μ₂⊆μ₃ = step-≈ᴴ {{ isVᴾ′′ }} {{  isVⱽ ∧ isVᴱ′′  }} x₃ (trans-⋤ (join-⊑₁ _ _) pc⋤A)
---   in trans-≈ᴾ-ι μ⊆μ₁ (trans-≈ᴾ-ι μ₁⊆μ₂ μ₂⊆μ₃)
+step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (App {θ' = θ'} x₁ x₂ refl x₃) pc⋤A =
+  let isV₁ᴱ ∧ isVᴾ′ ∧ isVᴱ′ = valid-invariant x₁ ⟨ isVᴾ , isVᴱ ⟩
+      _ ∧ isVᴾ′′ ∧ isVⱽ = valid-invariant x₂ ⟨ isVᴾ′ , isV₁ᴱ ⟩
+      μ⊆μ₁ = step-≈ᴴ x₁ pc⋤A
+      μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} {{ isVᴱ }} x₂ pc⋤A
+      isVᴱ′′ = validᴱ-⊆ᴴ {θ = θ'} (step-⊆ᴴ x₂) isVᴱ′
+      μ₂⊆μ₃ = step-≈ᴴ {{ isVᴾ′′ }} {{  isVⱽ ∧ isVᴱ′′  }} x₃ (join-⋤₁ pc⋤A)
+  in trans-≈ᴾ-ι μ⊆μ₁ (trans-≈ᴾ-ι μ₁⊆μ₂ μ₂⊆μ₃)
 
--- step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Wken {μ = μ} p x) pc⋤A = step-≈ᴴ {{ isVᴾ }} {{ validᴱ-⊆ᶜ {μ = μ} p isVᴱ }} x pc⋤A
+step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Wken {μ = μ} p x) pc⋤A = step-≈ᴴ {{ isVᴾ }} {{ validᴱ-⊆ᶜ {μ = μ} p isVᴱ }} x pc⋤A
 
--- step-≈ᴴ (Inl x) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴴ (Inl x) pc⋤A = step-≈ᴴ x pc⋤A
 
--- step-≈ᴴ (Inr x) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴴ (Inr x) pc⋤A = step-≈ᴴ x pc⋤A
 
--- step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Case₁ x₁ refl x₂) pc⋤A =
---   let isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ = valid-invariant x₁ ⟨ isVᴾ , isVᴱ ⟩
---       μ⊆μ₁ = step-≈ᴴ x₁ pc⋤A
---       μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} {{ isVⱽ ∧ isVᴱ′ }} x₂ (trans-⋤ (join-⊑₁ _ _) pc⋤A)
---   in trans-≈ᴾ-ι μ⊆μ₁ μ₁⊆μ₂
+step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Case₁ x₁ refl x₂) pc⋤A =
+  let isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ = valid-invariant x₁ ⟨ isVᴾ , isVᴱ ⟩
+      μ⊆μ₁ = step-≈ᴴ x₁ pc⋤A
+      μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} {{ isVⱽ ∧ isVᴱ′ }} x₂ (join-⋤₁ pc⋤A)
+  in trans-≈ᴾ-ι μ⊆μ₁ μ₁⊆μ₂
 
--- step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Case₂ x refl x₁) pc⋤A =
---   let isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
---       μ⊆μ₁ = step-≈ᴴ x pc⋤A
---       μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} {{ isVⱽ ∧ isVᴱ′ }} x₁ (trans-⋤ (join-⊑₁ _ _) pc⋤A)
---   in trans-≈ᴾ-ι μ⊆μ₁ μ₁⊆μ₂
+step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Case₂ x refl x₁) pc⋤A =
+  let isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
+      μ⊆μ₁ = step-≈ᴴ x pc⋤A
+      μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} {{ isVⱽ ∧ isVᴱ′ }} x₁ (join-⋤₁ pc⋤A)
+  in trans-≈ᴾ-ι μ⊆μ₁ μ₁⊆μ₂
 
--- step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Pair x x₁) pc⋤A =
---   let _ ∧ isVᴾ′ ∧ _ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
---       μ⊆μ₁ = step-≈ᴴ x pc⋤A
---       μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} x₁ pc⋤A
---   in trans-≈ᴾ-ι μ⊆μ₁ μ₁⊆μ₂
+step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Pair x x₁) pc⋤A =
+  let _ ∧ isVᴾ′ ∧ _ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
+      μ⊆μ₁ = step-≈ᴴ x pc⋤A
+      μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} x₁ pc⋤A
+  in trans-≈ᴾ-ι μ⊆μ₁ μ₁⊆μ₂
 
--- step-≈ᴴ (Fst x refl) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴴ (Fst x refl) pc⋤A = step-≈ᴴ x pc⋤A
 
--- step-≈ᴴ (Snd x x₁) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴴ (Snd x x₁) pc⋤A = step-≈ᴴ x pc⋤A
 
--- step-≈ᴴ (LabelOf x) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴴ (LabelOf x) pc⋤A = step-≈ᴴ x pc⋤A
 
--- step-≈ᴴ GetLabel pc⋤A = refl-≈ᴾ
+step-≈ᴴ GetLabel pc⋤A = refl-≈ᴾ
 
--- step-≈ᴴ {{ isVᴾ }} {{isVᴱ}} (Taint refl x x₁ pc'⊑pc'') pc⋤A =
---   let isVᴱ′ ∧ isVᴾ′ ∧ _ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
---       μ⊆μ₁ = step-≈ᴴ x pc⋤A
---       μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} {{ isVᴱ′ }} x₁ (trans-⋤ (join-⊑₁ _ _) pc⋤A)
---   in trans-≈ᴾ-ι μ⊆μ₁ μ₁⊆μ₂
+step-≈ᴴ {{ isVᴾ }} {{isVᴱ}} (Taint refl x x₁ pc'⊑pc'') pc⋤A =
+  let isVᴱ′ ∧ isVᴾ′ ∧ _ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
+      μ⊆μ₁ = step-≈ᴴ x pc⋤A
+      μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} {{ isVᴱ′ }} x₁ (join-⋤₁ pc⋤A)
+  in trans-≈ᴾ-ι μ⊆μ₁ μ₁⊆μ₂
 
--- step-≈ᴴ (LabelOfRef x eq) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴴ (LabelOfRef x eq) pc⋤A = step-≈ᴴ x pc⋤A
 
--- step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (New {μ = μ} {μ'} x) pc⋤A =
---   let ⟨ ≈ˢ , ≈ᴴ ⟩ = step-≈ᴴ x pc⋤A
---       _ ∧ ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ _ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
---       ≈ˢ′ = updateᴴ-≈ˢ _ _ {{ isVˢ′ }} (trans-⋤ (step-⊑ x) pc⋤A) in
---       ⟨ trans-≈ˢ-ι {n₁ = ∥ μ ∥ᴴ} {n₂ = ∥ μ' ∥ᴴ} ≈ˢ ≈ˢ′ , ≈ᴴ ⟩
+step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (New {μ = μ} {μ'} x) pc⋤A =
+  let ⟨ ≈ˢ , ≈ᴴ ⟩ = step-≈ᴴ x pc⋤A
+      _ ∧ ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ _ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
+      ≈ˢ′ = updateᴴ-≈ˢ _ _ {{ isVˢ′ }} (trans-⋤ (step-⊑ x) pc⋤A) in
+      ⟨ trans-≈ˢ-ι {n₁ = ∥ μ ∥ᴴ} {n₂ = ∥ μ' ∥ᴴ} ≈ˢ ≈ˢ′ , ≈ᴴ ⟩
 
--- step-≈ᴴ (Read x x₁ eq) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴴ (Read x x₁ eq) pc⋤A = step-≈ᴴ x pc⋤A
 
--- step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Write {ℓ = ℓ} {n = n} {τ = τ} x ⊑₁ x₁ ⊑₂ w) pc⋤A =
---   let isVᴱ′ ∧ isVᴾ′ ∧ _ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
---       _ ∧ ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ _ = valid-invariant x₁ ⟨ isVᴾ′ , isVᴱ ⟩
---       μ⊆μ₁ = step-≈ᴴ x pc⋤A
---       μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} x₁ pc⋤A
---       ℓ⋤A = trans-⋤ (trans-⊑ (step-⊑ x) ⊑₁) pc⋤A
---       μ₂≈μ₃ = ⟨ updateᴴ-≈ˢ _ _ {{ isVˢ′ }} ℓ⋤A , refl-≈ᴴ {{ isVᴴ′ }} ⟩
---   in trans-≈ᴾ-ι μ⊆μ₁ (trans-≈ᴾ-ι μ₁⊆μ₂ μ₂≈μ₃)
+step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Write {ℓ = ℓ} {n = n} {τ = τ} x ⊑₁ x₁ ⊑₂ w) pc⋤A =
+  let isVᴱ′ ∧ isVᴾ′ ∧ _ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
+      _ ∧ ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ _ = valid-invariant x₁ ⟨ isVᴾ′ , isVᴱ ⟩
+      μ⊆μ₁ = step-≈ᴴ x pc⋤A
+      μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} x₁ pc⋤A
+      ℓ⋤A = trans-⋤ (trans-⊑ (step-⊑ x) ⊑₁) pc⋤A
+      μ₂≈μ₃ = ⟨ updateᴴ-≈ˢ _ _ {{ isVˢ′ }} ℓ⋤A , refl-≈ᴴ {{ isVᴴ′ }} ⟩
+  in trans-≈ᴾ-ι μ⊆μ₁ (trans-≈ᴾ-ι μ₁⊆μ₂ μ₂≈μ₃)
 
--- step-≈ᴴ (LabelOfRef-FS x x₁ eq) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴴ (LabelOfRef-FS x x₁ eq) pc⋤A = step-≈ᴴ x pc⋤A
 
--- step-≈ᴴ {{⟨ isVˢ , isVᴴ ⟩}} {{isVᴱ}} (New-FS {Σ = Σ} {Σ' = Σ'} {μ = μ} {μ' = μ'} {v = v} x) pc⋤A =
---   let ⟨ ≈ˢ , ≈ᴴ ⟩ = step-≈ᴴ {{ ⟨ isVˢ , isVᴴ ⟩ }} {{isVᴱ}} x pc⋤A
---       _ ∧ ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ _ = valid-invariant x ⟨ ⟨ isVˢ , isVᴴ ⟩ , isVᴱ ⟩
---       ≈ˢ′ = trans-≈ˢ-ι {Σ₁ = Σ} {Σ₂ = Σ'} {Σ₃ = Σ'} {n₁ = ∥ μ ∥ᴴ} {n₂ = ∥ μ' ∥ᴴ} ≈ˢ (refl-≈ˢ {{ isVˢ′ }}) in
---       ⟨ ≈ˢ′ , snoc-≈ᴴ _ ≈ᴴ ⟩
+step-≈ᴴ {{⟨ isVˢ , isVᴴ ⟩}} {{isVᴱ}} (New-FS {Σ = Σ} {Σ' = Σ'} {μ = μ} {μ' = μ'} {v = v} x) pc⋤A =
+  let ⟨ ≈ˢ , ≈ᴴ ⟩ = step-≈ᴴ {{ ⟨ isVˢ , isVᴴ ⟩ }} {{isVᴱ}} x pc⋤A
+      _ ∧ ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ _ = valid-invariant x ⟨ ⟨ isVˢ , isVᴴ ⟩ , isVᴱ ⟩
+      ≈ˢ′ = trans-≈ˢ-ι {Σ₁ = Σ} {Σ₂ = Σ'} {Σ₃ = Σ'} {n₁ = ∥ μ ∥ᴴ} {n₂ = ∥ μ' ∥ᴴ} ≈ˢ (refl-≈ˢ {{ isVˢ′ }}) in
+      ⟨ ≈ˢ′ , snoc-≈ᴴ _ ≈ᴴ ⟩
 
--- step-≈ᴴ (Read-FS x x₁ eq) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴴ (Read-FS x x₁ eq) pc⋤A = step-≈ᴴ x pc⋤A
 
--- step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Write-FS {ℓ = ℓ} {ℓ₁} {ℓ₂} {ℓ₂'} x x₁ ∈₁ ⊑₁ refl w) pc⋤A =
---   let isVᴱ′ ∧ isVᴾ′ ∧ _ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
---       isVᴱ′′ ∧ isVᴾ′′ ∧ _ = valid-invariant x₁ ⟨ isVᴾ′ , isVᴱ′ ⟩
---       μ⊆μ₁ = step-≈ᴴ x pc⋤A
---       μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} {{ isVᴱ′ }} x₁ pc⋤A
---       v≈ = Valueᴴ (trans-⋤ (trans-⊑ (step-⊑ x) ⊑₁) pc⋤A) (join-⋤₁ (trans-⋤ (step-⊑ x) pc⋤A))
---       μ₂≈μ₃ = writeᴴ-≈ᴴ {{ validᴴ isVᴾ′′ }} ∈₁ w v≈
---   in trans-≈ᴾ-ι μ⊆μ₁ (trans-≈ᴾ-ι μ₁⊆μ₂ ⟨ refl-≈ˢ {{ validˢ isVᴾ′′ }} , μ₂≈μ₃ ⟩ )
---   where open Validᴾ
+step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Write-FS {ℓ = ℓ} {ℓ₁} {ℓ₂} {ℓ₂'} x x₁ ∈₁ ⊑₁ refl w) pc⋤A =
+  let isVᴱ′ ∧ isVᴾ′ ∧ _ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
+      isVᴱ′′ ∧ isVᴾ′′ ∧ _ = valid-invariant x₁ ⟨ isVᴾ′ , isVᴱ′ ⟩
+      μ⊆μ₁ = step-≈ᴴ x pc⋤A
+      μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} {{ isVᴱ′ }} x₁ pc⋤A
+      v≈ = Valueᴴ (trans-⋤ (trans-⊑ (step-⊑ x) ⊑₁) pc⋤A) (join-⋤₁ (trans-⋤ (step-⊑ x) pc⋤A))
+      μ₂≈μ₃ = writeᴴ-≈ᴴ {{ validᴴ isVᴾ′′ }} ∈₁ w v≈
+  in trans-≈ᴾ-ι μ⊆μ₁ (trans-≈ᴾ-ι μ₁⊆μ₂ ⟨ refl-≈ˢ {{ validˢ isVᴾ′′ }} , μ₂≈μ₃ ⟩ )
+  where open Validᴾ
 
--- step-≈ᴴ (Id x) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴴ (Id x) pc⋤A = step-≈ᴴ x pc⋤A
 
--- step-≈ᴴ (UnId x eq) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴴ (UnId x eq) pc⋤A = step-≈ᴴ x pc⋤A
 
 --------------------------------------------------------------------------------
 
@@ -194,8 +192,8 @@ mutual
   tiniᴸ : ∀ {pc β τ Γ μ₁ μ₂ Σ₁ Σ₂ e} {θ₁ θ₂ : Env Γ} {c₁' c₂' : FConf τ} →
                     let c₁ = ⟨ Σ₁ , μ₁ ,  e ⟩
                         c₂ = ⟨ Σ₂ , μ₂ ,  e ⟩ in
-                    {{valid₁ᴾ : Validᴾ ⟨ Σ₁ , μ₁ ⟩ }} {{valid₂ᴾ : Validᴾ ⟨ Σ₂ , μ₂ ⟩ }} →
-                    {{valid₁ᴱ : Validᴱ ∥ μ₁ ∥ᴴ θ₁}} {{valid₂ᴱ : Validᴱ ∥ μ₂ ∥ᴴ θ₂}} →
+                    {{isV₁ᴾ : Validᴾ ⟨ Σ₁ , μ₁ ⟩ }} {{isV₂ᴾ : Validᴾ ⟨ Σ₂ , μ₂ ⟩ }} →
+                    {{isV₁ᴱ : Validᴱ ∥ μ₁ ∥ᴴ θ₁}} {{isV₂ᴱ : Validᴱ ∥ μ₂ ∥ᴴ θ₂}} →
                     c₁ ⇓⟨ θ₁ , pc ⟩ c₁' →
                     c₂ ⇓⟨ θ₂ , pc ⟩ c₂' →
                     ⟨ Σ₁ , μ₁ ⟩ ≈⟨ β ⟩ᴾ ⟨ Σ₂ , μ₂ ⟩ →
@@ -203,171 +201,251 @@ mutual
                     pc ⊑ A →
                     ∃ (λ β' → β ⊆ β' × c₁' ≈⟨ β' ⟩ᶜ c₂')
 
-  -- tiniᴸ (Var τ∈Γ refl) (Var .τ∈Γ refl) ≈ᴾ θ₁≈θ₂ pc⊑A = _ ∧ refl-⊆ ∧ ⟨ ≈ᴾ , ≈ⱽ-⊑ _ v₁≈v₂ ⟩
-  --   where v₁≈v₂ = lookup-≈ⱽ τ∈Γ θ₁≈θ₂
+  tiniᴸ (Var τ∈Γ refl) (Var .τ∈Γ refl) ≈ᴾ θ₁≈θ₂ pc⊑A = _ ∧ refl-⊆ ∧ ⟨ ≈ᴾ , ≈ⱽ-⊑ _ v₁≈v₂ ⟩
+    where v₁≈v₂ = lookup-≈ⱽ τ∈Γ θ₁≈θ₂
 
-  -- tiniᴸ Unit Unit ≈ᴾ θ₁≈θ₂ pc⊑A = _ ∧ refl-⊆ ∧ ⟨ ≈ᴾ , Valueᴸ pc⊑A Unit ⟩
+  tiniᴸ Unit Unit ≈ᴾ θ₁≈θ₂ pc⊑A = _ ∧ refl-⊆ ∧ ⟨ ≈ᴾ , Valueᴸ pc⊑A Unit ⟩
 
-  -- tiniᴸ (Lbl ℓ) (Lbl .ℓ) ≈ᴾ θ₁≈θ₂ pc⊑A = _ ∧ refl-⊆ ∧ ⟨ ≈ᴾ , Valueᴸ pc⊑A (Lbl ℓ) ⟩
+  tiniᴸ (Lbl ℓ) (Lbl .ℓ) ≈ᴾ θ₁≈θ₂ pc⊑A = _ ∧ refl-⊆ ∧ ⟨ ≈ᴾ , Valueᴸ pc⊑A (Lbl ℓ) ⟩
 
   --------------------------------------------------------------------------------
   -- Test cases
+
   -- Both true
   tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Test₁ x₁ x₂ ℓ₁⊑ℓ₂ refl) (Test₁ y₁ y₂ _ refl) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ₁≈θ₂ pc⊑A
-  ... | β' ∧ β⊆β' ∧ ⟨  μ₁'≈μ₂' , Valueᴸ _ (Lbl ℓ₁) ⟩ with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ μ₁'≈μ₂' (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
-  -- TODO: can these cases be merged ?
+  ... | β' ∧ β⊆β' ∧ ⟨  ≈ᴾ′ , Valueᴸ _ (Lbl ℓ₁) ⟩
+    with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
+
   tiniᴸ (Test₁ x₁ x₂ ℓ₁⊑ℓ₂ refl) (Test₁ y₁ y₂ _ refl) ≈ᴾ θ₁≈θ₂ pc⊑A
-    | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ p₁ (Lbl ℓ₁) ⟩ | β'' ∧ β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴸ p₂ (Lbl ℓ₂) ⟩
+    | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ p₁ (Lbl ℓ₁) ⟩ | β'' ∧ β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴸ p₂ (Lbl ℓ₂) ⟩
       = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴸ (join-⊑' p₁ p₂) (Trueᴸ pc⊑A) ⟩
 
   tiniᴸ (Test₁ x₁ x₂ ℓ₁⊑ℓ₂ refl) (Test₁ y₁ y₂ _ refl) ≈ᴾ θ₁≈θ₂ pc⊑A
-    | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ p (Lbl ℓ₁) ⟩ | β'' ∧ β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ ¬p₁ ¬p₂ ⟩
-      = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ (trans-⋤ (join-⊑₂ _ _) ¬p₁) (trans-⋤ (join-⊑₂ _ _) ¬p₂) ⟩
+    | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ p (Lbl ℓ₁) ⟩ | β'' ∧ β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ ¬p₁ ¬p₂ ⟩
+      = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ (join-⋤₂ ¬p₁) (join-⋤₂ ¬p₂) ⟩
 
   tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Test₁ x₁ x₂ ℓ₁⊑ℓ₂ refl) (Test₁ y₁ y₂ _ refl) ≈ᴾ θ₁≈θ₂ pc⊑A
-    | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴴ pc⋤ℓ₁' pc⋤ℓ₂' ⟩ with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ μ₁'≈μ₂' (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
+    | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ pc⋤ℓ₁' pc⋤ℓ₂' ⟩
+    with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
   ... |  β'' ∧ β'⊆β'' ∧ ⟨ μ₃≈μ₃' , v≈ ⟩
-    = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ (trans-⋤ (join-⊑₁ _ _) pc⋤ℓ₁' ) (trans-⋤ (join-⊑₁ _ _) pc⋤ℓ₂' ) ⟩
+    = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ (join-⋤₁ pc⋤ℓ₁' ) (join-⋤₁ pc⋤ℓ₂' ) ⟩
 
     -- True vs False
   tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Test₁ x₁ x₂ ℓ₁⊑ℓ₂ refl) (Test₂ y₁ y₂ ℓ₁⋤ℓ₂ refl) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ₁≈θ₂ pc⊑A
-  ... | _ ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ _ (Lbl ℓ₁) ⟩ with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ μ₁'≈μ₂' (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
+  ... | _ ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ _ (Lbl ℓ₁) ⟩
+    with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
 
   tiniᴸ (Test₁ x₁ x₂ ℓ₁⊑ℓ₂ refl) (Test₂ y₁ y₂ ℓ₁⋤ℓ₂ refl) ≈ᴾ θ₁≈θ₂ pc⊑A
-    | _ ∧ _ ∧  ⟨ μ₁'≈μ₂' , Valueᴸ p₁ (Lbl ℓ₁) ⟩ | _ ∧ _ ∧ ⟨ μ₃≈μ₃' , Valueᴸ p₂ (Lbl ℓ₂) ⟩
+    | _ ∧ _ ∧  ⟨ ≈ᴾ′ , Valueᴸ p₁ (Lbl ℓ₁) ⟩ | _ ∧ _ ∧ ⟨ μ₃≈μ₃' , Valueᴸ p₂ (Lbl ℓ₂) ⟩
       = ⊥-elim (ℓ₁⋤ℓ₂ ℓ₁⊑ℓ₂)
 
   tiniᴸ (Test₁ x₁ x₂ ℓ₁⊑ℓ₂ refl) (Test₂ y₁ y₂ _ refl) ≈ᴾ θ₁≈θ₂ pc⊑A
-    | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ p (Lbl ℓ₁) ⟩ | β'' ∧ β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ ¬p₁ ¬p₂ ⟩
-      = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ (trans-⋤ (join-⊑₂ _ _) ¬p₁) (trans-⋤ (join-⊑₂ _ _) ¬p₂) ⟩
+    | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ p (Lbl ℓ₁) ⟩ | β'' ∧ β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ ¬p₁ ¬p₂ ⟩
+      = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ (join-⋤₂ ¬p₁) (join-⋤₂ ¬p₂) ⟩
 
   tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Test₁ x₁ x₂ ℓ₁⊑ℓ₂ refl) (Test₂ y₁ y₂ _ refl) ≈ᴾ θ₁≈θ₂ pc⊑A
-    | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴴ pc⋤ℓ₁' pc⋤ℓ₂' ⟩ with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ μ₁'≈μ₂' (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
-  ... | β'' ∧ β'⊆β'' ∧ ⟨ μ₃≈μ₃' , v≈ ⟩ = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ (trans-⋤ (join-⊑₁ _ _) pc⋤ℓ₁' ) (trans-⋤ (join-⊑₁ _ _) pc⋤ℓ₂' ) ⟩
+    | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ pc⋤ℓ₁' pc⋤ℓ₂' ⟩
+    with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
+  ... | β'' ∧ β'⊆β'' ∧ ⟨ μ₃≈μ₃' , v≈ ⟩ = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ (join-⋤₁ pc⋤ℓ₁') (join-⋤₁ pc⋤ℓ₂' ) ⟩
 
   -- False vs True
   tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Test₂ x₁ x₂ ℓ₁⋤ℓ₂ refl) (Test₁ y₁ y₂ ℓ₁⊑ℓ₂ refl) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ₁≈θ₂ pc⊑A
-  ... | _ ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ _ (Lbl ℓ₁) ⟩ with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ μ₁'≈μ₂' (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
+  ... | _ ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ _ (Lbl ℓ₁) ⟩
+    with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
 
   tiniᴸ (Test₂ x₁ x₂ ℓ₁⋤ℓ₂ refl) (Test₁ y₁ y₂ ℓ₁⊑ℓ₂ refl) ≈ᴾ θ₁≈θ₂ pc⊑A
-    | _ ∧ _ ∧ ⟨ μ₁'≈μ₂' , Valueᴸ p₁ (Lbl ℓ₁) ⟩ | _ ∧ _ ∧ ⟨ μ₃≈μ₃' , Valueᴸ p₂ (Lbl ℓ₂) ⟩
+    | _ ∧ _ ∧ ⟨ ≈ᴾ′ , Valueᴸ p₁ (Lbl ℓ₁) ⟩ | _ ∧ _ ∧ ⟨ μ₃≈μ₃' , Valueᴸ p₂ (Lbl ℓ₂) ⟩
       = ⊥-elim (ℓ₁⋤ℓ₂ ℓ₁⊑ℓ₂)
 
   tiniᴸ (Test₂ x₁ x₂ ℓ₁⋤ℓ₂ refl) (Test₁ y₁ y₂ _ refl) ≈ᴾ θ₁≈θ₂ pc⊑A
-    | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ p (Lbl ℓ₁) ⟩ | β'' ∧ β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ ¬p₁ ¬p₂ ⟩
-    = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ (trans-⋤ (join-⊑₂ _ _) ¬p₁) (trans-⋤ (join-⊑₂ _ _) ¬p₂) ⟩
+    | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ p (Lbl ℓ₁) ⟩ | β'' ∧ β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ ¬p₁ ¬p₂ ⟩
+    = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ (join-⋤₂ ¬p₁) (join-⋤₂ ¬p₂) ⟩
 
   tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Test₂ x₁ x₂ ℓ₁⋤ℓ₂ refl) (Test₁ y₁ y₂ ℓ₁⊑ℓ₂ refl) ≈ᴾ θ₁≈θ₂ pc⊑A
-    | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴴ pc⋤ℓ₁' pc⋤ℓ₂' ⟩ with tiniᴸ  {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ μ₁'≈μ₂' (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
-  ... | β'' ∧ β'⊆β'' ∧ ⟨ μ₃≈μ₃' , v≈ ⟩ = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ (trans-⋤ (join-⊑₁ _ _) pc⋤ℓ₁' ) (trans-⋤ (join-⊑₁ _ _) pc⋤ℓ₂' ) ⟩
+    | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ pc⋤ℓ₁' pc⋤ℓ₂' ⟩
+    with tiniᴸ  {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
+  ... | β'' ∧ β'⊆β'' ∧ ⟨ μ₃≈μ₃' , v≈ ⟩ = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ (join-⋤₁ pc⋤ℓ₁' ) (join-⋤₁ pc⋤ℓ₂' ) ⟩
 
   -- False and False
   tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Test₂ x₁ x₂ ℓ₁⋤ℓ₂ refl) (Test₂ y₁ y₂ _ refl) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ₁≈θ₂ pc⊑A
-  ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ _ (Lbl ℓ₁) ⟩ with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ μ₁'≈μ₂' (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ _ (Lbl ℓ₁) ⟩
+    with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
 
   tiniᴸ (Test₂ x₁ x₂ ℓ₁⋤ℓ₂ refl) (Test₂ y₁ y₂ _ refl) ≈ᴾ θ₁≈θ₂ pc⊑A
-    | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ p₁ (Lbl ℓ₁) ⟩ | β'' ∧ β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴸ p₂ (Lbl ℓ₂) ⟩
+    | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ p₁ (Lbl ℓ₁) ⟩ | β'' ∧ β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴸ p₂ (Lbl ℓ₂) ⟩
       = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴸ (join-⊑' p₁ p₂) (Falseᴸ pc⊑A) ⟩
 
   tiniᴸ (Test₂ x₁ x₂ ℓ₁⋤ℓ₂ refl) (Test₂ y₁ y₂ _ refl) ≈ᴾ θ₁≈θ₂ pc⊑A
-    | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ p (Lbl ℓ₁) ⟩ | β'' ∧ β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ ¬p₁ ¬p₂ ⟩
-      = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ (trans-⋤ (join-⊑₂ _ _) ¬p₁) (trans-⋤ (join-⊑₂ _ _) ¬p₂) ⟩
+    | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ p (Lbl ℓ₁) ⟩ | β'' ∧ β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ ¬p₁ ¬p₂ ⟩
+      = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ (join-⋤₂ ¬p₁) (join-⋤₂ ¬p₂) ⟩
 
   tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Test₂ x₁ x₂ ℓ₁⋤ℓ₂ refl) (Test₂ y₁ y₂ _ refl) ≈ᴾ θ₁≈θ₂ pc⊑A
-    | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴴ pc⋤ℓ₁' pc⋤ℓ₂' ⟩ with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ μ₁'≈μ₂' (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
+    | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ pc⋤ℓ₁' pc⋤ℓ₂' ⟩
+    with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
   ... | β'' ∧ β'⊆β'' ∧ ⟨ μ₃≈μ₃' , v≈ ⟩
-    = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ (trans-⋤ (join-⊑₁ _ _) pc⋤ℓ₁' ) (trans-⋤ (join-⊑₁ _ _) pc⋤ℓ₂' ) ⟩
+    = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ μ₃≈μ₃' , Valueᴴ (join-⋤₁ pc⋤ℓ₁' ) (join-⋤₁ pc⋤ℓ₂') ⟩
 
   -- End Test Cases
   --------------------------------------------------------------------------------
 
-  -- tiniᴸ Fun Fun ≈ᴾ θ₁≈θ₂ pc⊑A = _ ∧ refl-⊆ ∧ ⟨ ≈ᴾ , Valueᴸ pc⊑A (Fun θ₁≈θ₂) ⟩
+  tiniᴸ Fun Fun ≈ᴾ θ₁≈θ₂ pc⊑A = _ ∧ refl-⊆ ∧ ⟨ ≈ᴾ , Valueᴸ pc⊑A (Fun θ₁≈θ₂) ⟩
 
   --------------------------------------------------------------------------------
   -- App Cases
-  tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (App x₁ x₂ eq₁ x₃) (App y₁ y₂ eq₂ y₃) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ₁≈θ₂ pc⊑A
-  ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , v₁≈v₂ ⟩ with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ μ₁'≈μ₂' (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
 
-  tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (App x₁ x₂ eq₁ x₃) (App y₁ y₂ eq₂ y₃) ≈ᴾ θ₁≈θ₂ pc⊑A
+  tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (App x₁ x₂ eq₁ x₃) (App y₁ y₂ eq₂ y₃) ≈ᴾ θ≈ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ≈ pc⊑A
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , v₁≈v₂ ⟩ with valid-invariant x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ | valid-invariant y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩
+  ... | isV₁ᴱ′ ∧ isV₁ᴾ′ ∧ isV₁ᴱ′′ | isV₂ᴱ′ ∧ isV₂ᴾ′ ∧ isV₂ᴱ′′ with tiniᴸ {{ isV₁ᴾ′ }} {{ isV₂ᴾ′ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ≈) pc⊑A
 
   -- Public closure
-    | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ pc⊑ℓ' (Fun θ₁'≈θ₂') ⟩ | β'' ∧ β'⊆β'' ∧ ⟨ μ₁''≈μ₂'' , v₁'≈v₂' ⟩
-      rewrite eq₁ | eq₂ = wken-∃ (trans-⊆ β⊆β' β'⊆β'') (tini {{ ⟨ (validᴾ-⇓ x₂ ⟨ {!isV₁ᴾ!} , {!!} ⟩) , {!!} ⟩ }} {{ ⟨ {!!} , {!!} ⟩ }} x₃ y₃  ⟨ μ₁''≈μ₂'' , refl ⟩ (v₁'≈v₂' ∷ wken-≈ᴱ β'⊆β'' θ₁'≈θ₂' ))
+  tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (App x₁ x₂ refl x₃) (App y₁ y₂ refl y₃) ≈ᴾ θ≈ pc⊑A
+    | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ pc⊑ℓ' (Fun θ≈′) ⟩ | isV₁ᴱ′ ∧ isV₁ᴾ′ ∧ isV₁ᴱ′′ | isV₂ᴱ′ ∧ isV₂ᴾ′ ∧ isV₂ᴱ′′
+    | β'' ∧ β'⊆β'' ∧ ⟨ ≈ᴾ′′ , v₁'≈v₂' ⟩
+       = let _ ∧ isV₁ᴾ′′ ∧ isV₁ⱽ = valid-invariant x₂ ⟨ isV₁ᴾ′ , isV₁ᴱ′ ⟩
+             _ ∧ isV₂ᴾ′′ ∧ isV₂ⱽ = valid-invariant y₂ ⟨ isV₂ᴾ′ , isV₂ᴱ′ ⟩
+             vi₁ = ⟨ isV₁ᴾ′′ , isV₁ⱽ ∧ isV₁ᴱ′′ ⟩
+             vi₂ = ⟨ isV₂ᴾ′′ , isV₂ⱽ ∧ isV₂ᴱ′′ ⟩
+             θ≈′′ = v₁'≈v₂' ∷ wken-≈ᴱ β'⊆β'' θ≈′
+             ≈₁ = tini {{ vi₁ }} {{ vi₂ }} x₃ y₃  ⟨ ≈ᴾ′′ , refl ⟩ θ≈′′  in
+             wken-∃ (trans-⊆ β⊆β' β'⊆β'') ≈₁
+
 
   -- Secret closure
-  tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (App x₁ x₂ eq₁ x₃) (App y₁ y₂ eq₂ y₃) ≈ᴾ θ₁≈θ₂ pc⊑A
-    | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴴ pc⋤ℓ₁ pc⋤ℓ₂ ⟩ | β'' ∧ β'⊆β'' ∧ ⟨ μ₁''≈μ₂'' , v₁'≈v₂' ⟩
-      rewrite eq₁ | eq₂ =  wken-∃ (trans-⊆ β⊆β' β'⊆β'') (tiniᴴ {{ {!!} }} {{ {!!} }} μ₁''≈μ₂'' x₃ y₃ (trans-⋤ (join-⊑₂ _ _) pc⋤ℓ₁) (trans-⋤ (join-⊑₂ _ _) pc⋤ℓ₂))
+  tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (App x₁ x₂ refl x₃) (App y₁ y₂ refl y₃) ≈ᴾ θ≈ pc⊑A
+    | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ pc⋤ℓ₁ pc⋤ℓ₂ ⟩ | isV₁ᴱ′ ∧ isV₁ᴾ′ ∧ isV₁ᴱ′′ | isV₂ᴱ′ ∧ isV₂ᴾ′ ∧ isV₂ᴱ′′
+    | β'' ∧ β'⊆β'' ∧ ⟨ ≈ᴾ′′ , v₁'≈v₂' ⟩
+      = let _ ∧ isV₁ᴾ′′ ∧ isV₁ⱽ = valid-invariant x₂ ⟨ isV₁ᴾ′ , isV₁ᴱ′ ⟩
+            _ ∧ isV₂ᴾ′′ ∧ isV₂ⱽ = valid-invariant y₂ ⟨ isV₂ᴾ′ , isV₂ᴱ′ ⟩
+            vi₁ = ⟨ isV₁ᴾ′′ , isV₁ⱽ ∧ isV₁ᴱ′′ ⟩
+            vi₂ = ⟨ isV₂ᴾ′′ , isV₂ⱽ ∧ isV₂ᴱ′′ ⟩
+            ≈₁ = tiniᴴ {{ vi₁ }} {{ vi₂ }} ≈ᴾ′′ x₃ y₃ (join-⋤₂ pc⋤ℓ₁) (join-⋤₂ pc⋤ℓ₂) in
+            wken-∃ (trans-⊆ β⊆β' β'⊆β'') ≈₁
 
   -- End App Cases
   --------------------------------------------------------------------------------
 
-  tiniᴸ (Wken p x) (Wken .p x₁) ≈ᴾ θ₁≈θ₂ pc⊑A = tiniᴸ {{ {!!} }} {{ {!!} }} {{ {!!} }} {{ {!!} }} x x₁ ≈ᴾ θ₁≈θ₂′ pc⊑A
-    where θ₁≈θ₂′ = slice-≈ᴱ θ₁≈θ₂ p
+  tiniᴸ {{isV₁ᴱ = isV₁ᴱ}} {{isV₂ᴱ}} (Wken {μ' = μ₁'} p x) (Wken {μ' = μ₂'} .p y) ≈ᴾ θ≈ pc⊑A =
+    let θ≈′ = slice-≈ᴱ θ≈ p
+        isV₁ᴱ′ = validᴱ-⊆ᶜ {μ = μ₁'} p isV₁ᴱ
+        isV₂ᴱ′ = validᴱ-⊆ᶜ {μ = μ₂'}  p isV₂ᴱ in
+        tiniᴸ {{ isV₁ᴱ = isV₁ᴱ′ }} {{ isV₂ᴱ′ }} x y ≈ᴾ θ≈′ pc⊑A
 
-  -- tiniᴸ (Inl x) (Inl x₁) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x x₁ ≈ᴾ θ₁≈θ₂ pc⊑A
-  -- ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , v₁≈v₂ ⟩ =  β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ pc⊑A (Inl v₁≈v₂) ⟩
+  tiniᴸ (Inl x) (Inl x₁) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x x₁ ≈ᴾ θ₁≈θ₂ pc⊑A
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , v₁≈v₂ ⟩ =  β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ pc⊑A (Inl v₁≈v₂) ⟩
 
-  -- tiniᴸ (Inr x) (Inr x₁) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x x₁ ≈ᴾ θ₁≈θ₂ pc⊑A
-  -- ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , v₁≈v₂ ⟩ = β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ pc⊑A (Inr v₁≈v₂) ⟩
+  tiniᴸ (Inr x) (Inr x₁) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x x₁ ≈ᴾ θ₁≈θ₂ pc⊑A
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , v₁≈v₂ ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ pc⊑A (Inr v₁≈v₂) ⟩
+
 
   --------------------------------------------------------------------------------
   -- Case inspection
 
   -- Both left
-  tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Case₁ x₁ refl x₂) (Case₁ y₁ refl y₂) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ₁≈θ₂ pc⊑A
-  ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ ℓ⊑A (Inl v₁≈v₂) ⟩ = wken-∃ β⊆β' (tini {{ {!!} }} {{ {!!} }} x₂ y₂ ⟨ μ₁'≈μ₂' , refl ⟩ (v₁≈v₂ ∷ wken-≈ᴱ β⊆β' θ₁≈θ₂))
-  ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , (Valueᴴ ℓ₁⋤A ℓ₂⋤A) ⟩ = wken-∃ β⊆β' (tiniᴴ {{ {!!} }} {{ {!!} }} μ₁'≈μ₂' x₂ y₂ (join-⋤₂ ℓ₁⋤A) (join-⋤₂ ℓ₂⋤A))
+  tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Case₁ x₁ refl x₂) (Case₁ y₁ refl y₂) ≈ᴾ θ≈ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ≈ pc⊑A
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Inl v≈) ⟩ =
+    let isV₁ᴱ′ ∧ isV₁ᴾ′ ∧ isV₁ⱽ = valid-invariant x₁ ⟨ isV₁ᴾ , isV₁ᴱ ⟩
+        isV₂ᴱ′ ∧ isV₂ᴾ′ ∧ isV₂ⱽ = valid-invariant y₁ ⟨ isV₂ᴾ , isV₂ᴱ ⟩
+        vi₁ = ⟨ isV₁ᴾ′ , isV₁ⱽ ∧ isV₁ᴱ′ ⟩
+        vi₂ = ⟨ isV₂ᴾ′ , isV₂ⱽ ∧ isV₂ᴱ′ ⟩
+        θ≈′ = v≈ ∷ wken-≈ᴱ β⊆β' θ≈  in
+        wken-∃ β⊆β' (tini {{ vi₁ }} {{ vi₂ }} x₂ y₂ ⟨ ≈ᴾ′ , refl ⟩ θ≈′)
+
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , (Valueᴴ ℓ₁⋤A ℓ₂⋤A) ⟩ =
+    let isV₁ᴱ′ ∧ isV₁ᴾ′ ∧ isV₁ⱽ = valid-invariant x₁ ⟨ isV₁ᴾ , isV₁ᴱ ⟩
+        isV₂ᴱ′ ∧ isV₂ᴾ′ ∧ isV₂ⱽ = valid-invariant y₁ ⟨ isV₂ᴾ , isV₂ᴱ ⟩
+        vi₁ = ⟨ isV₁ᴾ′ , isV₁ⱽ ∧ isV₁ᴱ′ ⟩
+        vi₂ = ⟨ isV₂ᴾ′ , isV₂ⱽ ∧ isV₂ᴱ′ ⟩ in
+        wken-∃ β⊆β' (tiniᴴ {{ vi₁ }} {{ vi₂ }} ≈ᴾ′ x₂ y₂ (join-⋤₂ ℓ₁⋤A) (join-⋤₂ ℓ₂⋤A))
 
   -- Left vs right
-  tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Case₁ x₁ refl x₂) (Case₂ y₁ refl y₂) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ₁≈θ₂ pc⊑A
-  ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ ℓ⊑A () ⟩   -- Public scrutinee (impossible)
-  ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = wken-∃ β⊆β' (tiniᴴ {{ {!!} }} {{ {!!} }} μ₁'≈μ₂' x₂ y₂ (join-⋤₂ ℓ₁⋤A) (join-⋤₂ ℓ₂⋤A))   -- Secret scrutinee
+  tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Case₁ x₁ refl x₂) (Case₂ y₁ refl y₂) ≈ᴾ θ≈ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ≈ pc⊑A
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A () ⟩   -- Public scrutinee with different injections (impossible)
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ =
+    let isV₁ᴱ′ ∧ isV₁ᴾ′ ∧ isV₁ⱽ = valid-invariant x₁ ⟨ isV₁ᴾ , isV₁ᴱ ⟩
+        isV₂ᴱ′ ∧ isV₂ᴾ′ ∧ isV₂ⱽ = valid-invariant y₁ ⟨ isV₂ᴾ , isV₂ᴱ ⟩
+        vi₁ = ⟨ isV₁ᴾ′ , isV₁ⱽ ∧ isV₁ᴱ′ ⟩
+        vi₂ = ⟨ isV₂ᴾ′ , isV₂ⱽ ∧ isV₂ᴱ′ ⟩ in
+        wken-∃ β⊆β' (tiniᴴ {{ vi₁ }} {{ vi₂ }} ≈ᴾ′ x₂ y₂ (join-⋤₂ ℓ₁⋤A) (join-⋤₂ ℓ₂⋤A)) -- Secret scrutinee
 
   -- Right vs left (like above)
-  tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Case₂ x₁ refl x₂) (Case₁ y₁ refl y₂) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ₁≈θ₂ pc⊑A
-  ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ ℓ⊑A () ⟩
-  ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = wken-∃ β⊆β' (tiniᴴ {{ {!!} }} {{ {!!} }} μ₁'≈μ₂' x₂ y₂ (join-⋤₂ ℓ₁⋤A) (join-⋤₂ ℓ₂⋤A))
+  tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Case₂ x₁ refl x₂) (Case₁ y₁ refl y₂) ≈ᴾ θ≈ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ≈ pc⊑A
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A () ⟩
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ =
+    let isV₁ᴱ′ ∧ isV₁ᴾ′ ∧ isV₁ⱽ = valid-invariant x₁ ⟨ isV₁ᴾ , isV₁ᴱ ⟩
+        isV₂ᴱ′ ∧ isV₂ᴾ′ ∧ isV₂ⱽ = valid-invariant y₁ ⟨ isV₂ᴾ , isV₂ᴱ ⟩
+        vi₁ = ⟨ isV₁ᴾ′ , isV₁ⱽ ∧ isV₁ᴱ′ ⟩
+        vi₂ = ⟨ isV₂ᴾ′ , isV₂ⱽ ∧ isV₂ᴱ′ ⟩ in
+        wken-∃ β⊆β' (tiniᴴ {{ vi₁ }} {{ vi₂ }} ≈ᴾ′ x₂ y₂ (join-⋤₂ ℓ₁⋤A) (join-⋤₂ ℓ₂⋤A)) -- Secret scrutinee
 
   -- Both right
-  tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Case₂ x₁ refl x₂) (Case₂ y₁ refl y₂) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ₁≈θ₂ pc⊑A
-  ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ ℓ⊑A (Inr v₁≈v₂) ⟩ = wken-∃ β⊆β' (tini {{ {!!} }} {{ {!!} }} x₂ y₂ ⟨ μ₁'≈μ₂' , refl ⟩ (v₁≈v₂ ∷ wken-≈ᴱ β⊆β' θ₁≈θ₂))
-  ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = wken-∃ β⊆β' (tiniᴴ {{ {!!} }} {{ {!!} }} μ₁'≈μ₂' x₂ y₂ (join-⋤₂ ℓ₁⋤A) (join-⋤₂ ℓ₂⋤A))
+  tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Case₂ x₁ refl x₂) (Case₂ y₁ refl y₂) ≈ᴾ θ≈ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ≈ pc⊑A
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Inr v≈) ⟩ =
+    let isV₁ᴱ′ ∧ isV₁ᴾ′ ∧ isV₁ⱽ = valid-invariant x₁ ⟨ isV₁ᴾ , isV₁ᴱ ⟩
+        isV₂ᴱ′ ∧ isV₂ᴾ′ ∧ isV₂ⱽ = valid-invariant y₁ ⟨ isV₂ᴾ , isV₂ᴱ ⟩
+        vi₁ = ⟨ isV₁ᴾ′ , isV₁ⱽ ∧ isV₁ᴱ′ ⟩
+        vi₂ = ⟨ isV₂ᴾ′ , isV₂ⱽ ∧ isV₂ᴱ′ ⟩
+        θ≈′ = v≈ ∷ wken-≈ᴱ β⊆β' θ≈  in
+        wken-∃ β⊆β' (tini {{ vi₁ }} {{ vi₂ }} x₂ y₂ ⟨ ≈ᴾ′ , refl ⟩ θ≈′)
+
+
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ =
+    let isV₁ᴱ′ ∧ isV₁ᴾ′ ∧ isV₁ⱽ = valid-invariant x₁ ⟨ isV₁ᴾ , isV₁ᴱ ⟩
+        isV₂ᴱ′ ∧ isV₂ᴾ′ ∧ isV₂ⱽ = valid-invariant y₁ ⟨ isV₂ᴾ , isV₂ᴱ ⟩
+        vi₁ = ⟨ isV₁ᴾ′ , isV₁ⱽ ∧ isV₁ᴱ′ ⟩
+        vi₂ = ⟨ isV₂ᴾ′ , isV₂ⱽ ∧ isV₂ᴱ′ ⟩ in
+        wken-∃ β⊆β' (tiniᴴ {{ vi₁ }} {{ vi₂ }} ≈ᴾ′ x₂ y₂ (join-⋤₂ ℓ₁⋤A) (join-⋤₂ ℓ₂⋤A))
 
   -- End case inspection cases
   --------------------------------------------------------------------------------
 
   tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Pair x₁ x₂) (Pair y₁ y₂) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ₁≈θ₂ pc⊑A
-  ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , v₁≈v₁' ⟩ with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ μ₁'≈μ₂' (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , v₁≈v₁' ⟩ with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
   ... | β'' ∧ β'⊆β'' ∧ ⟨ μ₁''≈μ₂'' , v₂≈v₂' ⟩ = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ μ₁''≈μ₂'' , Valueᴸ pc⊑A (Pair (wken-≈ⱽ β'⊆β'' v₁≈v₁') v₂≈v₂') ⟩
 
-  -- tiniᴸ (Fst x refl) (Fst x₂ refl) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
-  -- ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ ℓ⊑A (Pair v₁≈v₁' v₂≈v₂') ⟩ = β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , ≈ⱽ-⊑ _ v₁≈v₁' ⟩
-  -- ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴴ (join-⋤₁ ℓ₁⋤A) (join-⋤₁ ℓ₂⋤A) ⟩
+  tiniᴸ (Fst x refl) (Fst x₂ refl) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Pair v₁≈v₁' v₂≈v₂') ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , ≈ⱽ-⊑ _ v₁≈v₁' ⟩
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ (join-⋤₁ ℓ₁⋤A) (join-⋤₁ ℓ₂⋤A) ⟩
 
-  -- tiniᴸ (Snd x refl) (Snd x₂ refl) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
-  -- ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ ℓ⊑A (Pair v₁≈v₁' v₂≈v₂') ⟩ = β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , ≈ⱽ-⊑ _ v₂≈v₂' ⟩
-  -- ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , (Valueᴴ ℓ₁⋤A ℓ₂⋤A) ⟩ = β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴴ (join-⋤₁ ℓ₁⋤A) (join-⋤₁ ℓ₂⋤A) ⟩
+  tiniᴸ (Snd x refl) (Snd x₂ refl) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Pair v₁≈v₁' v₂≈v₂') ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , ≈ⱽ-⊑ _ v₂≈v₂' ⟩
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , (Valueᴴ ℓ₁⋤A ℓ₂⋤A) ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ (join-⋤₁ ℓ₁⋤A) (join-⋤₁ ℓ₂⋤A) ⟩
 
-  -- tiniᴸ (LabelOf x) (LabelOf x₁) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x x₁ ≈ᴾ θ₁≈θ₂ pc⊑A
-  -- ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ ℓ⊑A v₁≈v₂ ⟩ = β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ ℓ⊑A (Lbl _) ⟩
-  -- ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩
+  tiniᴸ (LabelOf x) (LabelOf x₁) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x x₁ ≈ᴾ θ₁≈θ₂ pc⊑A
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A v₁≈v₂ ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Lbl _) ⟩
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩
 
-  -- tiniᴸ GetLabel GetLabel ≈ᴾ θ₁≈θ₂ pc⊑A = _ ∧ refl-⊆ ∧ ⟨ ≈ᴾ , Valueᴸ pc⊑A (Lbl _) ⟩
+  tiniᴸ GetLabel GetLabel ≈ᴾ θ₁≈θ₂ pc⊑A = _ ∧ refl-⊆ ∧ ⟨ ≈ᴾ , Valueᴸ pc⊑A (Lbl _) ⟩
 
-  tiniᴸ (Taint refl x₁ x₂ pc'⊑pc'') (Taint refl x₃ x₄ pc'⊑pc''') ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₃ ≈ᴾ θ₁≈θ₂ pc⊑A
-  ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , Valueᴸ ℓ⊑A (Lbl ℓ) ⟩ = wken-∃ β⊆β' ( tini {{ {!!} }} {{ {!!} }} x₂ x₄ ⟨ μ₁'≈μ₂' , refl ⟩ (wken-≈ᴱ β⊆β' θ₁≈θ₂))
-  ... | β' ∧ β⊆β' ∧ ⟨ μ₁'≈μ₂' , (Valueᴴ ℓ₁⋤A ℓ₂⋤A) ⟩ =  wken-∃ β⊆β' (tiniᴴ {{ {!!} }} {{ {!!} }} μ₁'≈μ₂' x₂ x₄ (trans-⋤ pc'⊑pc'' ℓ₁⋤A) (trans-⋤ pc'⊑pc''' ℓ₂⋤A))
+  tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Taint refl x₁ x₂ ⊑₁) (Taint refl y₁ y₂ ⊑₂) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ₁≈θ₂ pc⊑A
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Lbl ℓ) ⟩ =
+    let isV₁ᴱ′ ∧ isV₁ᴾ′ ∧ isV₁ⱽ = valid-invariant x₁ ⟨ isV₁ᴾ , isV₁ᴱ ⟩
+        isV₂ᴱ′ ∧ isV₂ᴾ′ ∧ isV₂ⱽ = valid-invariant y₁ ⟨ isV₂ᴾ , isV₂ᴱ ⟩
+        vi₁ = ⟨ isV₁ᴾ′ , isV₁ᴱ′ ⟩
+        vi₂ = ⟨ isV₂ᴾ′ , isV₂ᴱ′ ⟩ in
+        wken-∃ β⊆β' ( tini {{ vi₁ }} {{ vi₂ }} x₂ y₂ ⟨ ≈ᴾ′ , refl ⟩ (wken-≈ᴱ β⊆β' θ₁≈θ₂))
 
-  -- tiniᴸ (LabelOfRef x₁ refl) (LabelOfRef x₂ refl) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
-  -- ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Ref-Iᴸ ℓ⊑A₁) ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , (Valueᴸ (join-⊑' ℓ⊑A₁ ℓ⊑A) (Lbl _)) ⟩
-  -- ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , (Valueᴴ (trans-⋤ (join-⊑₁ _ _) ℓ₁⋤A) (trans-⋤ (join-⊑₁ _ _) ℓ₂⋤A)) ⟩
-  -- ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ (trans-⋤ (join-⊑₂ _ _) ℓ₁⋤A) (trans-⋤ (join-⊑₂ _ _) ℓ₂⋤A) ⟩
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , (Valueᴴ ℓ₁⋤A ℓ₂⋤A) ⟩ =
+    let isV₁ᴱ′ ∧ isV₁ᴾ′ ∧ isV₁ⱽ = valid-invariant x₁ ⟨ isV₁ᴾ , isV₁ᴱ ⟩
+        isV₂ᴱ′ ∧ isV₂ᴾ′ ∧ isV₂ⱽ = valid-invariant y₁ ⟨ isV₂ᴾ , isV₂ᴱ ⟩
+        vi₁ = ⟨ isV₁ᴾ′ , isV₁ᴱ′ ⟩
+        vi₂ = ⟨ isV₂ᴾ′ , isV₂ᴱ′ ⟩ in
+        wken-∃ β⊆β' (tiniᴴ {{ vi₁ }} {{ vi₂ }} ≈ᴾ′ x₂ y₂ (trans-⋤ ⊑₁ ℓ₁⋤A) (trans-⋤ ⊑₂ ℓ₂⋤A))
 
-  tiniᴸ (New {μ' = μ₁} x₁) (New {μ' = μ₂} x₂) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
-  ... | β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , Valueᴴ ⋤₁ ⋤₂  ⟩ = β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈′ , μ≈ ⟩ , v≈′ ⟩
-    where Σ≈′ = square-≈ˢ-ι {n₁ = ∥ μ₁ ∥ᴴ} {n₂ = ∥ μ₂ ∥ᴴ}  Σ≈ (updateᴴ-≈ˢ _ _ {{ {!!} }} ⋤₁) (updateᴴ-≈ˢ _ _ {{ {!!} }} ⋤₂)
-          v≈′ = Valueᴸ pc⊑A (Ref-Iᴴ ⋤₁ ⋤₂)
+
+  tiniᴸ (LabelOfRef x₁ refl) (LabelOfRef x₂ refl) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Ref-Iᴸ ℓ⊑A₁) ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , (Valueᴸ (join-⊑' ℓ⊑A₁ ℓ⊑A) (Lbl _)) ⟩
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , (Valueᴴ (join-⋤₁ ℓ₁⋤A) (join-⋤₁ ℓ₂⋤A)) ⟩
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ (join-⋤₂ ℓ₁⋤A) (join-⋤₂ ℓ₂⋤A) ⟩
+
+  tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (New {μ' = μ₁} x₁) (New {μ' = μ₂} y₁) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ₁≈θ₂ pc⊑A
+  ... | β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , Valueᴴ ⋤₁ ⋤₂  ⟩ =
+    let ⟨ isV₁ˢ′ , _ ⟩ = validᴾ-⇓ x₁ ⟨ isV₁ᴾ , isV₁ᴱ ⟩
+        ⟨ isV₂ˢ′ , _ ⟩ = validᴾ-⇓ y₁ ⟨ isV₂ᴾ , isV₂ᴱ ⟩
+        Σ₁≈ = updateᴴ-≈ˢ _ _ {{ isV₁ˢ′ }} ⋤₁
+        Σ₂≈ = updateᴴ-≈ˢ _ _ {{ isV₂ˢ′ }} ⋤₂
+        Σ≈′ = square-≈ˢ-ι {n₁ = ∥ μ₁ ∥ᴴ} {n₂ = ∥ μ₂ ∥ᴴ}  Σ≈ Σ₁≈ Σ₂≈
+        v≈′ = Valueᴸ pc⊑A (Ref-Iᴴ ⋤₁ ⋤₂) in
+        β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈′ , μ≈ ⟩ , v≈′ ⟩
 
   ... | β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , Valueᴸ ℓ⊑A r≈ ⟩ = β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈′ , μ≈ ⟩ , v≈′ ⟩
       where M≈ = getᴸ Σ≈ ℓ⊑A
@@ -375,91 +453,107 @@ mutual
             v≈′ = Valueᴸ pc⊑A (Ref-Iᴸ′ ℓ⊑A ∥ M≈ ∥-≡ )
 
   -- Read public reference
-  -- tiniᴸ (Read x₁ n∈M₁ refl) (Read x₂ n∈M₂ refl) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
-  -- ... | β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , Valueᴸ ℓ⊑A (Ref-Iᴸ ℓ'⊑A) ⟩ = β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , v≈ ⟩
-  --      where M≈ = getᴸ Σ≈ ℓ'⊑A
-  --            v≈ = Valueᴸ (join-⊑' ℓ'⊑A ℓ⊑A) (read-≈ᴹ M≈ n∈M₁ n∈M₂)
+  tiniᴸ (Read x₁ n∈M₁ refl) (Read x₂ n∈M₂ refl) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
+  ... | β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , Valueᴸ ℓ⊑A (Ref-Iᴸ ℓ'⊑A) ⟩ = β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , v≈ ⟩
+       where M≈ = getᴸ Σ≈ ℓ'⊑A
+             v≈ = Valueᴸ (join-⊑' ℓ'⊑A ℓ⊑A) (read-≈ᴹ M≈ n∈M₁ n∈M₂)
 
-  -- -- Read secret reference
-  -- ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , v≈ ⟩
-  --   where v≈ = Valueᴴ (join-⋤₁ ℓ₁⋤A) (join-⋤₁ ℓ₂⋤A)
+  -- Read secret reference
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , v≈ ⟩
+    where v≈ = Valueᴴ (join-⋤₁ ℓ₁⋤A) (join-⋤₁ ℓ₂⋤A)
 
-  -- -- Read secret-dependent reference
-  -- ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , v≈ ⟩
-  --   where v≈ = Valueᴴ (join-⋤₂ ℓ₁⋤A) (join-⋤₂ ℓ₂⋤A)
+  -- Read secret-dependent reference
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , v≈ ⟩
+    where v≈ = Valueᴴ (join-⋤₂ ℓ₁⋤A) (join-⋤₂ ℓ₂⋤A)
 
-  tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Write {μ₃ = μ₃} x₁ ⊑₁ x₂ ℓ₂⊑ℓ w₁) (Write {μ₃ = μ₃′} y₁ ⊑₂ y₂ ℓ₂⊑ℓ' w₂) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ₁≈θ₂ pc⊑A
+  tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Write {μ₃ = μ₃} x₁ ⊑₁ x₂ ℓ₂⊑ℓ w₁) (Write {μ₃ = μ₃′} y₁ ⊑₂ y₂ ℓ₂⊑ℓ' w₂) ≈ᴾ θ₁≈θ₂ pc⊑A
+    with  valid-invariant x₁ ⟨ isV₁ᴾ , isV₁ᴱ ⟩ | valid-invariant y₁ ⟨ isV₂ᴾ , isV₂ᴱ ⟩ | tiniᴸ x₁ y₁ ≈ᴾ θ₁≈θ₂ pc⊑A
 
-  -- Write low-data in a secret-dependent reference
-  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
-  ... | β'' ∧ β'⊆β'' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩  , v≈ ⟩ = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ ⟨ Σ≈′ , μ≈ ⟩ , Valueᴸ pc⊑A Unit ⟩
-    where Σ₁≈ = updateᴴ-≈ˢ {n = ∥ μ₃ ∥ᴴ}  _ _ {{ {!!} }} (trans-⋤ ⊑₁ ℓ₁⋤A)
-          Σ₂≈ = updateᴴ-≈ˢ {n = ∥ μ₃′ ∥ᴴ} _ _ {{ {!!} }} (trans-⋤ ⊑₂ ℓ₂⋤A)
-          Σ≈′ = square-≈ˢ-ι Σ≈ Σ₁≈ Σ₂≈
+  -- Write low-data to a secret-dependent reference
+  ... | isV₁ᴱ′ ∧ isV₁ᴾ′ ∧ isV₁ⱽ | isV₂ᴱ′ ∧ isV₂ᴾ′ ∧ isV₂ⱽ | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩
+    with tiniᴸ {{ isV₁ᴾ′ }} {{ isV₂ᴾ′ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
+  ... | β'' ∧ β'⊆β'' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩  , v≈ ⟩ =
+    let ⟨ isV₁ˢ′ , _ ⟩ = validᴾ-⇓ x₂ ⟨ isV₁ᴾ′ , isV₁ᴱ′ ⟩
+        ⟨ isV₂ˢ′ , _ ⟩ = validᴾ-⇓ y₂ ⟨ isV₂ᴾ′ , isV₂ᴱ′ ⟩
+        Σ₁≈ = updateᴴ-≈ˢ {n = ∥ μ₃ ∥ᴴ}  _ _ {{ isV₁ˢ′ }} (trans-⋤ ⊑₁ ℓ₁⋤A)
+        Σ₂≈ = updateᴴ-≈ˢ {n = ∥ μ₃′ ∥ᴴ} _ _ {{ isV₂ˢ′ }} (trans-⋤ ⊑₂ ℓ₂⋤A)
+        Σ≈′ = square-≈ˢ-ι Σ≈ Σ₁≈ Σ₂≈ in
+        β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ ⟨ Σ≈′ , μ≈ ⟩ , Valueᴸ pc⊑A Unit ⟩
 
   -- Write low data to low reference
   tiniᴸ {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Write x₁ ℓ'⊑ℓ x₂ ℓ₂⊑ℓ w₁) (Write y₁ ℓ'⊑ℓ' y₂ ℓ₂⊑ℓ' w₂) ≈ᴾ θ₁≈θ₂ pc⊑A
-    | β' ∧ β⊆β'  ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Ref-Iᴸ ⊑₁) ⟩ with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
+    | isV₁ᴱ′ ∧ isV₁ᴾ′ ∧ isV₁ⱽ | isV₂ᴱ′ ∧ isV₂ᴾ′ ∧ isV₂ⱽ | β' ∧ β⊆β'  ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Ref-Iᴸ ⊑₁) ⟩
+    with tiniᴸ {{ isV₁ᴾ′ }} {{ isV₂ᴾ′ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
   ... | β'' ∧ β'⊆β'' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , v≈ ⟩ = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ ⟨ Σ≈′ , μ≈ ⟩ , Valueᴸ pc⊑A Unit ⟩
       where M≈ = getᴸ Σ≈ ⊑₁
             Σ≈′ = updateᴸ-≈ˢ Σ≈ (update-≈ᴹ M≈ (extract-≈ᴿ v≈ (trans-⊑ ℓ₂⊑ℓ ⊑₁)) w₁ w₂)
+
   -- Write low data to high reference
   tiniᴸ  {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Write {μ₃ = μ₃} x₁ ⊑₁ x₂ ⊑₁′ w₁) (Write {μ₃ = μ₃′} y₁ ⊑₂ y₂ ⊑₂′ w₂) ≈ᴾ θ₁≈θ₂ pc⊑A
-    | β' ∧ β⊆β'  ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Ref-Iᴴ ⋤₁ ⋤₂) ⟩ with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
-  ... | β'' ∧ β'⊆β'' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , v≈ ⟩ = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ ⟨ Σ≈′ , μ≈ ⟩ , Valueᴸ pc⊑A Unit ⟩
-    where Σ₁≈ = updateᴴ-≈ˢ {n = ∥ μ₃ ∥ᴴ}  _ _ {{ {!!} }} ⋤₁
-          Σ₂≈ = updateᴴ-≈ˢ {n = ∥ μ₃′ ∥ᴴ} _ _ {{ {!!} }} ⋤₂
-          Σ≈′ = square-≈ˢ-ι Σ≈ Σ₁≈ Σ₂≈
+    | isV₁ᴱ′ ∧ isV₁ᴾ′ ∧ isV₁ⱽ | isV₂ᴱ′ ∧ isV₂ᴾ′ ∧ isV₂ⱽ | β' ∧ β⊆β'  ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Ref-Iᴴ ⋤₁ ⋤₂) ⟩
+    with tiniᴸ {{ isV₁ᴾ′ }} {{ isV₂ᴾ′ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
+  ... | β'' ∧ β'⊆β'' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , v≈ ⟩ =
+    let ⟨ isV₁ˢ′ , _ ⟩ = validᴾ-⇓ x₂ ⟨ isV₁ᴾ′ , isV₁ᴱ′ ⟩
+        ⟨ isV₂ˢ′ , _ ⟩ = validᴾ-⇓ y₂ ⟨ isV₂ᴾ′ , isV₂ᴱ′ ⟩
+        Σ₁≈ = updateᴴ-≈ˢ {n = ∥ μ₃ ∥ᴴ}  _ _ {{ isV₁ˢ′ }} ⋤₁
+        Σ₂≈ = updateᴴ-≈ˢ {n = ∥ μ₃′ ∥ᴴ} _ _ {{ isV₂ˢ′ }} ⋤₂
+        Σ≈′ = square-≈ˢ-ι Σ≈ Σ₁≈ Σ₂≈ in
+        β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ ⟨ Σ≈′ , μ≈ ⟩ , Valueᴸ pc⊑A Unit ⟩
 
-  -- tiniᴸ (Id x₁) (Id x₂) ≈ᴾ θ₁≈θ₂ pc⊑A with  tiniᴸ x₁ x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
-  -- ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , v≈ ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ pc⊑A (Id v≈) ⟩
+  tiniᴸ (Id x₁) (Id x₂) ≈ᴾ θ₁≈θ₂ pc⊑A with  tiniᴸ x₁ x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , v≈ ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ pc⊑A (Id v≈) ⟩
 
-  -- -- TODO: merge this cases
-  -- tiniᴸ (UnId x₁ refl) (UnId x₂ refl) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
-  -- ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Id v≈) ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , ≈ⱽ-⊑ _ v≈ ⟩
-  -- ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ (join-⋤₁ ℓ₁⋤A) (join-⋤₁ ℓ₂⋤A) ⟩
+  tiniᴸ (UnId x₁ refl) (UnId x₂ refl) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Id v≈) ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , ≈ⱽ-⊑ _ v≈ ⟩
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ (join-⋤₁ ℓ₁⋤A) (join-⋤₁ ℓ₂⋤A) ⟩
 
-  -- TODO: merge this cases?
-  -- tiniᴸ (LabelOfRef-FS x₁ ∈₁ refl) (LabelOfRef-FS x₂ ∈₂ refl) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
-  -- ... | β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , Valueᴸ ℓ⊑A (Ref-S ∈β') ⟩ = β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , v≈ ⟩
-  --   where v≈ = ≈ⱽ-⊑ _ (label-of-≈ⱽ (readᴸ-≈ⱽ ∈β' ∈₁ ∈₂ μ≈))
-  -- ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ (join-⋤₁ ℓ₁⋤A) (join-⋤₁ ℓ₂⋤A) ⟩
+  tiniᴸ (LabelOfRef-FS x₁ ∈₁ refl) (LabelOfRef-FS x₂ ∈₂ refl) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
+  ... | β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , Valueᴸ ℓ⊑A (Ref-S ∈β') ⟩ = β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , v≈ ⟩
+    where v≈ = ≈ⱽ-⊑ _ (label-of-≈ⱽ (readᴸ-≈ⱽ ∈β' ∈₁ ∈₂ μ≈))
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ (join-⋤₁ ℓ₁⋤A) (join-⋤₁ ℓ₂⋤A) ⟩
 
-  -- tiniᴸ (New-FS {μ' = μ₁'} x₁) (New-FS {μ' = μ₂'} x₂) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
-  -- ... | β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , v≈  ⟩ = β'' ∧ β⊆β'' ∧ ⟨ ⟨ wken-≈ˢ β'⊆β'' Σ≈ , μ≈′ ⟩ , wken-≈ⱽ (∣ᴮ-⊆₂ β' β₁) v≈′ ⟩
-  --     where instance _ = _≟_
-  --                    _ = ≈-# μ≈
-  --           β₁ =  ∥ μ₁' ∥ᴴ ↔ ∥ μ₂' ∥ᴴ
-  --           β'' = β' ∣ᴮ β₁
-  --           β'⊆β'' = ∣ᴮ-⊆₁ β' β₁
-  --           β⊆β'' = trans-⊆ β⊆β' β'⊆β''  -- Names?
-  --           μ≈′ = newᴸ-≈ᴴ v≈ μ≈
-  --           v≈′ = Valueᴸ pc⊑A (Ref-S (↔-∈ᵗ ∥ μ₁' ∥ᴴ ∥ μ₂' ∥ᴴ))
+  tiniᴸ (New-FS {μ' = μ₁'} x₁) (New-FS {μ' = μ₂'} x₂) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
+  ... | β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , v≈  ⟩ = β'' ∧ β⊆β'' ∧ ⟨ ⟨ wken-≈ˢ ⊆₁ Σ≈ , μ≈′ ⟩ , wken-≈ⱽ ⊆₂ v≈′ ⟩
+      where instance _ = _≟_
+                     _ = ≈-# μ≈
+            β₁ =  ∥ μ₁' ∥ᴴ ↔ ∥ μ₂' ∥ᴴ
+            β'' = β' ∣ᴮ β₁
+            ⊆₁ = ∣ᴮ-⊆₁ β' β₁
+            ⊆₂ = ∣ᴮ-⊆₂ β' β₁
+            β⊆β'' = trans-⊆ β⊆β' ⊆₁
+            μ≈′ = newᴸ-≈ᴴ v≈ μ≈
+            v≈′ = Valueᴸ pc⊑A (Ref-S (↔-∈ᵗ ∥ μ₁' ∥ᴴ ∥ μ₂' ∥ᴴ))
 
-  -- tiniᴸ (Read-FS x₁ ∈₁ refl) (Read-FS x₂ ∈₂ refl) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
+  tiniᴸ (Read-FS x₁ ∈₁ refl) (Read-FS x₂ ∈₂ refl) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
 
-  -- ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , v≈ ⟩
-  --   where v≈ = Valueᴴ (trans-⋤ (join-⊑₁ _ _) ℓ₁⋤A ) ((trans-⋤ (join-⊑₁ _ _) ℓ₂⋤A ))
+  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , v≈ ⟩
+    where v≈ = Valueᴴ (join-⋤₁ ℓ₁⋤A ) (join-⋤₁ ℓ₂⋤A )
 
-  -- ... | β' ∧ β⊆β' ∧ ⟨  ⟨ Σ≈ , μ≈ ⟩ , Valueᴸ ℓ⊑A (Ref-S ∈β) ⟩ = β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , ≈ⱽ-⊑ _ v≈ ⟩
-  --      where v≈ = readᴸ-≈ⱽ ∈β ∈₁ ∈₂ μ≈
+  ... | β' ∧ β⊆β' ∧ ⟨  ⟨ Σ≈ , μ≈ ⟩ , Valueᴸ ℓ⊑A (Ref-S ∈β) ⟩ = β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , ≈ⱽ-⊑ _ v≈ ⟩
+       where v≈ = readᴸ-≈ⱽ ∈β ∈₁ ∈₂ μ≈
 
-  tiniᴸ  {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Write-FS {ℓ = ℓ} {ℓ₁} {ℓ₂} {ℓ₂'} x₁ x₂ ∈₁ ⊑₁ refl w₁) (Write-FS y₁ y₂ ∈₂ ⊑₂ refl w₂) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ₁≈θ₂ pc⊑A
-  ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , (Valueᴸ ℓ⊑A (Ref-S ∈β')) ⟩ with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
+  tiniᴸ  {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Write-FS x₁ x₂ ∈₁ ⊑₁ refl w₁) (Write-FS y₁ y₂ ∈₂ ⊑₂ refl w₂) ≈ᴾ θ₁≈θ₂ pc⊑A
+    with  valid-invariant x₁ ⟨ isV₁ᴾ , isV₁ᴱ ⟩ | valid-invariant y₁ ⟨ isV₂ᴾ , isV₂ᴱ ⟩ | tiniᴸ x₁ y₁ ≈ᴾ θ₁≈θ₂ pc⊑A
+  ... | isV₁ᴱ′ ∧ isV₁ᴾ′ ∧ isV₁ⱽ | isV₂ᴱ′ ∧ isV₂ᴾ′ ∧ isV₂ⱽ | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , (Valueᴸ ℓ⊑A (Ref-S ∈β')) ⟩
+    with tiniᴸ {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
   ... | β'' ∧ β'⊆β'' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , v≈′ ⟩ =
             let ∈β'' = bij-⊆ β'⊆β'' ∈β'
                 v≈ = readᴸ-≈ⱽ ∈β'' ∈₁ ∈₂ μ≈
                 μ≈′ = writeᴸ-≈ᴴ μ≈ (≈ⱽ-⊑ _ v≈′) w₁ w₂ ∈β'' in
                 β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ ⟨ Σ≈ , μ≈′ ⟩ , Valueᴸ pc⊑A Unit ⟩
 
-  tiniᴸ  {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Write-FS {ℓ = ℓ} {ℓ₁} {ℓ₂} {ℓ₂'} x₁ x₂ ∈₁ ⊑₁ refl w₁) (Write-FS y₁ y₂ ∈₂ ⊑₂ refl w₂) ≈ᴾ θ₁≈θ₂ pc⊑A | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , (Valueᴴ ℓ₁⋤A ℓ₂⋤A) ⟩ with tiniᴸ  {{ validᴾ-⇓ x₁ ⟨  isV₁ᴾ , isV₁ᴱ ⟩ }} {{ validᴾ-⇓ y₁ ⟨  isV₂ᴾ , isV₂ᴱ ⟩ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
-  ... | β'' ∧ β'⊆β'' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , v≈ ⟩ = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ ⟨ Σ≈ , μ≈′ ⟩ , Valueᴸ pc⊑A Unit ⟩
-    where v≈₁ = Valueᴴ (trans-⋤ ⊑₁ ℓ₁⋤A) (join-⋤₁ ℓ₁⋤A)
-          v≈₂ = Valueᴴ (trans-⋤ ⊑₂ ℓ₂⋤A) (join-⋤₁ ℓ₂⋤A)
-          μ≈₁ = (writeᴴ-≈ᴴ {{ {!!} }} ∈₁ w₁ v≈₁)
-          μ≈₂ = writeᴴ-≈ᴴ {{ {!!} }} ∈₂ w₂ v≈₂
-          μ≈′ = square-≈ᴴ-ι μ≈  μ≈₁ μ≈₂
-
+  tiniᴸ  {{isV₁ᴾ}} {{isV₂ᴾ}} {{isV₁ᴱ}} {{isV₂ᴱ}} (Write-FS x₁ x₂ ∈₁ ⊑₁ refl w₁) (Write-FS y₁ y₂ ∈₂ ⊑₂ refl w₂) ≈ᴾ θ₁≈θ₂ pc⊑A
+    | isV₁ᴱ′ ∧ isV₁ᴾ′ ∧ isV₁ⱽ | isV₂ᴱ′ ∧ isV₂ᴾ′ ∧ isV₂ⱽ | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , (Valueᴴ ℓ₁⋤A ℓ₂⋤A) ⟩
+    with tiniᴸ {{ isV₁ᴾ′ }} {{ isV₂ᴾ′ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
+  ... | β'' ∧ β'⊆β'' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , v≈ ⟩ =
+    let v≈₁ = Valueᴴ (trans-⋤ ⊑₁ ℓ₁⋤A) (join-⋤₁ ℓ₁⋤A)
+        v≈₂ = Valueᴴ (trans-⋤ ⊑₂ ℓ₂⋤A) (join-⋤₁ ℓ₂⋤A)
+        ⟨ _ , isV₁ᴴ′ ⟩ = validᴾ-⇓ x₂ ⟨ isV₁ᴾ′ , isV₁ᴱ′ ⟩
+        ⟨ _ , isV₂ᴴ′ ⟩ = validᴾ-⇓ y₂ ⟨ isV₂ᴾ′ , isV₂ᴱ′ ⟩
+        μ≈₁ = writeᴴ-≈ᴴ {{ isV₁ᴴ′ }} ∈₁ w₁ v≈₁
+        μ≈₂ = writeᴴ-≈ᴴ {{ isV₂ᴴ′ }} ∈₂ w₂ v≈₂
+        μ≈′ = square-≈ᴴ-ι μ≈  μ≈₁ μ≈₂ in
+        β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ ⟨ Σ≈ , μ≈′ ⟩ , Valueᴸ pc⊑A Unit ⟩
 
   -- TINI for high steps. The computations depend on a secret and thus
   -- might produce different results and code. We then prove TINI by
@@ -490,12 +584,12 @@ mutual
   -- because we do not need to take care of the references. Check this with Deepak.
   -- Answer: We need that to weaken the bijection in L-equiv relations
   tiniᴴ {β = β} {{⟨ isV₁ᴾ , isV₁ᴱ ⟩ }} {{⟨ isV₂ᴾ  , isV₂ᴱ ⟩ }}
-         μ₁≈μ₂ x₁ x₂ pc₁⋤A pc₂⋤A =
-    let μ₁≈μ₁' = step-≈ᴴ {{ isV₁ᴾ }} {{ isV₁ᴱ }} x₁ pc₁⋤A
-        μ₂≈μ₂' = step-≈ᴴ {{ isV₂ᴾ }} {{ isV₂ᴱ }} x₂ pc₂⋤A
-        μ₁'≈μ₂' = square-≈ᴾ-ι μ₁≈μ₂ μ₁≈μ₁' μ₂≈μ₂'
+         ≈ᴾ x₁ x₂ pc₁⋤A pc₂⋤A =
+    let ≈₁ᴾ = step-≈ᴴ {{ isV₁ᴾ }} {{ isV₁ᴱ }} x₁ pc₁⋤A
+        ≈₂ᴾ = step-≈ᴴ {{ isV₂ᴾ }} {{ isV₂ᴱ }} x₂ pc₂⋤A
+        ≈ᴾ′ = square-≈ᴾ-ι ≈ᴾ ≈₁ᴾ ≈₂ᴾ
         v≈ = Valueᴴ (trans-⋤ (step-⊑ x₁) pc₁⋤A) (trans-⋤ (step-⊑ x₂) pc₂⋤A) in
-        β ∧ B.refl-⊆ ∧ ⟨ μ₁'≈μ₂' , v≈ ⟩
+        β ∧ B.refl-⊆ ∧ ⟨ ≈ᴾ′ , v≈ ⟩
 
 
   -- TINI: top level theorem
@@ -506,6 +600,6 @@ mutual
              c₁ ≈⟨ β ⟩ᴵ c₂ →
              θ₁ ≈⟨ β ⟩ᴱ θ₂ →
              ∃ (λ β' → β ⊆ β' × c₁' ≈⟨ β' ⟩ᶜ c₂')
-  tini {pc = pc} x₁ x₂ ⟨ μ₁≈μ₂ , refl ⟩  θ₁≈θ₂ with pc ⊑? A
-  ... | yes pc⊑A = tiniᴸ  {{ {!!} }} {{ {!!} }} {{ {!!} }} {{ {!!} }} x₁ x₂ μ₁≈μ₂ θ₁≈θ₂ pc⊑A
-  ... | no pc⋤A = tiniᴴ μ₁≈μ₂ x₁ x₂ pc⋤A pc⋤A
+  tini {pc = pc} {{⟨ isV₁ᴾ , isV₁ᴱ ⟩}} {{⟨ isV₂ᴾ , isV₂ᴱ ⟩}}  x₁ x₂ ⟨ ≈ᴾ , refl ⟩  θ₁≈θ₂ with pc ⊑? A
+  ... | yes pc⊑A = tiniᴸ  {{ isV₁ᴾ }} {{ isV₂ᴾ }} {{ isV₁ᴱ }} {{ isV₂ᴱ }} x₁ x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
+  ... | no pc⋤A = tiniᴴ {{ ⟨ isV₁ᴾ , isV₁ᴱ ⟩ }} {{ ⟨ isV₂ᴾ , isV₂ᴱ ⟩ }} ≈ᴾ x₁ x₂ pc⋤A pc⋤A
