@@ -84,13 +84,14 @@ step-≈ᴴ {{isVᴾ}} {{isV₂}} Fun pc⋤A = refl-≈ᴾ {{isVᴾ}}
 step-≈ᴴ {{isVᴾ}} {{isV₂}} (App {θ' = θ'} x x₁ refl x₃) pc⋤A =
   let isVᴱ ∧ isVᴾ′ ∧ isV₂′ = valid-invariant x ⟨ isVᴾ , isV₂ ⟩
       isVᴱ′ ∧ isVᴾ′′ ∧ isV₂′′ = valid-invariant x₁ ⟨ isVᴾ′ , isVᴱ ⟩
+--      isVᴱ′′ ∧ _ ∧ _ = valid-invariant x₃ ⟨ isVᴾ′′ , {!!}  ⟩
       μ⊆μ₁ = step-≈ᴴ {{ isVᴾ }} x pc⋤A
       μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} {{ isVᴱ }} x₁ pc⋤A
-      isVᴱ′′ = {!!} -- validᴱ-⊆ᶜ {θ = θ'} (step-⊆ᴴ x₁) isV₂′
+      isVᴱ′′ = validᴱ-⊆ᴴ {θ = θ'} (step-⊆ᴴ x₁) isV₂′
       μ₂⊆μ₃ = step-≈ᴴ {{ isVᴾ′′ }} {{ isV₂′′ ∧ isVᴱ′′ }} x₃ (trans-⋤ (join-⊑₁ _ _) pc⋤A)
   in trans-≈ᴾ-ι μ⊆μ₁ (trans-≈ᴾ-ι μ₁⊆μ₂ μ₂⊆μ₃)
 
-step-≈ᴴ {{isVᴾ}} {{isV₂}} (Wken p x) pc⋤A = step-≈ᴴ {{ isVᴾ }} {{ validᴱ-⊆ᶜ p isV₂ }} x pc⋤A
+step-≈ᴴ {{isVᴾ}} {{isV₂}} (Wken {μ = μ} p x) pc⋤A = step-≈ᴴ {{ isVᴾ }} {{ validᴱ-⊆ᶜ {μ = μ} p isV₂ }} x pc⋤A
 
 step-≈ᴴ {{isVᴾ}} {{isV₂}} (Inl x) pc⋤A = step-≈ᴴ {{ isVᴾ }} {{ isV₂ }} x pc⋤A
 
@@ -147,11 +148,11 @@ step-≈ᴴ {{isVᴾ}} {{isV₂}} (Write {ℓ = ℓ} {n = n} {τ = τ} x ⊑₁ 
   in trans-≈ᴾ-ι μ⊆μ₁ (trans-≈ᴾ-ι μ₁⊆μ₂ μ₂≈μ₃)
 
 step-≈ᴴ {{isVᴾ}} {{isV₂}} (LabelOfRef-FS x x₁ eq) pc⋤A = step-≈ᴴ {{ isVᴾ }} x pc⋤A
-step-≈ᴴ {{⟨ isVˢ , isVᴴ ⟩}} {{isV₂}} (New-FS x) pc⋤A =
+step-≈ᴴ {{⟨ isVˢ , isVᴴ ⟩}} {{isV₂}} (New-FS {Σ = Σ} {Σ' = Σ'} {μ = μ} {μ' = μ'} {v = v} x) pc⋤A =
   let ⟨ ≈ˢ , ≈ᴴ ⟩ = step-≈ᴴ {{ ⟨ isVˢ , isVᴴ ⟩ }} {{isV₂}} x pc⋤A
       _ ∧ ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ _ = valid-invariant x ⟨ ⟨ isVˢ , isVᴴ ⟩ , isV₂ ⟩
       -- TODO: Lemma about validity of store after heap extension.
-      ≈ˢ′ = trans-≈ˢ-ι ≈ˢ (refl-≈ˢ {{ validˢ-⊆ᴴ (step-⊆ᴴ x) {!isVˢ′!} }}) in
+      ≈ˢ′ = trans-≈ˢ-ι {Σ₁ = Σ} {Σ₂ = Σ'} {Σ₃ = Σ'} {n₁ = ∥ μ ∥ᴴ} {n₂ = ∥ μ' ∥ᴴ} ≈ˢ (refl-≈ˢ {{ isVˢ′ }}) in
       ⟨ ≈ˢ′ , snoc-≈ᴴ _ ≈ᴴ ⟩
 step-≈ᴴ {{isVᴾ}} {{isV₂}} (Read-FS x x₁ eq) pc⋤A = step-≈ᴴ {{ isVᴾ }} x pc⋤A
 
@@ -453,10 +454,10 @@ mutual
   -- Do we actually need to prove β ⊆ β' ? Not clear from Banjaree proof if this is ever used.
   -- The only reason I can think of is that the theorem might be trivial if we choose β' = ∅
   -- because we do not need to take care of the references. Check this with Deepak.
-  tiniᴴ {β = β} {{⟨ ⟨ _ , isV₁ᴴ ⟩ , isV₁ᴱ ⟩ }} {{⟨ ⟨ _ , isV₂ᴴ ⟩ , isV₂ᴱ ⟩ }}
+  tiniᴴ {β = β} {{⟨ ⟨ isV₁ˢ , isV₁ᴴ ⟩ , isV₁ᴱ ⟩ }} {{⟨ ⟨ _ , isV₂ᴴ ⟩ , isV₂ᴱ ⟩ }}
          μ₁≈μ₂ x₁ x₂ pc₁⋤A pc₂⋤A =
-    let μ₁≈μ₁' = step-≈ᴴ {{ {!!} }} {{ isV₁ᴱ }} x₁ pc₁⋤A
-        μ₂≈μ₂' = step-≈ᴴ {{ {!!} }} {{ isV₂ᴱ }} x₂ pc₂⋤A
+    let μ₁≈μ₁' = step-≈ᴴ {{ ⟨ isV₁ˢ , isV₁ᴴ ⟩ }} {{ isV₁ᴱ }} x₁ pc₁⋤A
+        μ₂≈μ₂' = step-≈ᴴ {{ {!!} }} {{ isV₂ᴱ }} x₂ pc₂⋤A -- Use valid invariant
         μ₁'≈μ₂' = square-≈ᴾ-ι μ₁≈μ₂ μ₁≈μ₁' μ₂≈μ₂'
         v≈ = Valueᴴ (trans-⋤ (step-⊑ x₁) pc₁⋤A) (trans-⋤ (step-⊑ x₂) pc₂⋤A) in
         β ∧ B.refl-⊆ ∧ ⟨ μ₁'≈μ₂' , v≈ ⟩

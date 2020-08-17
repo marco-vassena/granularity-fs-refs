@@ -1,3 +1,5 @@
+-- TODO: rename Σ to C
+
 module Generic.Container.Lemmas (Label : Set) (Ty : Set) (Value : Ty → Set) where
 
 open import Generic.Container.Base Label Ty Value
@@ -245,3 +247,7 @@ last-≡ : ∀ {ℓ τ τ'} {Σ : Container ℓ}{c : Value τ} {c' : Value τ'} 
 last-≡ {Σ = []} Here = refl , refl
 last-≡ {Σ = _ ∷ Σ₁} (There x) with last-≡ x
 ... | refl , refl = refl , refl
+
+postulate snoc-⊆ : ∀ {ℓ τ} (C : Container ℓ) (v : Value τ) → C ⊆ (C ∷ᴿ v)
+
+postulate refl-⊆ : ∀ {ℓ} {C : Container ℓ} → C ⊆ C

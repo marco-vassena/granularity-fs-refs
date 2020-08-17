@@ -124,7 +124,7 @@ postulate validⱽ-⊆ᴴ : ∀ {τ μ μ'} {v : Value τ} → μ ⊆ᴴ μ' →
 
 postulate validᴱ-⊆ᴴ : ∀ {Γ μ μ'} {θ : Env Γ} → μ ⊆ᴴ μ' → Validᴱ ∥ μ ∥ᴴ θ → Validᴱ ∥ μ' ∥ᴴ θ
 
-postulate validᴱ-⊆ᶜ : ∀ {Γ Γ' μ} {θ : Env Γ} → (p : Γ' ⊆ᶜ Γ) → Validᴱ μ θ → Validᴱ μ (slice θ p)
+postulate validᴱ-⊆ᶜ : ∀ {Γ Γ' μ} {θ : Env Γ} → (p : Γ' ⊆ᶜ Γ) → Validᴱ ∥ μ ∥ᴴ θ → Validᴱ ∥ μ ∥ᴴ (slice θ p)
 
 postulate validˢ-⊆ᴴ : ∀ {Σ μ μ'} → μ ⊆ᴴ μ' → Validˢ ∥ μ ∥ᴴ Σ → Validˢ ∥ μ' ∥ᴴ Σ
 
