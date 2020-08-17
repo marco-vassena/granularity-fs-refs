@@ -107,9 +107,9 @@ mutual
             ⟨ e , θ₁ ⟩ᶜ ≈⟨ β ⟩ᴿ ⟨ e , θ₂ ⟩ᶜ
 
     -- Flow-insensitive refs
-    Ref-Iᴸ : ∀ {β} {ℓ τ n m} →
-               (ℓ⊑A : ℓ ⊑ A) → ⟨ n , m ⟩ ∈ᵗ β → -- We should not need the bijection anymore
-               Refᴵ {τ = τ} ℓ n ≈⟨ β ⟩ᴿ Refᴵ ℓ m
+    Ref-Iᴸ : ∀ {β} {ℓ τ n} →
+               (ℓ⊑A : ℓ ⊑ A) → -- ⟨ n , m ⟩ ∈ᵗ β → -- We should not need the bijection anymore
+               Refᴵ {τ = τ} ℓ n ≈⟨ β ⟩ᴿ Refᴵ ℓ n
 
     Ref-Iᴴ : ∀ {β} {ℓ₁ ℓ₂ n₁ n₂ τ} →
                (ℓ₁⋤A : ℓ₁ ⋤ A) (ℓ₂⋤A : ℓ₂ ⋤ A) →
@@ -134,16 +134,16 @@ mutual
              (v₁ ∷ θ₁) ≈⟨ β ⟩ᴱ (v₂ ∷ θ₂)
 
 -- Shorthand
-Ref-Iᴸ′ : ∀ {τ ℓ n₁ n₂} {β : Bij} → ℓ ⊑ A → ⟨ n₁ , n₂ ⟩ ∈ᵗ β → Refᴵ {τ = τ} ℓ n₁ ≈⟨ β ⟩ᴿ Refᴵ ℓ n₂
-Ref-Iᴸ′ ℓ⊑A x = Ref-Iᴸ ℓ⊑A x
+Ref-Iᴸ′ : ∀ {τ ℓ n₁ n₂} {β : Bij} → ℓ ⊑ A → n₁ ≡ n₂ → Refᴵ {τ = τ} ℓ n₁ ≈⟨ β ⟩ᴿ Refᴵ ℓ n₂
+Ref-Iᴸ′ ℓ⊑A refl = Ref-Iᴸ ℓ⊑A
 
-Ref-I′ : ∀ {τ n₁ n₂} {β : Bij} {v₁ v₂ : Value τ} → ⟨ n₁ , n₂ ⟩ ∈ᵗ β →
-            let _ ^ ℓ₁ = v₁
-                _ ^ ℓ₂ = v₂ in
-         v₁ ≈⟨ β ⟩ⱽ v₂ →
-         Refᴵ {τ = τ} ℓ₁ n₁ ≈⟨ β ⟩ᴿ Refᴵ ℓ₂ n₂
-Ref-I′ ∈₁ (Valueᴸ ℓ⊑A r≈) = Ref-Iᴸ ℓ⊑A ∈₁
-Ref-I′ ∈₁ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A
+-- Ref-I′ : ∀ {τ n₁ n₂} {β : Bij} {v₁ v₂ : Value τ} → ⟨ n₁ , n₂ ⟩ ∈ᵗ β →
+--             let _ ^ ℓ₁ = v₁
+--                 _ ^ ℓ₂ = v₂ in
+--          v₁ ≈⟨ β ⟩ⱽ v₂ →
+--          Refᴵ {τ = τ} ℓ₁ n₁ ≈⟨ β ⟩ᴿ Refᴵ ℓ₂ n₂
+-- Ref-I′ ∈₁ (Valueᴸ ℓ⊑A r≈) = Ref-Iᴸ ℓ⊑A ∈₁
+-- Ref-I′ ∈₁ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A
 
 Trueᴸ : ∀ {ℓ} {β : Bij} → ℓ ⊑ A → true ℓ ≈⟨ β ⟩ᴿ true ℓ
 Trueᴸ ℓ⊑A = Inl (Valueᴸ ℓ⊑A Unit)
@@ -220,17 +220,17 @@ open import Generic.Value.HLowEq {Ty} {Value} _≈⟨_⟩ⱽ_ public
 -- taint-update-≈ᶜ (cellᴴ ⋤₁ ⋤₂) (Valueᴸ ℓ⊑A r≈₁) = cellᴸ ℓ⊑A r≈₁ -- This gives more expressivity
 -- taint-update-≈ᶜ (cellᴴ ⋤₁ ⋤₂) (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = cellᴴ ℓ₁⋤A ℓ₂⋤A
 
--- label-of≈ᶜ-≈ⱽ : ∀ {τ β} {c₁ c₂ : Cell τ} → c₁ S.≈⟨ β ⟩ᶜ c₂ →
---                 let ⟨ r₁ , ℓ₁ ⟩ = c₁
---                     ⟨ r₂ , ℓ₂ ⟩ = c₂ in (⌞ ℓ₁ ⌟ ^ ℓ₁) ≈⟨ β ⟩ⱽ (⌞ ℓ₂ ⌟ ^ ℓ₂)
--- label-of≈ᶜ-≈ⱽ (cellᴸ x x₁) = Valueᴸ x (Lbl _)
--- label-of≈ᶜ-≈ⱽ (cellᴴ x x₁) = Valueᴴ x x₁
+label-of-≈ⱽ : ∀ {τ β} {v₁ v₂ : Value τ} → v₁ ≈⟨ β ⟩ⱽ v₂ →
+                let (r₁ ^ ℓ₁) = v₁
+                    (r₂ ^ ℓ₂) = v₂ in (⌞ ℓ₁ ⌟ ^ ℓ₁) ≈⟨ β ⟩ⱽ (⌞ ℓ₂ ⌟ ^ ℓ₂)
+label-of-≈ⱽ (Valueᴸ x x₁) = Valueᴸ x (Lbl _)
+label-of-≈ⱽ (Valueᴴ x x₁) = Valueᴴ x x₁
 
--- extract-≈ᴿ : ∀ {τ β} {v₁ v₂ : Value τ} → v₁ ≈⟨ β ⟩ⱽ v₂ →
---                let r₁ ^ ℓ₁ = v₁
---                    r₂ ^ ℓ₂ = v₂ in ℓ₁ ⊑ A → r₁ ≈⟨ β ⟩ᴿ r₂
--- extract-≈ᴿ (Valueᴸ ℓ⊑A r≈) ⊑₁ = r≈
--- extract-≈ᴿ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) ⊑₁ = ⊥-elim (ℓ₁⋤A ⊑₁)
+extract-≈ᴿ : ∀ {τ β} {v₁ v₂ : Value τ} → v₁ ≈⟨ β ⟩ⱽ v₂ →
+               let r₁ ^ ℓ₁ = v₁
+                   r₂ ^ ℓ₂ = v₂ in ℓ₁ ⊑ A → r₁ ≈⟨ β ⟩ᴿ r₂
+extract-≈ᴿ (Valueᴸ ℓ⊑A r≈) ⊑₁ = r≈
+extract-≈ᴿ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) ⊑₁ = ⊥-elim (ℓ₁⋤A ⊑₁)
 
 -- Lift low-equivalence to configurations
 open Conf
@@ -287,7 +287,7 @@ mutual
   wken-≈ᴿ β⊆β' (Inr x) = Inr (wken-≈ⱽ β⊆β' x)
   wken-≈ᴿ β⊆β' (Pair x y) = Pair (wken-≈ⱽ β⊆β' x) (wken-≈ⱽ β⊆β' y)
   wken-≈ᴿ β⊆β' (Fun x) = Fun (wken-≈ᴱ β⊆β' x)
-  wken-≈ᴿ β⊆β' (Ref-Iᴸ ℓ⊑A ∈ᴮ) = Ref-Iᴸ ℓ⊑A (bij-⊆ β⊆β' ∈ᴮ)
+  wken-≈ᴿ β⊆β' (Ref-Iᴸ ℓ⊑A) = Ref-Iᴸ ℓ⊑A
   wken-≈ᴿ β⊆β' (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A
   wken-≈ᴿ β⊆β' (Ref-S ∈ᴮ) = Ref-S (bij-⊆ β⊆β' ∈ᴮ)
   wken-≈ᴿ β⊆β' (Id x) = Id (wken-≈ⱽ β⊆β' x)
@@ -309,7 +309,7 @@ mutual
     where ≈₁′ = wken-≈ⱽ (ι-⊆ (m≤m⊔n ∥ v₁ ∥ⱽ ∥ v₂ ∥ⱽ)) refl-≈ⱽ
           ≈₂′ = wken-≈ⱽ (ι-⊆ (n≤m⊔n ∥ v₁ ∥ⱽ ∥ v₂ ∥ⱽ)) refl-≈ⱽ
   refl-≈ᴿ {x = (Refᴵ ℓ n)} with ℓ ⊑? A
-  ... | yes ℓ⊑A = Ref-Iᴸ ℓ⊑A (ι-∈ (s≤s ≤-refl))
+  ... | yes ℓ⊑A = Ref-Iᴸ ℓ⊑A
   ... | no ℓ⋤A = Ref-Iᴴ ℓ⋤A ℓ⋤A
   refl-≈ᴿ {x = (Refˢ n)} = Ref-S (ι-∈ (s≤s ≤-refl))
   refl-≈ᴿ {x = ⌞ ℓ ⌟} = Lbl ℓ
@@ -335,7 +335,7 @@ mutual
   sym-≈ᴿ (Inr x) = Inr (sym-≈ⱽ x)
   sym-≈ᴿ (Pair x y) = Pair (sym-≈ⱽ x) (sym-≈ⱽ y)
   sym-≈ᴿ (Fun x) = Fun (sym-≈ᴱ x)
-  sym-≈ᴿ {β = β} (Ref-Iᴸ ℓ⊑A x) = Ref-Iᴸ ℓ⊑A (Bijectionᴾ.right-inverse-of β x)
+  sym-≈ᴿ {β = β} (Ref-Iᴸ ℓ⊑A) = Ref-Iᴸ ℓ⊑A
   sym-≈ᴿ (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = Ref-Iᴴ ℓ₂⋤A ℓ₁⋤A
   sym-≈ᴿ {β = β} (Ref-S x) = Ref-S (Bijectionᴾ.right-inverse-of β x)
   sym-≈ᴿ (Id x) = Id (sym-≈ⱽ x)
@@ -353,10 +353,10 @@ mutual
   trans-≈ᴿ (Inr x) (Inr y) = Inr (trans-≈ⱽ x y)
   trans-≈ᴿ (Pair x₁ y₁) (Pair x₂ y₂) = Pair (trans-≈ⱽ x₁ x₂) (trans-≈ⱽ y₁ y₂)
   trans-≈ᴿ (Fun x) (Fun y) = Fun (trans-≈ᴱ x y)
-  trans-≈ᴿ {β₁ = β₁} {β₂} (Ref-Iᴸ ℓ⊑A x) (Ref-Iᴸ ℓ⊑A₁ y)
-    = Ref-Iᴸ ℓ⊑A₁ (join-∈ᵗ {β₁ = β₁} {β₂} x y)
-  trans-≈ᴿ (Ref-Iᴸ ℓ⊑A n) (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = ⊥-elim (ℓ₁⋤A ℓ⊑A)
-  trans-≈ᴿ (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) (Ref-Iᴸ ℓ⊑A n) = ⊥-elim (ℓ₂⋤A ℓ⊑A)
+  trans-≈ᴿ {β₁ = β₁} {β₂} (Ref-Iᴸ ℓ⊑A) (Ref-Iᴸ ℓ⊑A₁)
+    = Ref-Iᴸ ℓ⊑A₁
+  trans-≈ᴿ (Ref-Iᴸ ℓ⊑A) (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) = ⊥-elim (ℓ₁⋤A ℓ⊑A)
+  trans-≈ᴿ (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) (Ref-Iᴸ ℓ⊑A) = ⊥-elim (ℓ₂⋤A ℓ⊑A)
   trans-≈ᴿ (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) (Ref-Iᴴ ℓ₁⋤A₁ ℓ₂⋤A₁) = Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A₁
   trans-≈ᴿ {β₁ = β₁} {β₂} (Ref-S x) (Ref-S y)
     = Ref-S (join-∈ᵗ {β₁ = β₁} {β₂} x y)

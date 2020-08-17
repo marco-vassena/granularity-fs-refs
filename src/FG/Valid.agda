@@ -88,12 +88,20 @@ record Valid-Inputs {Γ} {τ} (c : IConf Γ τ) (θ : Env Γ) : Set where
     validᴾ : Validᴾ ⟨ store c , heap c ⟩
     validᴱ : Validᴱ ∥ heap c ∥ᴴ θ
 
-  open Validᴾ
+--  open Validᴾ
 
-open Valid-Inputs {{...}} public
+-- open Valid-Inputs {{...}} public
 
 Valid-Outputs : ∀ {τ} → FConf τ → Set
 Valid-Outputs ⟨ Σ , μ , v ⟩ = Validᴾ ⟨ Σ , μ ⟩ × Validⱽ ∥ μ ∥ᴴ v
+
+-- record Valid-Outputs′ {τ} (c : FConf τ) : Set where
+--   constructor ⟨_,_⟩
+--   field
+--     validᴾ : Validᴾ ⟨ store c , heap c ⟩
+--     validⱽ : Validⱽ ∥ heap c ∥ᴴ (term c)
+
+-- open Valid-Outputs′ {{...}} public
 
 -- record Valid-Outputs {τ} (c : FConf τ) : Set where
 --   constructor ⟨_,_⟩
@@ -103,10 +111,14 @@ Valid-Outputs ⟨ Σ , μ , v ⟩ = Validᴾ ⟨ Σ , μ ⟩ × Validⱽ ∥ μ 
 
 
 -- TODO: prove
-instance
-  postulate valid-invariant : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
+postulate valid-invariant : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
                               c ⇓⟨ θ , ℓ ⟩ c' →
                               Valid-Inputs c θ → Validᴱ ∥ heap c' ∥ᴴ θ × Valid-Outputs c'
+
+-- postulate valid-invariant′ : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
+--                               c ⇓⟨ θ , ℓ ⟩ c' →
+--                               Valid-Inputs c θ → Valid-Outputs c'
+
 -- -- Validᶜ c'
 
 --   -- postulate validⱽ-⇓ :  ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
@@ -132,3 +144,11 @@ postulate validˢ-⊆ᴴ : ∀ {Σ μ μ'} → μ ⊆ᴴ μ' → Validˢ ∥ μ 
 -- postulate step-≤ : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
 --                               c ⇓⟨ θ , ℓ ⟩ c' → ∥ store c ∥ ≤ ∥ store c' ∥
 postulate step-⊆ᴴ :  ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} → c ⇓⟨ θ , pc ⟩ c' → (heap c) ⊆ᴴ (heap c')
+
+-- record _⇓⟨_,_⟩ⱽ_ {Γ τ} (c : IConf Γ τ) (θ : Env Γ) (pc : Label) (c' : FConf τ) : Set where
+--   constructor ⟨_,_,_⟩
+--   field
+--     step : c ⇓⟨ θ , pc ⟩ c'
+--     validᴵ : Validᴾ ⟨ store c , heap c ⟩
+--     validᴱ : Validᴱ ∥ heap c ∥ᴴ θ
+--     validᶠ : Valid-Outputs

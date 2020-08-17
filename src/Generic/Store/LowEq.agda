@@ -62,6 +62,8 @@ module ≈ˢ-Props (𝑽 : V.IsEquivalenceᴮ _≈⟨_⟩ⱽ_) where
   trans-≈ˢ : Transitiveᴮ _≈⟨_⟩ˢ_ -- ∀ {Σ₁ Σ₂ Σ₃} → Σ₁ ≈ˢ Σ₂ → Σ₂ ≈ˢ Σ₃ → Σ₁ ≈ˢ Σ₃
   trans-≈ˢ Σ₁≈Σ₂ Σ₂≈Σ₃ = λ ℓ → trans-≈⟨ _  ⟩ᴹ (Σ₁≈Σ₂ ℓ) (Σ₂≈Σ₃ ℓ)
 
+
+  postulate wken-≈ˢ : Wkenᴮ _≈⟨_⟩ˢ_
 --   ≈ˢ-isEquivalence : IsEquivalence _≈ˢ_
 --   ≈ˢ-isEquivalence = record { refl = refl-≈ˢ ; sym = sym-≈ˢ ; trans = trans-≈ˢ }
 
