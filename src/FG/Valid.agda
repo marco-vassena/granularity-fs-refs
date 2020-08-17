@@ -4,7 +4,7 @@ module FG.Valid {{𝑳 : Lattice}} where
 
 open import FG.Types hiding (_×_) renaming ( _⊆_ to  _⊆ᶜ_) --  (Ty ; _⊆_ ; I ; S)
 open import FG.Syntax
-open import Data.Product as P hiding (_,_)
+open import Data.Product as P renaming (_,_ to _∧_)
 open import Data.Nat renaming (_⊔_ to _⊔ᴺ_) hiding (_^_)
 open import Data.Unit hiding (_≤_)
 
@@ -82,25 +82,35 @@ open import FG.Semantics
 open import Generic.PState.Base Ty Ty Raw Value
 open import Generic.PState.Valid {Ty} {Ty} {Raw} {Value} ∥_∥ᴿ ∥_∥ⱽ public
 
-record Valid-Inputs {Γ} {τ} (c : IConf Γ τ) (θ : Env Γ) : Set where
-  constructor ⟨_,_⟩
-  field
-    validᴾ : Validᴾ ⟨ store c , heap c ⟩
-    validᴱ : Validᴱ ∥ heap c ∥ᴴ θ
+-- record Valid-Conf {A τ} (c : Conf A) : Set where
+--   constructor ⟨_,_⟩
+--   field
+--     validᴾ : Validᴾ ⟨ store c , heap c ⟩
+--     validᵀ : Validᴱ ∥ heap c ∥ᴴ θ
+
+
+-- record Valid-Inputs {Γ} {τ} (c : IConf Γ τ) (θ : Env Γ) : Set where
+--   constructor ⟨_,_⟩
+--   field
+--     validᴾ : Validᴾ ⟨ store c , heap c ⟩
+--     validᴱ : Validᴱ ∥ heap c ∥ᴴ θ
 
 --  open Validᴾ
 
 -- open Valid-Inputs {{...}} public
 
+Valid-Inputs : ∀ {Γ} {τ} → IConf Γ τ → Env Γ →  Set
+Valid-Inputs ⟨ Σ , μ , _ ⟩ θ = Validᴾ ⟨ Σ , μ ⟩ × Validᴱ ∥ μ ∥ᴴ θ
+
 Valid-Outputs : ∀ {τ} → FConf τ → Set
 Valid-Outputs ⟨ Σ , μ , v ⟩ = Validᴾ ⟨ Σ , μ ⟩ × Validⱽ ∥ μ ∥ᴴ v
 
 
-record Valid-Outputs′ {τ} (c : FConf τ) : Set where
-  constructor ⟨_,_⟩
-  field
-    validᴾ : Validᴾ ⟨ store c , heap c ⟩
-    validⱽ : Validⱽ ∥ heap c ∥ᴴ (term c)
+-- record Valid-Outputs′ {τ} (c : FConf τ) : Set where
+--   constructor ⟨_,_⟩
+--   field
+--     validᴾ : Validᴾ ⟨ store c , heap c ⟩
+--     validⱽ : Validⱽ ∥ heap c ∥ᴴ (term c)
 
 -- open Valid-Outputs′ {{...}} public
 
@@ -119,6 +129,39 @@ postulate valid-invariant : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' 
 -- postulate valid-invariant′ : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
 --                               c ⇓⟨ θ , ℓ ⟩ c' →
 --                               Valid-Inputs c θ → Valid-Outputs′ c'
+
+postulate validᴼ : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
+                              c ⇓⟨ θ , ℓ ⟩ c' →
+                              Valid-Inputs c θ → Valid-Outputs c'
+-- validᴼ (Var τ∈Γ x) ⟨ isVᴾ , isVᴱ ⟩ = {!!} ∧ {!!}
+-- validᴼ Unit ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (Lbl ℓ) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (Test₁ x x₁ x₂ x₃) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (Test₂ x x₁ x₂ x₃) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ Fun ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (App x x₁ x₂ x₃) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (Wken p x) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (Inl x) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (Inr x) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (Case₁ x x₁ x₂) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (Case₂ x x₁ x₂) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (Pair x x₁) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (Fst x x₁) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (Snd x x₁) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (LabelOf x) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ GetLabel ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (Taint eq x x₁ pc'⊑pc'') ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (LabelOfRef x eq) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (New x) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (Read x x₁ eq) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (Write x x₁ x₂ ℓ₂⊑ℓ x₃) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (LabelOfRef-FS x x₁ eq) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (New-FS x) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (Read-FS x x₁ eq) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (Write-FS x x₁ x₂ x₃ eq x₄) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (Id x) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+-- validᴼ (UnId x eq) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
+
 
 postulate validᴾ-⇓ : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
                               c ⇓⟨ θ , ℓ ⟩ c' →
@@ -141,15 +184,16 @@ postulate valid-lookup : ∀ {τ Γ θ n} → (τ∈Γ : τ ∈ Γ) → Validᴱ
 
 -- TODO: maybe it'd be more convenient to take the big-step in the main proof
 -- and use these in this module
-postulate validᴿ-⊆ᴴ : ∀ {τ μ μ'} {r : Raw τ} → μ ⊆ᴴ μ' → Validᴿ ∥ μ ∥ᴴ r → Validᴿ ∥ μ' ∥ᴴ r
 
-postulate validⱽ-⊆ᴴ : ∀ {τ μ μ'} {v : Value τ} → μ ⊆ᴴ μ' → Validⱽ ∥ μ ∥ᴴ v → Validⱽ ∥ μ' ∥ᴴ v
+postulate validᴿ-⊆ᴴ : ∀ {τ μ μ'} {r : Raw τ} → μ ⊆ᴴ μ' → Validᴿ ∥ μ ∥ᴴ r → Validᴿ ∥ μ' ∥ᴴ r -- Unuseed
 
-postulate validᴱ-⊆ᴴ : ∀ {Γ μ μ'} {θ : Env Γ} → μ ⊆ᴴ μ' → Validᴱ ∥ μ ∥ᴴ θ → Validᴱ ∥ μ' ∥ᴴ θ
+postulate validⱽ-⊆ᴴ : ∀ {τ μ μ'} {v : Value τ} → μ ⊆ᴴ μ' → Validⱽ ∥ μ ∥ᴴ v → Validⱽ ∥ μ' ∥ᴴ v -- Unused
+
+postulate validᴱ-⊆ᴴ : ∀ {Γ μ μ'} {θ : Env Γ} → μ ⊆ᴴ μ' → Validᴱ ∥ μ ∥ᴴ θ → Validᴱ ∥ μ' ∥ᴴ θ -- Used once
 
 postulate validᴱ-⊆ᶜ : ∀ {Γ Γ' μ} {θ : Env Γ} → (p : Γ' ⊆ᶜ Γ) → Validᴱ ∥ μ ∥ᴴ θ → Validᴱ ∥ μ ∥ᴴ (slice θ p)
 
-postulate validˢ-⊆ᴴ : ∀ {Σ μ μ'} → μ ⊆ᴴ μ' → Validˢ ∥ μ ∥ᴴ Σ → Validˢ ∥ μ' ∥ᴴ Σ
+postulate validˢ-⊆ᴴ : ∀ {Σ μ μ'} → μ ⊆ᴴ μ' → Validˢ ∥ μ ∥ᴴ Σ → Validˢ ∥ μ' ∥ᴴ Σ -- Unused
 
 -- -- Do we need this?
 -- postulate step-≤ : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
