@@ -21,28 +21,6 @@ open import Generic.Bijection as B hiding (_∈_)
 
 import Generic.Store.LowEq {Ty} {Raw} _≈⟨_⟩ᴿ_ as S
 
---------------------------------------------------------------------------------
--- TODO: move this to.FG LowEq module?
--- Lemmas on L-equivalent environments.
-
--- Lookup in L-equivalent envs gives L-equivalent values
-lookup-≈ⱽ : ∀ {τ Γ θ₁ θ₂ β} → (τ∈Γ : τ ∈ Γ) →
-              θ₁ ≈⟨ β ⟩ᴱ θ₂ → (θ₁ !! τ∈Γ) ≈⟨ β ⟩ⱽ (θ₂ !! τ∈Γ)
-lookup-≈ⱽ here (v₁≈v₂ ∷ θ₁≈θ₂) = v₁≈v₂
-lookup-≈ⱽ (there τ∈Γ) (v₁≈v₂ ∷ θ₁≈θ₂) = lookup-≈ⱽ τ∈Γ θ₁≈θ₂
-
-
--- Slicing L-equivalent envs gives gives L-equivalent envs.
-slice-≈ᴱ : ∀ {Γ₁ Γ₂ β} {θ₁ θ₂ : Env Γ₂} →
-                 θ₁ ≈⟨ β ⟩ᴱ θ₂ →
-                 (Γ₁⊆Γ₂ : Γ₁ ⊆ᶜ Γ₂) →
-                 slice θ₁ Γ₁⊆Γ₂ ≈⟨ β ⟩ᴱ slice θ₂ Γ₁⊆Γ₂
-slice-≈ᴱ [] base = []
-slice-≈ᴱ (v₁≈v₂ ∷ θ₁≈θ₂) (cons p) = v₁≈v₂ ∷ slice-≈ᴱ θ₁≈θ₂ p
-slice-≈ᴱ (v₁≈v₂ ∷ θ₁≈θ₂) (drop p) = slice-≈ᴱ θ₁≈θ₂ p
-
---------------------------------------------------------------------------------
-
 open import Data.Product renaming (_,_ to _∧_) hiding (,_)
 
 open import FG.Valid
@@ -53,8 +31,7 @@ open import Data.Nat.Properties
 
 import Generic.Heap.Lemmas Ty Value as H
 
--- TODO: rename high step and ᴾ
-step-≈ᴴ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
+step-≈ᴾ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
              let ⟨ Σ , μ , _ ⟩ = c
                  ⟨ Σ' , μ' , _ ⟩ = c' in
                  {{validᴾ : Validᴾ ⟨ Σ , μ ⟩ }} {{validᴱ : Validᴱ ∥ μ ∥ᴴ θ}} →
@@ -62,124 +39,115 @@ step-≈ᴴ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
                pc ⋤ A →
                ⟨ Σ , μ ⟩ ≈⟨ ι ∥ μ ∥ᴴ ⟩ᴾ ⟨ Σ' , μ' ⟩
 
-step-≈ᴴ (Var τ∈Γ x) pc⋤A = refl-≈ᴾ
+step-≈ᴾ (Var τ∈Γ x) pc⋤A = refl-≈ᴾ
 
-step-≈ᴴ Unit pc⋤A = refl-≈ᴾ
+step-≈ᴾ Unit pc⋤A = refl-≈ᴾ
 
-step-≈ᴴ (Lbl ℓ) pc⋤A = refl-≈ᴾ
+step-≈ᴾ (Lbl ℓ) pc⋤A = refl-≈ᴾ
 
-step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Test₁ x x₁ ℓ⊑ refl) pc⋤A =
+step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Test₁ x x₁ ℓ⊑ refl) pc⋤A =
   let _ ∧ isVᴾ′ ∧ _ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
-      μ⊆μ₁ = step-≈ᴴ x pc⋤A
-      μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′}} x₁ pc⋤A
-  in trans-≈ᴾ-ι μ⊆μ₁ μ₁⊆μ₂
+      ≈ᴾ′ = step-≈ᴾ x pc⋤A
+      ≈ᴾ′′ = step-≈ᴾ {{ isVᴾ′}} x₁ pc⋤A
+  in trans-≈ᴾ-ι ≈ᴾ′ ≈ᴾ′′
 
-step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Test₂ x x₁ ℓ⊑ refl) pc⋤A =
+step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Test₂ x x₁ ℓ⊑ refl) pc⋤A =
   let _ ∧ isVᴾ′ ∧ isVᴱ′ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
-      μ⊆μ₁ = step-≈ᴴ x pc⋤A
-      μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} x₁ pc⋤A
-  in trans-≈ᴾ-ι μ⊆μ₁ μ₁⊆μ₂
+      ≈ᴾ′ = step-≈ᴾ x pc⋤A
+      ≈ᴾ′′ = step-≈ᴾ {{ isVᴾ′ }} x₁ pc⋤A
+  in trans-≈ᴾ-ι ≈ᴾ′ ≈ᴾ′′
 
-step-≈ᴴ Fun pc⋤A = refl-≈ᴾ
+step-≈ᴾ Fun pc⋤A = refl-≈ᴾ
 
-step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (App {θ' = θ'} x₁ x₂ refl x₃) pc⋤A =
+step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (App {θ' = θ'} x₁ x₂ refl x₃) pc⋤A =
   let isV₁ᴱ ∧ isVᴾ′ ∧ isVᴱ′ = valid-invariant x₁ ⟨ isVᴾ , isVᴱ ⟩
       _ ∧ isVᴾ′′ ∧ isVⱽ = valid-invariant x₂ ⟨ isVᴾ′ , isV₁ᴱ ⟩
-      μ⊆μ₁ = step-≈ᴴ x₁ pc⋤A
-      μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} {{ isVᴱ }} x₂ pc⋤A
+      ≈ᴾ′ = step-≈ᴾ x₁ pc⋤A
+      ≈ᴾ′′ = step-≈ᴾ {{ isVᴾ′ }} {{ isVᴱ }} x₂ pc⋤A
       isVᴱ′′ = validᴱ-⊆ᴴ {θ = θ'} (step-⊆ᴴ x₂) isVᴱ′
-      μ₂⊆μ₃ = step-≈ᴴ {{ isVᴾ′′ }} {{  isVⱽ ∧ isVᴱ′′  }} x₃ (join-⋤₁ pc⋤A)
-  in trans-≈ᴾ-ι μ⊆μ₁ (trans-≈ᴾ-ι μ₁⊆μ₂ μ₂⊆μ₃)
+      μ₂⊆μ₃ = step-≈ᴾ {{ isVᴾ′′ }} {{  isVⱽ ∧ isVᴱ′′  }} x₃ (join-⋤₁ pc⋤A)
+  in trans-≈ᴾ-ι ≈ᴾ′ (trans-≈ᴾ-ι ≈ᴾ′′ μ₂⊆μ₃)
 
-step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Wken {μ = μ} p x) pc⋤A = step-≈ᴴ {{ isVᴾ }} {{ validᴱ-⊆ᶜ {μ = μ} p isVᴱ }} x pc⋤A
+step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Wken {μ = μ} p x) pc⋤A = step-≈ᴾ {{ isVᴾ }} {{ validᴱ-⊆ᶜ {μ = μ} p isVᴱ }} x pc⋤A
 
-step-≈ᴴ (Inl x) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴾ (Inl x) pc⋤A = step-≈ᴾ x pc⋤A
 
-step-≈ᴴ (Inr x) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴾ (Inr x) pc⋤A = step-≈ᴾ x pc⋤A
 
-step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Case₁ x₁ refl x₂) pc⋤A =
+step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Case₁ x₁ refl x₂) pc⋤A =
   let isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ = valid-invariant x₁ ⟨ isVᴾ , isVᴱ ⟩
-      μ⊆μ₁ = step-≈ᴴ x₁ pc⋤A
-      μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} {{ isVⱽ ∧ isVᴱ′ }} x₂ (join-⋤₁ pc⋤A)
-  in trans-≈ᴾ-ι μ⊆μ₁ μ₁⊆μ₂
+      ≈ᴾ′ = step-≈ᴾ x₁ pc⋤A
+      ≈ᴾ′′ = step-≈ᴾ {{ isVᴾ′ }} {{ isVⱽ ∧ isVᴱ′ }} x₂ (join-⋤₁ pc⋤A)
+  in trans-≈ᴾ-ι ≈ᴾ′ ≈ᴾ′′
 
-step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Case₂ x refl x₁) pc⋤A =
+step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Case₂ x refl x₁) pc⋤A =
   let isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
-      μ⊆μ₁ = step-≈ᴴ x pc⋤A
-      μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} {{ isVⱽ ∧ isVᴱ′ }} x₁ (join-⋤₁ pc⋤A)
-  in trans-≈ᴾ-ι μ⊆μ₁ μ₁⊆μ₂
+      ≈ᴾ′ = step-≈ᴾ x pc⋤A
+      ≈ᴾ′′ = step-≈ᴾ {{ isVᴾ′ }} {{ isVⱽ ∧ isVᴱ′ }} x₁ (join-⋤₁ pc⋤A)
+  in trans-≈ᴾ-ι ≈ᴾ′ ≈ᴾ′′
 
-step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Pair x x₁) pc⋤A =
+step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Pair x x₁) pc⋤A =
   let _ ∧ isVᴾ′ ∧ _ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
-      μ⊆μ₁ = step-≈ᴴ x pc⋤A
-      μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} x₁ pc⋤A
-  in trans-≈ᴾ-ι μ⊆μ₁ μ₁⊆μ₂
+      ≈ᴾ′ = step-≈ᴾ x pc⋤A
+      ≈ᴾ′′ = step-≈ᴾ {{ isVᴾ′ }} x₁ pc⋤A
+  in trans-≈ᴾ-ι ≈ᴾ′ ≈ᴾ′′
 
-step-≈ᴴ (Fst x refl) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴾ (Fst x refl) pc⋤A = step-≈ᴾ x pc⋤A
 
-step-≈ᴴ (Snd x x₁) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴾ (Snd x x₁) pc⋤A = step-≈ᴾ x pc⋤A
 
-step-≈ᴴ (LabelOf x) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴾ (LabelOf x) pc⋤A = step-≈ᴾ x pc⋤A
 
-step-≈ᴴ GetLabel pc⋤A = refl-≈ᴾ
+step-≈ᴾ GetLabel pc⋤A = refl-≈ᴾ
 
-step-≈ᴴ {{ isVᴾ }} {{isVᴱ}} (Taint refl x x₁ pc'⊑pc'') pc⋤A =
+step-≈ᴾ {{ isVᴾ }} {{isVᴱ}} (Taint refl x x₁ pc'⊑pc'') pc⋤A =
   let isVᴱ′ ∧ isVᴾ′ ∧ _ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
-      μ⊆μ₁ = step-≈ᴴ x pc⋤A
-      μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} {{ isVᴱ′ }} x₁ (join-⋤₁ pc⋤A)
-  in trans-≈ᴾ-ι μ⊆μ₁ μ₁⊆μ₂
+      ≈ᴾ′ = step-≈ᴾ x pc⋤A
+      ≈ᴾ′′ = step-≈ᴾ {{ isVᴾ′ }} {{ isVᴱ′ }} x₁ (join-⋤₁ pc⋤A)
+  in trans-≈ᴾ-ι ≈ᴾ′ ≈ᴾ′′
 
-step-≈ᴴ (LabelOfRef x eq) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴾ (LabelOfRef x eq) pc⋤A = step-≈ᴾ x pc⋤A
 
-step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (New {μ = μ} {μ'} x) pc⋤A =
-  let ⟨ ≈ˢ , ≈ᴴ ⟩ = step-≈ᴴ x pc⋤A
+step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (New {μ = μ} {μ'} x) pc⋤A =
+  let ⟨ ≈ˢ , ≈ᴴ ⟩ = step-≈ᴾ x pc⋤A
       _ ∧ ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ _ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
       ≈ˢ′ = updateᴴ-≈ˢ _ _ {{ isVˢ′ }} (trans-⋤ (step-⊑ x) pc⋤A) in
       ⟨ trans-≈ˢ-ι {n₁ = ∥ μ ∥ᴴ} {n₂ = ∥ μ' ∥ᴴ} ≈ˢ ≈ˢ′ , ≈ᴴ ⟩
 
-step-≈ᴴ (Read x x₁ eq) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴾ (Read x x₁ eq) pc⋤A = step-≈ᴾ x pc⋤A
 
-step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Write {ℓ = ℓ} {n = n} {τ = τ} x ⊑₁ x₁ ⊑₂ w) pc⋤A =
+step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Write {ℓ = ℓ} {n = n} {τ = τ} x ⊑₁ x₁ ⊑₂ w) pc⋤A =
   let isVᴱ′ ∧ isVᴾ′ ∧ _ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
       _ ∧ ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ _ = valid-invariant x₁ ⟨ isVᴾ′ , isVᴱ ⟩
-      μ⊆μ₁ = step-≈ᴴ x pc⋤A
-      μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} x₁ pc⋤A
+      ≈ᴾ′ = step-≈ᴾ x pc⋤A
+      ≈ᴾ′′ = step-≈ᴾ {{ isVᴾ′ }} x₁ pc⋤A
       ℓ⋤A = trans-⋤ (trans-⊑ (step-⊑ x) ⊑₁) pc⋤A
       μ₂≈μ₃ = ⟨ updateᴴ-≈ˢ _ _ {{ isVˢ′ }} ℓ⋤A , refl-≈ᴴ {{ isVᴴ′ }} ⟩
-  in trans-≈ᴾ-ι μ⊆μ₁ (trans-≈ᴾ-ι μ₁⊆μ₂ μ₂≈μ₃)
+  in trans-≈ᴾ-ι ≈ᴾ′ (trans-≈ᴾ-ι ≈ᴾ′′ μ₂≈μ₃)
 
-step-≈ᴴ (LabelOfRef-FS x x₁ eq) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴾ (LabelOfRef-FS x x₁ eq) pc⋤A = step-≈ᴾ x pc⋤A
 
-step-≈ᴴ {{⟨ isVˢ , isVᴴ ⟩}} {{isVᴱ}} (New-FS {Σ = Σ} {Σ' = Σ'} {μ = μ} {μ' = μ'} {v = v} x) pc⋤A =
-  let ⟨ ≈ˢ , ≈ᴴ ⟩ = step-≈ᴴ {{ ⟨ isVˢ , isVᴴ ⟩ }} {{isVᴱ}} x pc⋤A
+step-≈ᴾ {{⟨ isVˢ , isVᴴ ⟩}} {{isVᴱ}} (New-FS {Σ = Σ} {Σ' = Σ'} {μ = μ} {μ' = μ'} {v = v} x) pc⋤A =
+  let ⟨ ≈ˢ , ≈ᴴ ⟩ = step-≈ᴾ {{ ⟨ isVˢ , isVᴴ ⟩ }} {{isVᴱ}} x pc⋤A
       _ ∧ ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ _ = valid-invariant x ⟨ ⟨ isVˢ , isVᴴ ⟩ , isVᴱ ⟩
       ≈ˢ′ = trans-≈ˢ-ι {Σ₁ = Σ} {Σ₂ = Σ'} {Σ₃ = Σ'} {n₁ = ∥ μ ∥ᴴ} {n₂ = ∥ μ' ∥ᴴ} ≈ˢ (refl-≈ˢ {{ isVˢ′ }}) in
       ⟨ ≈ˢ′ , snoc-≈ᴴ _ ≈ᴴ ⟩
 
-step-≈ᴴ (Read-FS x x₁ eq) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴾ (Read-FS x x₁ eq) pc⋤A = step-≈ᴾ x pc⋤A
 
-step-≈ᴴ {{isVᴾ}} {{isVᴱ}} (Write-FS {ℓ = ℓ} {ℓ₁} {ℓ₂} {ℓ₂'} x x₁ ∈₁ ⊑₁ refl w) pc⋤A =
+step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Write-FS {ℓ = ℓ} {ℓ₁} {ℓ₂} {ℓ₂'} x x₁ ∈₁ ⊑₁ refl w) pc⋤A =
   let isVᴱ′ ∧ isVᴾ′ ∧ _ = valid-invariant x ⟨ isVᴾ , isVᴱ ⟩
       isVᴱ′′ ∧ isVᴾ′′ ∧ _ = valid-invariant x₁ ⟨ isVᴾ′ , isVᴱ′ ⟩
-      μ⊆μ₁ = step-≈ᴴ x pc⋤A
-      μ₁⊆μ₂ = step-≈ᴴ {{ isVᴾ′ }} {{ isVᴱ′ }} x₁ pc⋤A
+      ≈ᴾ′ = step-≈ᴾ x pc⋤A
+      ≈ᴾ′′ = step-≈ᴾ {{ isVᴾ′ }} {{ isVᴱ′ }} x₁ pc⋤A
       v≈ = Valueᴴ (trans-⋤ (trans-⊑ (step-⊑ x) ⊑₁) pc⋤A) (join-⋤₁ (trans-⋤ (step-⊑ x) pc⋤A))
       μ₂≈μ₃ = writeᴴ-≈ᴴ {{ validᴴ isVᴾ′′ }} ∈₁ w v≈
-  in trans-≈ᴾ-ι μ⊆μ₁ (trans-≈ᴾ-ι μ₁⊆μ₂ ⟨ refl-≈ˢ {{ validˢ isVᴾ′′ }} , μ₂≈μ₃ ⟩ )
+  in trans-≈ᴾ-ι ≈ᴾ′ (trans-≈ᴾ-ι ≈ᴾ′′ ⟨ refl-≈ˢ {{ validˢ isVᴾ′′ }} , μ₂≈μ₃ ⟩ )
   where open Validᴾ
 
-step-≈ᴴ (Id x) pc⋤A = step-≈ᴴ x pc⋤A
+step-≈ᴾ (Id x) pc⋤A = step-≈ᴾ x pc⋤A
 
-step-≈ᴴ (UnId x eq) pc⋤A = step-≈ᴴ x pc⋤A
-
---------------------------------------------------------------------------------
-
--- open _≈⟨_,_⟩ᴬ_
--- open import Data.Unit hiding (_≟_) -- ?
--- open import Generic.Heap 𝑯
--- open SecurityLattice 𝑳
--- open import Generic.LValue
--- open HasLabel 𝑯 -- import Generic.LValue as H
+step-≈ᴾ (UnId x eq) pc⋤A = step-≈ᴾ x pc⋤A
 
 wken-∃ : ∀ {τ β β'} {c₁ c₂ : FConf τ} →
          β ⊆ β' → (x : ∃ (λ β'' → β' ⊆ β'' × c₁ ≈⟨ β'' ⟩ᶜ c₂)) →
@@ -558,21 +526,19 @@ mutual
   -- TINI for high steps. The computations depend on a secret and thus
   -- might produce different results and code. We then prove TINI by
   -- showing that the program counter can only remain secret and that
-  -- each high step preserves low-equivalence of stores.  In
-  -- particular we prove that the final stores are low-equivalent (μ₁'
-  -- ≈ μ₂'), i.e., the square:
+  -- each high step preserves low-equivalence of stores and heaps.  In
+  -- particular we prove that the final program state  are low-equivalent (p₁'
+  -- ≈ p₂'), i.e., the square:
   --
-  -- μ₁ ≈ᴴ μ₁'
-  -- ≈ᴴ    ≈ᴴ
-  -- μ₂ ≈ᴴ μ₂'
+  -- p₁ ≈ᴾ p₁'
+  -- ≈ᴾ    ≈ᴾ
+  -- p₂ ≈ᴾ p₂'
   --
   -- using transitivity and symmetry of ≈ᴴ
   -- TODO: do the same for FS-Store
   tiniᴴ : ∀ {τ Γ₁ Γ₂ θ₁ θ₂ pc₁ pc₂ β} {c₁ : IConf Γ₁ τ} {c₂ : IConf Γ₂ τ} {c₁' c₂' : FConf τ} →
              let ⟨ Σ₁ , μ₁ , _ ⟩ = c₁
                  ⟨ Σ₂ , μ₂ , _ ⟩ = c₂ in
-             -- {{valid₁ᴵ : Validᴵ c₁}} {{validᴱ : Validᴱ ∥ μ₁ ∥ θ₁}} →
-             -- {{valid₂ᴵ : Validᴵ c₂}} {{valid₂ᴱ : Validᴱ ∥ μ₂ ∥ θ₂}} →
              {{valid₁ : Valid-Inputs c₁ θ₁}} {{valid₂ : Valid-Inputs c₂ θ₂}} →
              ⟨ Σ₁ , μ₁ ⟩ ≈⟨ β ⟩ᴾ ⟨ Σ₂ , μ₂ ⟩ →
              c₁ ⇓⟨ θ₁ , pc₁ ⟩ c₁' →
@@ -585,8 +551,8 @@ mutual
   -- Answer: We need that to weaken the bijection in L-equiv relations
   tiniᴴ {β = β} {{⟨ isV₁ᴾ , isV₁ᴱ ⟩ }} {{⟨ isV₂ᴾ  , isV₂ᴱ ⟩ }}
          ≈ᴾ x₁ x₂ pc₁⋤A pc₂⋤A =
-    let ≈₁ᴾ = step-≈ᴴ {{ isV₁ᴾ }} {{ isV₁ᴱ }} x₁ pc₁⋤A
-        ≈₂ᴾ = step-≈ᴴ {{ isV₂ᴾ }} {{ isV₂ᴱ }} x₂ pc₂⋤A
+    let ≈₁ᴾ = step-≈ᴾ {{ isV₁ᴾ }} {{ isV₁ᴱ }} x₁ pc₁⋤A
+        ≈₂ᴾ = step-≈ᴾ {{ isV₂ᴾ }} {{ isV₂ᴱ }} x₂ pc₂⋤A
         ≈ᴾ′ = square-≈ᴾ-ι ≈ᴾ ≈₁ᴾ ≈₂ᴾ
         v≈ = Valueᴴ (trans-⋤ (step-⊑ x₁) pc₁⋤A) (trans-⋤ (step-⊑ x₂) pc₂⋤A) in
         β ∧ B.refl-⊆ ∧ ⟨ ≈ᴾ′ , v≈ ⟩

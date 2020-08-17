@@ -11,7 +11,7 @@ open import Lattice
 
 module FG.LowEq {{𝑳 : Lattice}} (A : Label) where
 
-open import FG.Types hiding (_⊆_)
+open import FG.Types renaming (_∈_ to _∈ᵀ_ ; _⊆_ to _⊆ᵀ_)
 open import FG.Syntax
 open import Data.Empty
 open import Data.Nat using (ℕ ; _≤_ ; _<_ ; s≤s ; z≤n) renaming (_⊔_ to _⊔ᴺ_)
@@ -161,7 +161,26 @@ Falseᴸ ℓ⊑A = Inr (Valueᴸ ℓ⊑A Unit)
 ... | no ¬p = Valueᴴ ¬p ¬p
 ≈ⱽ-⊑ pc (Valueᴴ x x₁) = Valueᴴ (trans-⋤ (join-⊑₂ _ _) x) (trans-⋤ (join-⊑₂ _ _) x₁)
 
+--------------------------------------------------------------------------------
+-- Lemmas on L-equivalent environments.
 
+-- Lookup in L-equivalent envs gives L-equivalent values
+lookup-≈ⱽ : ∀ {τ Γ θ₁ θ₂ β} → (τ∈Γ : τ ∈ᵀ Γ) →
+              θ₁ ≈⟨ β ⟩ᴱ θ₂ → (θ₁ !! τ∈Γ) ≈⟨ β ⟩ⱽ (θ₂ !! τ∈Γ)
+lookup-≈ⱽ here (v₁≈v₂ ∷ θ₁≈θ₂) = v₁≈v₂
+lookup-≈ⱽ (there τ∈Γ) (v₁≈v₂ ∷ θ₁≈θ₂) = lookup-≈ⱽ τ∈Γ θ₁≈θ₂
+
+
+-- Slicing L-equivalent envs gives gives L-equivalent envs.
+slice-≈ᴱ : ∀ {Γ₁ Γ₂ β} {θ₁ θ₂ : Env Γ₂} →
+                 θ₁ ≈⟨ β ⟩ᴱ θ₂ →
+                 (Γ₁⊆Γ₂ : Γ₁ ⊆ᵀ Γ₂) →
+                 slice θ₁ Γ₁⊆Γ₂ ≈⟨ β ⟩ᴱ slice θ₂ Γ₁⊆Γ₂
+slice-≈ᴱ [] base = []
+slice-≈ᴱ (v₁≈v₂ ∷ θ₁≈θ₂) (cons p) = v₁≈v₂ ∷ slice-≈ᴱ θ₁≈θ₂ p
+slice-≈ᴱ (v₁≈v₂ ∷ θ₁≈θ₂) (drop p) = slice-≈ᴱ θ₁≈θ₂ p
+
+--------------------------------------------------------------------------------
 
 -- Subsumed by the above
 -- -- Derive L-equivalence for heaps
