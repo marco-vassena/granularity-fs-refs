@@ -252,8 +252,21 @@ last-≡ {Σ = []} Here = refl , refl
 last-≡ {Σ = _ ∷ Σ₁} (There x) with last-≡ x
 ... | refl , refl = refl , refl
 
+-- Is this needed?
 postulate snoc-⊆ : ∀ {ℓ τ} (C : Container ℓ) (v : Value τ) → C ⊆ (C ∷ᴿ v)
 
-postulate refl-⊆ : ∀ {ℓ} {C : Container ℓ} → C ⊆ C
+refl-⊆ : ∀ {ℓ} {C : Container ℓ} → C ⊆ C
+refl-⊆ = _,_ _
 
-postulate write-⊆ : ∀ {ℓ τ n} {v : Value τ} {C C' : Container ℓ} → C' ≔ C [ n ↦ v ] → C ⊆ C'
+-- postulate write-⊆ᴹ : ∀ {ℓ τ n} {v : Value τ} {C C' : Container ℓ} → C' ≔ C [ n ↦ v ] → C ⊆ C'
+
+open import Data.Sum
+
+split-lookup : ∀ {ℓ τ τ' n} {v : Value τ} (C : Container ℓ) (v' : Value τ') →
+                 n ↦ v ∈ (C ∷ᴿ v') → (n ↦ v ∈ C) ⊎ (Σ (τ ≡ τ') (λ { refl → v ≡ v' }))
+split-lookup [] v' Here = inj₂ (refl , refl)
+split-lookup [] v' (There ())
+split-lookup (x ∷ C) v' Here = inj₁ Here
+split-lookup (x ∷ C) v' (There ∈₁) with split-lookup C v' ∈₁
+... | inj₁ ∈₁' = inj₁ (There ∈₁')
+... | inj₂ (refl , refl) = inj₂ (refl , refl)

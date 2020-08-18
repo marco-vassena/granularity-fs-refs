@@ -24,6 +24,3 @@ record Validᴾ (p : PState) : Set where
   field
     validˢ : Validˢ ∥ heap p ∥ᴴ (store p)
     validᴴ : Validᴴ (heap p)
-
--- data Validᴾ : PState → Set where
---   ⟨_,_⟩ : ∀ {Σ μ} → Validˢ ∥ μ  ∥ᴴ Σ → Validᴴ μ → Validᴾ ⟨ Σ , μ ⟩
