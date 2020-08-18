@@ -122,7 +122,11 @@ record _≈⟨_⟩ᴴ_ (μ₁ : Heap) (β : Bij) (μ₂ : Heap) : Set where
 -- -- _≈ᴴ_ : Heap → Heap → Set
 -- -- μ₁ ≈ᴴ μ₂ = μ Bij⟨ μ₁ , μ₂ ⟩ (λ β → μ₁ ≈⟨ β ⟩ᴴ μ₂)
 
-module ≈ᴴ-Props (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ) where
+module ≈ᴴ-Props
+  (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ )
+  (Validⱽ : ∀ {τ} → ℕ → Value τ → Set)
+  (valid-≤ : ∀ {τ n} (v : Value τ) → Validⱽ n v → Dom 𝑽 v ≤ n)
+  where
 
   open import Generic.LValue Ty Value
   -- open L.HasLabel 𝑯
@@ -137,10 +141,9 @@ module ≈ᴴ-Props (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ) where
     ; reflᴮ to refl-≈ⱽ
     ; symᴮ to sym-≈ⱽ
     ; transᴮ to trans-≈ⱽ
-    ; wkenᴮ to wken-≈ⱽ)
+    ; wkenᴮ to wken-≈ⱽ )
 
-
-  open import Generic.Heap.Valid Ty Value ∣_∣ⱽ -- renaming (∥_∥ᶜ to ∣_∣ᶜ)
+  open import Generic.Heap.Valid Ty Value Validⱽ
   open import Generic.Heap.Lemmas Ty Value
 
   snoc-⊆ᴿ : ∀ {β μ τ} {v : Value τ} → β ⊆ᴿ μ → β ⊆ᴿ (snocᴴ μ v)
@@ -187,7 +190,7 @@ module ≈ᴴ-Props (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ) where
           -- Why ... it seems that this definition works ...
           lift-≅ : Lift-≅ μ μ (ι ∣ μ ∣ᴴ)
           lift-≅ {_} {_} {τ₁} {τ₂} {v₁} {v₂} x ∈₁ ∈₂ rewrite idᴾ-≡ x with inj-∈′ ∈₁ ∈₂
-          ... | refl , refl = ⌞ (wken-≈ⱽ (ι-⊆ (validᴴ ∈₁)) refl-≈ⱽ) ⌟
+          ... | refl , refl = ⌞ (wken-≈ⱽ (ι-⊆ (valid-≤ _ (validᴴ ∈₁))) refl-≈ⱽ) ⌟
 
   sym-≈ᴴ : ∀ {β μ₁ μ₂} → μ₁ ≈⟨ β ⟩ᴴ μ₂ → μ₂ ≈⟨ β ⁻¹ ⟩ᴴ μ₁
   sym-≈ᴴ {β} {μ₁} {μ₂} ≈ =
@@ -283,7 +286,8 @@ module ≈ᴴ-Props (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ) where
 
       -- Identical cells are looked up, use reflexivity.
       lift-≅ {n₁} {.n₁} ∈ᴮ ∈₁ ∈₂ | refl , _ | no n₁≠n with write-only-one w n₁≠n ∈₁ ∈₂
-      lift-≅ {n₁} {.n₁} ∈ᴮ ∈₁ ∈₂ | refl , _ | no n₁≠n | refl , refl = ⌞ (wken-≈ⱽ (ι-⊆ (validᴴ ∈₁)) refl-≈ⱽ) ⌟
+      lift-≅ {n₁} {.n₁} ∈ᴮ ∈₁ ∈₂ | refl , _ | no n₁≠n | refl , refl
+        = ⌞ (wken-≈ⱽ (ι-⊆ (valid-≤ _ (validᴴ ∈₁))) refl-≈ⱽ) ⌟
 
   -- Low-equivalence over the identity bijection implies containment of stores
   ≈ᴴ-⊆ : ∀ {μ₁ μ₂} → μ₁ ≈⟨ ι ∥ μ₁ ∥ᴴ ⟩ᴴ μ₂ → μ₁ ⊆ᴴ μ₂

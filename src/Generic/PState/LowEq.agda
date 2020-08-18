@@ -1,6 +1,10 @@
+{-# OPTIONS --allow-unsolved-metas #-}
+
 open import Lattice
 open import Generic.Bijection
+open import Data.Nat hiding (_≟_)
 
+-- Try to put Valid here?
 module Generic.PState.LowEq
   {{𝑳 : Lattice}}
   {Ty₁ : Set} {Ty₂ : Set}
@@ -10,6 +14,7 @@ module Generic.PState.LowEq
   (A : Label)
   where
 
+open import Data.Nat
 open import Data.Product
 open import Generic.Store Ty₁ Value₁
 open import Generic.Heap Ty₂ Value₂
@@ -27,14 +32,21 @@ record _≈⟨_⟩ᴾ_ (p₁ : PState) (β : Bij) (p₂ : PState) : Set where
     store-≈ˢ : store p₁ ≈⟨ β ⟩ˢ store p₂
     heap-≈ᴴ : heap p₁ ≈⟨ β ⟩ᴴ heap p₂
 
-private module V₁ = IProps Ty₁ Value₁
-private module V₂ = IProps Ty₂ Value₂
+-- private module V₁ = IProps Ty₁ Value₁
+-- private module V₂ = IProps Ty₂ Value₂
 
-module ≈ᴾ-Props (𝑽₁ : V₁.IsEquivalenceᴮ _≈⟨_⟩₁_) (𝑽₂ : V₂.IsEquivalenceᴮ _≈⟨_⟩₂_) where
+module ≈ᴾ-Props
+  (𝑽₁ : IProps.IsEquivalenceᴮ Ty₁ Value₁ _≈⟨_⟩₁_)
+  (𝑽₂ : IProps.IsEquivalenceᴮ Ty₂ Value₂ _≈⟨_⟩₂_)
+  (Valid₁ : ∀ {τ} → ℕ → Value₁ τ → Set)
+  (Valid₂ : ∀ {τ} → ℕ → Value₂ τ → Set)
+  (valid-≤₁ : ∀ {τ n} (v : Value₁ τ) → Valid₁ n v → IProps.IsEquivalenceᴮ.Dom 𝑽₁ v ≤ n)
+  (valid-≤₂ : ∀ {τ n} (v : Value₂ τ) → Valid₂ n v → IProps.IsEquivalenceᴮ.Dom 𝑽₂ v ≤ n)
+  where
 
-  open ≈ˢ-Props 𝑽₁ public
-  open ≈ᴴ-Props 𝑽₂ public
-  open import Generic.PState.Valid {Ty₁} {Ty₂} {Value₁} {Value₂} (V₁.Dom 𝑽₁) (V₂.Dom 𝑽₂)
+  open ≈ˢ-Props 𝑽₁ Valid₁ valid-≤₁ public
+  open ≈ᴴ-Props 𝑽₂ Valid₂ valid-≤₂ public
+  open import Generic.PState.Valid {Ty₁} {Ty₂} {Value₁} {Value₂} Valid₁ Valid₂
 
   refl-≈ᴾ : ∀ {p} {{validᴾ : Validᴾ p}} → p ≈⟨ ι ∥ heap p ∥ᴴ ⟩ᴾ p
   refl-≈ᴾ {{⟨ validˢ , validᴴ ⟩}} = ⟨ (refl-≈ˢ {{validˢ}}) , (refl-≈ᴴ {{validᴴ}} ) ⟩

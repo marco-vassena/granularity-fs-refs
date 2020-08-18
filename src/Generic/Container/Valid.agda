@@ -1,13 +1,26 @@
 import Generic.Container.Base as B
+open import Data.Nat
 
 module Generic.Container.Valid
   (Label : Set)
   (Ty : Set)
   (Value : Ty → Set)
-  (Validⱽ : ∀ {τ ℓ} → Value τ → B.Container Label Ty Value ℓ → Set) where
+  (Validⱽ : ∀ {τ} → ℕ → Value τ  → Set) where
 
 open B Label Ty Value
 open import Data.Nat
 
-Valid : ∀ {ℓ} → Container ℓ → Set
-Valid C = ∀ {n τ} {v : Value τ} → n ↦ v ∈ C → Validⱽ v C
+Valid : ∀ {ℓ} → ℕ → Container ℓ → Set
+Valid n' C = ∀ {n τ} {v : Value τ} → n ↦ v ∈ C → Validⱽ n' v
+
+tail-valid : ∀ {ℓ n τ} {v : Value τ} {C : Container ℓ} → Valid n (v ∷ C) → Valid n C
+tail-valid valid ∈ = valid (There ∈)
+  where open import Generic.Container.Lemmas Label Ty Value
+
+postulate read-valid : ∀ {ℓ τ n'} {v : Value τ} {C : Container ℓ} n → Valid n C → n' ↦ v ∈ C → Validⱽ n v
+
+postulate snoc-valid : ∀ {ℓ τ} {v : Value τ} {C : Container ℓ} n → Valid n C → Validⱽ n v → Valid n (C ∷ᴿ v)
+
+postulate write-valid : ∀ {ℓ τ n'} {v : Value τ} {C C' : Container ℓ} n → Valid n C → C' ≔ C [ n' ↦ v ] → Validⱽ n v → Valid n C'
+
+postulate valid-⊆ : ∀ {ℓ n n'} {C : Container ℓ} → n ≤ n' → Valid n C → Valid n' C

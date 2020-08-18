@@ -398,23 +398,21 @@ mutual
 open import Generic.Bijection
 
 -- Why do we need this?
-𝑽 : V.IsEquivalenceᴮ  _≈⟨_⟩ⱽ_
+𝑽 : V.IsEquivalenceᴮ _≈⟨_⟩ⱽ_
 𝑽 = record { Dom = ∥_∥ⱽ
            ; reflᴮ = refl-≈ⱽ
            ; wkenᴮ = wken-≈ⱽ
            ; symᴮ = sym-≈ⱽ
            ; transᴮ = trans-≈ⱽ }
 
-𝑹 : R.IsEquivalenceᴮ  _≈⟨_⟩ᴿ_
-
+𝑹 : R.IsEquivalenceᴮ _≈⟨_⟩ᴿ_
 𝑹 = record { Dom = ∥_∥ᴿ
            ; reflᴮ = refl-≈ᴿ
            ; wkenᴮ = wken-≈ᴿ
            ; symᴮ = sym-≈ᴿ
            ; transᴮ = trans-≈ᴿ }
 
-𝑬 : E.IsEquivalenceᴮ  _≈⟨_⟩ᴱ_
-
+𝑬 : E.IsEquivalenceᴮ _≈⟨_⟩ᴱ_
 𝑬 = record { Dom = ∥_∥ᴱ
            ; reflᴮ = refl-≈ᴱ
            ; wkenᴮ = wken-≈ᴱ
@@ -477,4 +475,4 @@ open import Generic.Bijection
 
 -- open ≈ˢ-Props 𝑹 public
 
-open ≈ᴾ-Props 𝑹 𝑽 public
+open ≈ᴾ-Props 𝑹 𝑽 Validᴿ Validⱽ validᴿ-≤ validⱽ-≤ public

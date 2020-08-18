@@ -29,7 +29,7 @@ open import Data.Nat
 ∥snoc∥ [] v = refl
 ∥snoc∥ (x ∷ C) v = cong suc (∥snoc∥ C v)
 
-{-# REWRITE ∥snoc∥ #-}
+-- {-# REWRITE ∥snoc∥ #-}
 
 <-∈ : ∀ {n ℓ} {C : Container ℓ} → n < ∥ C ∥ → n ∈ C
 <-∈ {C = []} ()
@@ -71,6 +71,10 @@ cons-∈ : ∀ {ℓ τ n} {Σ : Container ℓ} {c : Value τ} → n ∈ Σ → n
 cons-∈ (_ , _ , Here) = _ , _ , Here
 cons-∈ {c = c} (τ , c' , There x) with cons-∈ (τ , c' , x)
 ... | (τ' , c'' , x') = τ' , c'' , There x'
+
+cons-∈′ : ∀ {ℓ τ τ' n} {Σ : Container ℓ} {v : Value τ} {v' : Value τ'} → n ↦ v' ∈ Σ → (suc n) ↦ v' ∈ (v ∷ Σ)
+cons-∈′ Here = There Here
+cons-∈′ (There ∈₁) = There (cons-∈′ ∈₁)
 
 open import Data.Empty
 
@@ -251,3 +255,5 @@ last-≡ {Σ = _ ∷ Σ₁} (There x) with last-≡ x
 postulate snoc-⊆ : ∀ {ℓ τ} (C : Container ℓ) (v : Value τ) → C ⊆ (C ∷ᴿ v)
 
 postulate refl-⊆ : ∀ {ℓ} {C : Container ℓ} → C ⊆ C
+
+postulate write-⊆ : ∀ {ℓ τ n} {v : Value τ} {C C' : Container ℓ} → C' ≔ C [ n ↦ v ] → C ⊆ C'

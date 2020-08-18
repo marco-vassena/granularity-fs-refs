@@ -10,7 +10,9 @@ module Generic.Heap.Lemmas
 open import Generic.Heap.Base Ty Value
 
 open import Data.Unit
-open import Generic.Container.Lemmas ⊤ Ty Value public
+open import Generic.Container.Lemmas ⊤ Ty Value
+  renaming (snoc-⊆ to snoc-⊆ᴴ)
+  public
 
 
 -- snocᴴ-⋤ : ∀ {ℓ τ} (μ : Heap) (v : LValue τ) → (label v) ⋤ ℓ → ((snocᴴ μ v) ↓⊑ ℓ) ≡ (μ ↓⊑ ℓ)

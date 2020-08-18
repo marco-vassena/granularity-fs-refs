@@ -5,15 +5,17 @@ module Generic.PState.Valid
   {{𝑳 : Lattice}}
   {Ty₁ : Set} {Ty₂ : Set}
   {Value₁ : Ty₁ → Set} {Value₂ : Ty₂ → Set}
-  (∥_∥₁ : ∀ {τ} → Value₁ τ → ℕ)
-  (∥_∥₂ : ∀ {τ} → Value₂ τ → ℕ)
-  where
+  (Valid₁ : ∀ {τ} → ℕ → Value₁ τ  → Set)
+  (Valid₂ : ∀ {τ} → ℕ → Value₂ τ  → Set) where
+  -- (∥_∥₁ : ∀ {τ} → Value₁ τ → ℕ)
+  -- (∥_∥₂ : ∀ {τ} → Value₂ τ → ℕ)
+--  where
 
 open import Generic.PState.Base Ty₁ Ty₂ Value₁ Value₂
 open import Data.Product
-open import Generic.Store.Valid Ty₁ Value₁ ∥_∥₁ public
+open import Generic.Store.Valid Ty₁ Value₁ Valid₁ public
 open import Generic.Heap.Base Ty₂ Value₂
-open import Generic.Heap.Valid Ty₂ Value₂ ∥_∥₂ public
+open import Generic.Heap.Valid Ty₂ Value₂ Valid₂ public
 
 open PState
 
@@ -22,3 +24,6 @@ record Validᴾ (p : PState) : Set where
   field
     validˢ : Validˢ ∥ heap p ∥ᴴ (store p)
     validᴴ : Validᴴ (heap p)
+
+-- data Validᴾ : PState → Set where
+--   ⟨_,_⟩ : ∀ {Σ μ} → Validˢ ∥ μ  ∥ᴴ Σ → Validᴴ μ → Validᴾ ⟨ Σ , μ ⟩

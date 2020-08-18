@@ -6,7 +6,9 @@ open import FG.Types hiding (_×_) renaming ( _⊆_ to  _⊆ᶜ_) --  (Ty ; _⊆
 open import FG.Syntax
 open import Data.Product as P renaming (_,_ to _∧_)
 open import Data.Nat renaming (_⊔_ to _⊔ᴺ_) hiding (_^_)
+open import Data.Nat.Properties
 open import Data.Unit hiding (_≤_)
+open import Relation.Binary.PropositionalEquality
 
 mutual
 
@@ -20,8 +22,8 @@ mutual
   ∥ inl x ∥ᴿ = ∥ x ∥ⱽ
   ∥ inr x ∥ᴿ = ∥ x ∥ⱽ
   ∥ ⟨ x , y ⟩ ∥ᴿ = ∥ x ∥ⱽ ⊔ᴺ ∥ y ∥ⱽ
-  ∥ Refᴵ x n ∥ᴿ = ℕ.suc n
-  ∥ Refˢ n ∥ᴿ = ℕ.suc n
+  ∥ Refᴵ x n ∥ᴿ = 0 -- 0 because we only care about the domain of the refs in the heap (ℕ.suc n)a
+  ∥ Refˢ n ∥ᴿ = suc n
   ∥ ⌞ x ⌟ ∥ᴿ = 0
   ∥ Id x ∥ᴿ = ∥ x ∥ⱽ
 
@@ -30,7 +32,7 @@ mutual
   ∥ v ∷ θ ∥ᴱ = ∥ v ∥ⱽ ⊔ᴺ ∥ θ ∥ᴱ
 
 -- Needed?
-mutual
+-- mutual
 
   Validᴱ : ∀ {Γ} → ℕ → Env Γ → Set
   Validᴱ n [] = ⊤
@@ -49,38 +51,41 @@ mutual
   -- Maybe just for the store?
   Validᴿ n (Refᴵ {τ = τ} ℓ m) = ⊤ -- This is ok because it is the store Σ
   -- TODO: should I have any requirement on the label of the cell for flow-sensitve refs?
-  Validᴿ {τ} n (Refˢ m) = ⊤ -- This does not seem to be needed. Answer: It will be needed when we prove the invariant!
+  Validᴿ {τ} n (Refˢ m) = m < n -- This does not seem to be needed. Answer: It will be needed when we prove the invariant!
   Validᴿ n ⌞ ℓ ⌟ = ⊤
   Validᴿ n (Id v) = Validⱽ n v
 
   Validⱽ : ∀ {τ} → ℕ → Value τ → Set
   Validⱽ n (r ^ ℓ) = Validᴿ n r
 
--- -- TODO: If we split the store for FS from FI all these definitions can be substituted by ∥ v ∥ ≤ ∥ Σ ∥
+join-≤ : ∀ {x y z} → x ≤ z → y ≤ z → x ⊔ᴺ y ≤ z
+join-≤ {z = z} x≤z y≤z with ⊔-mono-≤ x≤z y≤z
+... | ≤₁ rewrite m≤n⇒m⊔n≡n {z} ≤-refl = ≤₁
+
+mutual
+
+  validⱽ-≤ : ∀ {τ n} (v : Value τ) → Validⱽ n v → ∥ v ∥ⱽ ≤ n
+  validⱽ-≤ (r ^ _) isV = validᴿ-≤ r isV
+
+  validᴿ-≤ : ∀ {τ n} (r : Raw τ) → Validᴿ n r → ∥ r ∥ᴿ ≤ n
+  validᴿ-≤ （） isV = z≤n
+  validᴿ-≤ ⟨ x , θ ⟩ᶜ isV = validᴱ-≤ θ isV
+  validᴿ-≤ (inl x) isV = validⱽ-≤ x isV
+  validᴿ-≤ (inr x) isV = validⱽ-≤ x isV
+  validᴿ-≤ ⟨ x , y ⟩ (isV₁ ∧ isV₂) = join-≤ (validⱽ-≤ x isV₁) (validⱽ-≤ y isV₂)
+  validᴿ-≤ (Refᴵ x x₁) isV = z≤n
+  validᴿ-≤ (Refˢ x) isV = isV
+  validᴿ-≤ ⌞ x ⌟ isV = z≤n
+  validᴿ-≤ (Id x) isV = validⱽ-≤ x isV
+
+  validᴱ-≤ : ∀ {Γ n} (θ : Env Γ) → Validᴱ n θ → ∥ θ ∥ᴱ ≤ n
+  validᴱ-≤ [] tt = z≤n
+  validᴱ-≤ {n = n} (v ∷ θ) (isVⱽ ∧ isVᴱ) = join-≤ (validⱽ-≤ v isVⱽ) (validᴱ-≤ θ isVᴱ)
 
 open Conf
--- open import Generic.Heap.Valid Ty Value ∥_∥ⱽ public
--- open import Generic.Store.Valid Ty Raw ∥_∥ᴿ public
-
--- record Valid-Conf (A : Set) (Validᵗ : A → Set) (c : Conf A) : Set where
---   constructor ⟨_,_⟩
---   field
---     validˢ : Validˢ (store c)
---     validᵗ : Validᵗ (term c)
-
--- open Valid-Conf {{...}} public
-
--- Validᴵ : ∀ {Γ τ} → IConf Γ τ → Set
--- Validᴵ c = Validˢ (store c)
--- Valid-Conf (Expr _ _) (λ _ → ⊤) c
-
--- Validᶜ : ∀ {τ} → FConf τ → Set
--- Validᶜ c = Valid-Conf (Value _) (Validⱽ ∥ store c ∥) c
-
 open import FG.Semantics
-
 open import Generic.PState.Base Ty Ty Raw Value
-open import Generic.PState.Valid {Ty} {Ty} {Raw} {Value} ∥_∥ᴿ ∥_∥ⱽ public
+open import Generic.PState.Valid {Ty} {Ty} {Raw} {Value} Validᴿ Validⱽ public
 
 -- record Valid-Conf {A τ} (c : Conf A) : Set where
 --   constructor ⟨_,_⟩
@@ -121,53 +126,180 @@ Valid-Outputs ⟨ Σ , μ , v ⟩ = Validᴾ ⟨ Σ , μ ⟩ × Validⱽ ∥ μ 
 --     validⱽ : Validⱽ ∥ heap c ∥ᴴ (term c)
 
 
+postulate lookup-validⱽ : ∀ {τ Γ θ μ} → (τ∈Γ : τ ∈ Γ) → Validᴱ ∥ μ ∥ᴴ θ → Validⱽ ∥ μ ∥ᴴ (θ !! τ∈Γ )
+
+-- postulate read-validᴿ : ∀ {ℓ τ μ n} {r : Raw τ} {M : Memory ℓ} → Validᴹ ∥ μ ∥ᴴ M → n ↦ r ∈ᴹ M → Validᴿ ∥ μ ∥ᴴ r
+
+-- postulate read-validᴿ : ∀ {ℓ τ μ n} {r : Raw τ} {M : Memory ℓ} → Validᴹ ∥ μ ∥ᴴ M → n ↦ r ∈ᴹ M → Validᴿ ∥ μ ∥ᴴ r
+
+-- postulate write-validᴹ : ∀ {ℓ τ μ n} {r : Raw τ} {M M' : Memory ℓ} → Validᴹ ∥ μ ∥ᴴ M → M' ≔ M [ n ↦ r ]ᴹ →
+--                            Validᴿ ∥ μ ∥ᴴ r → Validᴹ ∥ μ ∥ᴴ M'
+
+-- postulate new-validᴹ : ∀ {ℓ τ μ} {r : Raw τ} {M : Memory ℓ} → Validᴹ ∥ μ ∥ᴴ M →
+--                            Validᴿ ∥ μ ∥ᴴ r → Validᴹ ∥ μ ∥ᴴ (snocᴹ M r)
+
+-- TODO: maybe it'd be more convenient to take the big-step in the main proof
+-- and use these in this module
+
+postulate step-⊆ᴴ :  ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} → c ⇓⟨ θ , pc ⟩ c' → (heap c) ⊆ᴴ (heap c')
+
+postulate step-≤ :  ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} → c ⇓⟨ θ , pc ⟩ c' → ∥ heap c ∥ᴴ ≤ ∥ heap c' ∥ᴴ
+
+postulate validᴿ-⊆ᴴ : ∀ {τ μ μ'} {r : Raw τ} → μ ⊆ᴴ μ' → Validᴿ ∥ μ ∥ᴴ r → Validᴿ ∥ μ' ∥ᴴ r -- Unuseed
+
+postulate validⱽ-⊆ᴴ : ∀ {τ μ μ'} {v : Value τ} → μ ⊆ᴴ μ' → Validⱽ ∥ μ ∥ᴴ v → Validⱽ ∥ μ' ∥ᴴ v -- Unused
+postulate validⱽ-⊆ᴴ′ : ∀ {τ n n'} {v : Value τ} → n ≤ n' → Validⱽ n v → Validⱽ n' v -- Unused
+
+postulate validᴱ-⊆ᴴ : ∀ {Γ μ μ'} {θ : Env Γ} → μ ⊆ᴴ μ' → Validᴱ ∥ μ ∥ᴴ θ → Validᴱ ∥ μ' ∥ᴴ θ -- Used once
+
+postulate validᴱ-⊆ᴴ′ : ∀ {Γ n n'} {θ : Env Γ} → n ≤ n' → Validᴱ n θ → Validᴱ n' θ -- Used once
+
+postulate slice-validᴱ : ∀ {Γ Γ' μ} {θ : Env Γ} → (p : Γ' ⊆ᶜ Γ) → Validᴱ ∥ μ ∥ᴴ θ → Validᴱ ∥ μ ∥ᴴ (slice θ p)
+
+postulate validˢ-⊆ᴴ′ : ∀ {μ μ' Σ} → μ ⊆ᴴ μ' → Validˢ ∥ μ ∥ᴴ Σ → Validˢ ∥ μ' ∥ᴴ Σ -- Used once
+
+-- postulate validᴾ-⊆ᴴ : ∀ {p μ μ'} → μ ⊆ᴴ μ' → Validᴾ p → Validˢ p
+
+open import Generic.Heap.Lemmas Ty Value
+
+
 -- TODO: prove
-postulate valid-invariant : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
-                              c ⇓⟨ θ , ℓ ⟩ c' →
-                              Valid-Inputs c θ → Validᴱ ∥ heap c' ∥ᴴ θ × Valid-Outputs c'
+valid-invariant : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
+                    c ⇓⟨ θ , ℓ ⟩ c' → Valid-Inputs c θ →
+                    Validᴱ ∥ heap c' ∥ᴴ θ × Valid-Outputs c'
+valid-invariant (Var {μ = μ} τ∈Γ x) (isVᴾ ∧ isVᴱ) = isVᴱ ∧ isVᴾ ∧ lookup-validⱽ {μ = μ} τ∈Γ isVᴱ
+
+valid-invariant Unit (isVᴾ ∧ isVᴱ) = isVᴱ ∧ isVᴾ ∧ tt
+
+valid-invariant (Lbl ℓ) (isVᴾ ∧ isVᴱ) = isVᴱ ∧ isVᴾ ∧ tt
+
+valid-invariant (Test₁ x₁ x₂ _ _) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ) = valid-invariant x₁ (isVᴾ ∧ isVᴱ)
+      (isVᴱ′′ ∧ isVᴾ′′ ∧ isVⱽ′) = valid-invariant x₂ (isVᴾ′ ∧ isVᴱ′)
+  in isVᴱ′′ ∧ isVᴾ′′ ∧ tt
+
+valid-invariant (Test₂ x₁ x₂ _ _) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ) = valid-invariant x₁ (isVᴾ ∧ isVᴱ)
+      (isVᴱ′′ ∧ isVᴾ′′ ∧ isVⱽ′) = valid-invariant x₂ (isVᴾ′ ∧ isVᴱ′)
+  in isVᴱ′′ ∧ isVᴾ′′ ∧ tt
+
+valid-invariant Fun (isVᴾ ∧ isVᴱ) = isVᴱ ∧ isVᴾ ∧ isVᴱ
+
+valid-invariant (App x₁ x₂ _ x₃) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ) = valid-invariant x₁ (isVᴾ ∧ isVᴱ)
+      (isVᴱ′′ ∧ isVᴾ′′ ∧ isVⱽ′) = valid-invariant x₂ (isVᴾ′ ∧ isVᴱ′)
+      isVᴱ′′′ = validᴱ-⊆ᴴ (step-⊆ᴴ x₂) isVⱽ
+      (_ ∧ isVᴾ′′ ∧ isVⱽ′′) = valid-invariant x₃ (isVᴾ′′ ∧ isVⱽ′ ∧ isVᴱ′′′)
+  in validᴱ-⊆ᴴ (step-⊆ᴴ x₃) isVᴱ′′ ∧ isVᴾ′′ ∧ isVⱽ′′
+
+valid-invariant (Wken {μ' = μ'} p x) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ) = valid-invariant x (isVᴾ ∧ slice-validᴱ p isVᴱ)
+  in validᴱ-⊆ᴴ (step-⊆ᴴ x) isVᴱ ∧ isVᴾ′ ∧ isVⱽ
+
+valid-invariant (Inl x) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ) = valid-invariant x (isVᴾ ∧ isVᴱ)
+  in isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ
+
+valid-invariant (Inr x) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ) = valid-invariant x (isVᴾ ∧ isVᴱ)
+  in validᴱ-⊆ᴴ (step-⊆ᴴ x) isVᴱ ∧ isVᴾ′ ∧ isVⱽ
+
+valid-invariant (Case₁ x₁ _ x₂) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ) = valid-invariant x₁ (isVᴾ ∧ isVᴱ)
+      (isVᴱ′′ ∧ isVᴾ′′ ∧ isVⱽ′) = valid-invariant x₂ (isVᴾ′ ∧ isVⱽ ∧ isVᴱ′)
+  in proj₂ isVᴱ′′ ∧ isVᴾ′′ ∧ isVⱽ′
+
+valid-invariant (Case₂ x₁ _ x₂) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ) = valid-invariant x₁ (isVᴾ ∧ isVᴱ)
+      (isVᴱ′′ ∧ isVᴾ′′ ∧ isVⱽ′) = valid-invariant x₂ (isVᴾ′ ∧ isVⱽ ∧ isVᴱ′)
+  in proj₂ isVᴱ′′ ∧ isVᴾ′′ ∧ isVⱽ′
+
+valid-invariant (Pair {v₁ = v₁} x₁ x₂) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ) = valid-invariant x₁ (isVᴾ ∧ isVᴱ)
+      (isVᴱ′′ ∧ isVᴾ′′ ∧ isVⱽ′) = valid-invariant x₂ (isVᴾ′ ∧ isVᴱ′)
+  in isVᴱ′′ ∧ isVᴾ′′ ∧ (validⱽ-⊆ᴴ {v = v₁} (step-⊆ᴴ x₂) isVⱽ ∧ isVⱽ′)
+
+valid-invariant (Fst x _) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ isVᴾ′ ∧ (isVⱽ ∧ _)) = valid-invariant x (isVᴾ ∧ isVᴱ)
+  in isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ
+
+valid-invariant (Snd x _) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ isVᴾ′ ∧ (_ ∧ isVⱽ)) = valid-invariant x (isVᴾ ∧ isVᴱ)
+  in isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ
+
+valid-invariant (LabelOf x) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ isVᴾ′ ∧ _) = valid-invariant x (isVᴾ ∧ isVᴱ)
+  in isVᴱ′ ∧ isVᴾ′ ∧ tt
+
+valid-invariant GetLabel (isVᴾ ∧ isVᴱ) = isVᴱ ∧ isVᴾ ∧ tt
+
+valid-invariant (Taint eq x₁ x₂ _) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ) = valid-invariant x₁ (isVᴾ ∧ isVᴱ)
+      (isVᴱ′′ ∧ isVᴾ′′ ∧ isVⱽ′) = valid-invariant x₂ (isVᴾ′ ∧ isVᴱ′)
+  in isVᴱ′′ ∧ isVᴾ′′ ∧ isVⱽ′
+
+valid-invariant (LabelOfRef x eq) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ isVᴾ′ ∧ _) = valid-invariant x (isVᴾ ∧ isVᴱ)
+  in isVᴱ′ ∧ isVᴾ′ ∧ tt
+
+valid-invariant (New {μ' = μ'}  x) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ ⟨ isVˢ , isVᴴ ⟩ ∧ isV) = valid-invariant x (isVᴾ ∧ isVᴱ)
+  in isVᴱ′ ∧ ⟨ update-validˢ ∥ μ' ∥ᴴ isVˢ (snoc-validᴹ  ∥ μ' ∥ᴴ (isVˢ _) isV) , isVᴴ ⟩ ∧ tt
+
+valid-invariant (Read {μ' = μ} x ∈₁ _) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ ⟨ isVˢ , isVᴴ ⟩ ∧ isV) = valid-invariant x (isVᴾ ∧ isVᴱ)
+  in isVᴱ′ ∧  ⟨ isVˢ , isVᴴ ⟩ ∧ read-validᴿ ∥ μ ∥ᴴ (isVˢ _) ∈₁
+
+valid-invariant (Write {μ₃ = μ} x₁ _ x₂ _ w) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ isVᴾ′ ∧ isV) = valid-invariant x₁ (isVᴾ ∧ isVᴱ)
+      (isVᴱ′′ ∧ ⟨ isVˢ , isVᴴ ⟩ ∧ isVⱽ′) = valid-invariant x₂ (isVᴾ′ ∧ isVᴱ′)
+  in isVᴱ′′ ∧ ⟨ update-validˢ ∥ μ ∥ᴴ  isVˢ (write-validᴹ ∥ μ ∥ᴴ (isVˢ _) w isVⱽ′) , isVᴴ ⟩ ∧ tt
+
+valid-invariant (LabelOfRef-FS x _ _) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ isVᴾ′ ∧ _) = valid-invariant x (isVᴾ ∧ isVᴱ)
+  in isVᴱ′ ∧ isVᴾ′ ∧ tt
+
+valid-invariant (New-FS {Σ' = Σ'} {μ' = μ'} {v = v} x) (isVᴾ ∧ isVᴱ) with valid-invariant x (isVᴾ ∧ isVᴱ)
+... | (isVᴱ′ ∧ ⟨ isVˢ , isVᴴ ⟩ ∧ isV)
+  = (validᴱ-⊆ᴴ ⊆₁ isVᴱ′) ∧ new-fs refl (sym eq) isV′ isVˢ′ isVᴴ ∧ ≤₁
+  where eq = ∥snoc∥ μ' v
+        ≤₁ : suc ∥ μ' ∥ᴴ ≤ ∥ snocᴴ μ' v ∥ᴴ
+        ≤₁ rewrite eq = s≤s ≤-refl
+        ⊆₁ = snoc-⊆ᴴ μ' v
+        isVˢ′ : Validˢ (suc ∥ μ' ∥ᴴ) Σ'
+        isVˢ′ = validˢ-⊆ᴴ (≤-step ≤-refl) isVˢ
+        isV′ : Validⱽ (suc ∥ μ' ∥ᴴ) v
+        isV′ = validⱽ-⊆ᴴ′ {v = v} (≤-step ≤-refl) isV
+
+        new-fs : ∀ {μ n Σ τ} {v : Value τ} → n ≡ ∥ μ ∥ᴴ → suc n ≡ ∥ snocᴴ μ v ∥ᴴ →
+                 Validⱽ (suc n) v → Validˢ (suc n) Σ → Validᴴ μ → Validᴾ ⟨ Σ , snocᴴ μ v ⟩
+        new-fs {v = v} refl eq isV isVˢ isVᴴ with snoc-validᴴ′ {v = v} isVᴴ isV
+        ... | isV′ rewrite eq = ⟨ isVˢ , isV′ ⟩
+
+valid-invariant (Read-FS {μ' = μ} x ∈₁ _) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ ⟨ isVˢ , isVᴴ ⟩ ∧ isV) = valid-invariant x (isVᴾ ∧ isVᴱ)
+  in isVᴱ′ ∧  ⟨ isVˢ , isVᴴ ⟩ ∧ read-validⱽ ∥ μ ∥ᴴ isVᴴ ∈₁
+
+valid-invariant (Write-FS {μ₃' = μ} x₁ x₂ _ _ _ w) (isVᴾ ∧ isVᴱ) with valid-invariant x₁ (isVᴾ ∧ isVᴱ)
+... | isVᴱ′ ∧ isVᴾ′ ∧ isV with  valid-invariant x₂ (isVᴾ′ ∧ isVᴱ′)
+... | isVᴱ′′ ∧ ⟨ isVˢ , isVᴴ ⟩ ∧ isVⱽ′ with write-length-≡ w
+... | eq rewrite sym eq =  isVᴱ′′ ∧ ⟨ isVˢ , write-validᴴ ∥ μ ∥ᴴ isVᴴ w isVⱽ′ ⟩ ∧ tt
+
+valid-invariant (Id x) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ) = valid-invariant x (isVᴾ ∧ isVᴱ)
+  in isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ
+
+valid-invariant (UnId x _) (isVᴾ ∧ isVᴱ) =
+  let (isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ) = valid-invariant x (isVᴾ ∧ isVᴱ)
+  in isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ
 
 -- postulate valid-invariant′ : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
 --                               c ⇓⟨ θ , ℓ ⟩ c' →
 --                               Valid-Inputs c θ → Valid-Outputs′ c'
 
-postulate validᴼ : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
-                              c ⇓⟨ θ , ℓ ⟩ c' →
-                              Valid-Inputs c θ → Valid-Outputs c'
--- validᴼ (Var τ∈Γ x) ⟨ isVᴾ , isVᴱ ⟩ = {!!} ∧ {!!}
--- validᴼ Unit ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (Lbl ℓ) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (Test₁ x x₁ x₂ x₃) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (Test₂ x x₁ x₂ x₃) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ Fun ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (App x x₁ x₂ x₃) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (Wken p x) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (Inl x) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (Inr x) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (Case₁ x x₁ x₂) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (Case₂ x x₁ x₂) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (Pair x x₁) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (Fst x x₁) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (Snd x x₁) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (LabelOf x) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ GetLabel ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (Taint eq x x₁ pc'⊑pc'') ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (LabelOfRef x eq) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (New x) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (Read x x₁ eq) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (Write x x₁ x₂ ℓ₂⊑ℓ x₃) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (LabelOfRef-FS x x₁ eq) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (New-FS x) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (Read-FS x x₁ eq) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (Write-FS x x₁ x₂ x₃ eq x₄) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (Id x) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
--- validᴼ (UnId x eq) ⟨ isVᴾ , isVᴱ ⟩ = {!!}
-
-
 postulate validᴾ-⇓ : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
                               c ⇓⟨ θ , ℓ ⟩ c' →
                               Valid-Inputs c θ → Validᴾ ⟨ store c' , heap c' ⟩
-
-postulate valid-lookup : ∀ {τ Γ θ n} → (τ∈Γ : τ ∈ Γ) → Validᴱ n θ → Validⱽ n (θ !! τ∈Γ )
 
 -- postulate valid-invariant′ : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
 --                               c ⇓⟨ θ , ℓ ⟩ c' →
@@ -182,23 +314,10 @@ postulate valid-lookup : ∀ {τ Γ θ n} → (τ∈Γ : τ ∈ Γ) → Validᴱ
 
 -- import Generic.Store Ty Raw as S
 
--- TODO: maybe it'd be more convenient to take the big-step in the main proof
--- and use these in this module
-
-postulate validᴿ-⊆ᴴ : ∀ {τ μ μ'} {r : Raw τ} → μ ⊆ᴴ μ' → Validᴿ ∥ μ ∥ᴴ r → Validᴿ ∥ μ' ∥ᴴ r -- Unuseed
-
-postulate validⱽ-⊆ᴴ : ∀ {τ μ μ'} {v : Value τ} → μ ⊆ᴴ μ' → Validⱽ ∥ μ ∥ᴴ v → Validⱽ ∥ μ' ∥ᴴ v -- Unused
-
-postulate validᴱ-⊆ᴴ : ∀ {Γ μ μ'} {θ : Env Γ} → μ ⊆ᴴ μ' → Validᴱ ∥ μ ∥ᴴ θ → Validᴱ ∥ μ' ∥ᴴ θ -- Used once
-
-postulate validᴱ-⊆ᶜ : ∀ {Γ Γ' μ} {θ : Env Γ} → (p : Γ' ⊆ᶜ Γ) → Validᴱ ∥ μ ∥ᴴ θ → Validᴱ ∥ μ ∥ᴴ (slice θ p)
-
-postulate validˢ-⊆ᴴ : ∀ {Σ μ μ'} → μ ⊆ᴴ μ' → Validˢ ∥ μ ∥ᴴ Σ → Validˢ ∥ μ' ∥ᴴ Σ -- Unused
 
 -- -- Do we need this?
 -- postulate step-≤ : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
 --                               c ⇓⟨ θ , ℓ ⟩ c' → ∥ store c ∥ ≤ ∥ store c' ∥
-postulate step-⊆ᴴ :  ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} → c ⇓⟨ θ , pc ⟩ c' → (heap c) ⊆ᴴ (heap c')
 
 -- record _⇓⟨_,_⟩ⱽ_ {Γ τ} (c : IConf Γ τ) (θ : Env Γ) (pc : Label) (c' : FConf τ) : Set where
 --   constructor ⟨_,_,_⟩

@@ -5,6 +5,7 @@
 open import Lattice
 open import Relation.Binary -- Can be removed
 open import Generic.Bijection
+open import Data.Nat hiding (_≟_)
 
 module Generic.Store.LowEq
   {{𝑳 : Lattice}}
@@ -17,7 +18,7 @@ open import Generic.Store Ty Value
 open import Generic.Memory.LowEq {Ty} {Value} _≈⟨_⟩ⱽ_ A  as M using (_≈⟨_⟩ᴹ_ ; _≈⟨_,_⟩ᴹ_ ; ⌞_⌟ᴹ) public
 
 open import Data.Empty
-open import Data.Unit hiding (_≟_)
+open import Data.Unit hiding (_≤_ ; _≟_)
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
 open import Generic.Bijection
@@ -38,12 +39,19 @@ module Store-≈ˢ where
 
 open Store-≈ˢ public
 
-private module V = IProps Ty Value
+-- private module V = IProps Ty Value
 
-module ≈ˢ-Props (𝑽 : V.IsEquivalenceᴮ _≈⟨_⟩ⱽ_) where
+-- open import ValidEquiv {Ty} {Value}
 
-  open M.≈ᴹ-Props 𝑽 public
-  open import Generic.Store.Valid Ty Value (V.Dom 𝑽)
+
+module ≈ˢ-Props
+  (𝑽 : IProps.IsEquivalenceᴮ Ty Value _≈⟨_⟩ⱽ_)
+  (Validⱽ : ∀ {τ} → ℕ → Value τ → Set)
+  (valid-≤ : ∀ {τ n} (v : Value τ) → Validⱽ n v → IProps.Dom 𝑽 v ≤ n)
+  where
+
+  open M.≈ᴹ-Props 𝑽 Validⱽ valid-≤ public
+  open import Generic.Store.Valid Ty Value Validⱽ
 
   open SProps Store
 

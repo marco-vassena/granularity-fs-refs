@@ -10,7 +10,7 @@ module Generic.Memory.LowEq
   (A : Label) where
 
 open import Generic.Memory Ty Value public
-open import Data.Unit hiding (_≟_)
+open import Data.Unit hiding (_≟_ ; _≤_)
 open import Relation.Nullary
 
 data Memory-≈ᴹ {ℓ} (β : Bij) : Memory ℓ → Memory ℓ → Set where
@@ -39,7 +39,13 @@ M₁ ≈⟨ β ⟩ᴹ′ M₂ = M₁ ≈⟨ β , _ ⊑? A ⟩ᴹ M₂
 
 module V = IProps Ty Value
 
-module ≈ᴹ-Props (𝑽 : IProps.IsEquivalenceᴮ Ty Value _≈⟨_⟩ⱽ_) where
+open import Data.Nat
+
+module ≈ᴹ-Props
+  (𝑽 : IProps.IsEquivalenceᴮ Ty Value _≈⟨_⟩ⱽ_)
+  (Validⱽ : ∀ {τ} → ℕ → Value τ → Set)
+  (valid-≤ : ∀ {τ n} (v : Value τ) → Validⱽ n v → V.Dom 𝑽 v ≤ n)
+  where
 
   open import Generic.Value.LowEq {Ty} {Value} _≈⟨_⟩ⱽ_
 
@@ -48,7 +54,8 @@ module ≈ᴹ-Props (𝑽 : IProps.IsEquivalenceᴮ Ty Value _≈⟨_⟩ⱽ_) wh
     ; reflᴮ to refl-≈ⱽ
     ; symᴮ to sym-≈ⱽ
     ; transᴮ to trans-≈ⱽ
-    ; wkenᴮ to wken-≈ⱽ)
+    ; wkenᴮ to wken-≈ⱽ
+    )
 
 
   open IProps.IsEquivalenceᴮ -- Label ?
@@ -64,7 +71,7 @@ module ≈ᴹ-Props (𝑽 : IProps.IsEquivalenceᴮ Ty Value _≈⟨_⟩ⱽ_) wh
   module ≈ᴹ-Equivalence where
 
     open IProps Label Memory
-    open import Generic.Memory.Valid Ty Value ∣_∣ⱽ
+    open import Generic.Memory.Valid Ty Value Validⱽ
     open import Data.Product
 
     wken-≈ᴹ : Wkenᴮ _≈⟨_⟩ᴹ_
@@ -74,9 +81,8 @@ module ≈ᴹ-Props (𝑽 : IProps.IsEquivalenceᴮ Ty Value _≈⟨_⟩ⱽ_) wh
     -- Reflexive
     refl-≈ᴹ :  ∀ {ℓ n} {M : Memory ℓ} {{validᴹ : Validᴹ n M}} → M ≈⟨ ι n ⟩ᴹ M
     refl-≈ᴹ {M = []} {{validᴹ}} = []
-    refl-≈ᴹ {M = v ∷ M} {{validⱽ , validᴹ}} = ≈ⱽ ∷ refl-≈ᴹ {{validᴹ}}
-      where ≈ⱽ = wken-≈ⱽ (ι-⊆ validⱽ) refl-≈ⱽ
-
+    refl-≈ᴹ {M = x ∷ M} {{validᴹ}} = ≈ⱽ ∷ refl-≈ᴹ {M = M} {{ tail-validᴹ validᴹ }}
+      where ≈ⱽ = wken-≈ⱽ (ι-⊆ (valid-≤ _ (validᴹ Here))) refl-≈ⱽ
 
     -- Symmetric
     sym-≈ᴹ : Symmetricᴮ  _≈⟨_⟩ᴹ_
@@ -104,7 +110,7 @@ module ≈ᴹ-Props (𝑽 : IProps.IsEquivalenceᴮ Ty Value _≈⟨_⟩ⱽ_) wh
   module ≈ᴹ′-Equivalence  where
 
   open IProps Label Memory
-  open import Generic.Memory.Valid Ty Value ∣_∣ⱽ
+  open import Generic.Memory.Valid Ty Value Validⱽ
 
   wken-≈ᴹ′ : Wkenᴮ _≈⟨_⟩ᴹ′_
   wken-≈ᴹ′ {a = ℓ} n≤m x with ℓ ⊑? A
@@ -112,7 +118,7 @@ module ≈ᴹ-Props (𝑽 : IProps.IsEquivalenceᴮ Ty Value _≈⟨_⟩ⱽ_) wh
   wken-≈ᴹ′ {a} n≤m x | no ¬p = tt
 
   refl-≈ᴹ′ : ∀ {ℓ n} {M : Memory ℓ} {{validᴹ : Validᴹ n M}} → M ≈⟨ ι n ⟩ᴹ′ M
-  refl-≈ᴹ′ = ⌞ refl-≈ᴹ ⌟ᴹ
+  refl-≈ᴹ′ {{validᴹ}} = ⌞ refl-≈ᴹ {{ validᴹ }} ⌟ᴹ
 
   sym-≈ᴹ′ : Symmetricᴮ  _≈⟨_⟩ᴹ′_
   sym-≈ᴹ′ {a = ℓ} x with ℓ ⊑? A

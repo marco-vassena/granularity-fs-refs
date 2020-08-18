@@ -68,7 +68,7 @@ step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (App {θ' = θ'} x₁ x₂ refl x₃) pc⋤A =
       μ₂⊆μ₃ = step-≈ᴾ {{ isVᴾ′′ }} {{  isVⱽ ∧ isVᴱ′′  }} x₃ (join-⋤₁ pc⋤A)
   in trans-≈ᴾ-ι ≈ᴾ′ (trans-≈ᴾ-ι ≈ᴾ′′ μ₂⊆μ₃)
 
-step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Wken {μ = μ} p x) pc⋤A = step-≈ᴾ {{ isVᴾ }} {{ validᴱ-⊆ᶜ {μ = μ} p isVᴱ }} x pc⋤A
+step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Wken {μ = μ} p x) pc⋤A = step-≈ᴾ {{ isVᴾ }} {{ slice-validᴱ {μ = μ} p isVᴱ }} x pc⋤A
 
 step-≈ᴾ (Inl x) pc⋤A = step-≈ᴾ x pc⋤A
 
@@ -294,8 +294,8 @@ mutual
 
   tiniᴸ {{isV₁ᴱ = isV₁ᴱ}} {{isV₂ᴱ}} (Wken {μ' = μ₁'} p x) (Wken {μ' = μ₂'} .p y) ≈ᴾ θ≈ pc⊑A =
     let θ≈′ = slice-≈ᴱ θ≈ p
-        isV₁ᴱ′ = validᴱ-⊆ᶜ {μ = μ₁'} p isV₁ᴱ
-        isV₂ᴱ′ = validᴱ-⊆ᶜ {μ = μ₂'}  p isV₂ᴱ in
+        isV₁ᴱ′ = slice-validᴱ {μ = μ₁'} p isV₁ᴱ
+        isV₂ᴱ′ = slice-validᴱ {μ = μ₂'}  p isV₂ᴱ in
         tiniᴸ {{ isV₁ᴱ = isV₁ᴱ′ }} {{ isV₂ᴱ′ }} x y ≈ᴾ θ≈′ pc⊑A
 
   tiniᴸ (Inl x) (Inl x₁) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x x₁ ≈ᴾ θ₁≈θ₂ pc⊑A

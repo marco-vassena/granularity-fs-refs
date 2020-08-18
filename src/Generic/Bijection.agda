@@ -478,6 +478,16 @@ module IProps (A : Set) (F : A → Set) where
 
   open IsEquivalenceᴮ public
 
+-- TODO: remove
+-- module ValidEquivᴮ {A : Set} {F : A → Set} (Valid : ∀ {a} → ℕ → F a → Set) where
+
+--   open IProps A F
+
+--   record VEquivalenceᴮ {R : Relᴮ} (𝑹 : IsEquivalenceᴮ R) : Set where
+--     field isEq : IsEquivalenceᴮ R
+--           valid-≤ : ∀ {a n} {x : F a} → Valid n x → Dom 𝑹 x ≤ n
+
+
 -- Simple (not indexed) props
 -- It does not seem we need this because store
 -- are restricted anyway
