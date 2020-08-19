@@ -26,16 +26,13 @@ record Bijectionᴾ (A B : Set) : Set where
   right-inverse-of : from RightInverseOfᴾ to
   right-inverse-of = proj₂ inverse-of
 
-  -- TODO: remove
-  -- from′ : (b : B) → b ∈ᴰ from → A
-  -- from′ b x with from b
-  -- from′ b (just px) | (just x) = x
-
 infix 3 _⤖ᴾ_
 
+-- Abbreviation for Bijectionᴾ
 _⤖ᴾ_ : Set → Set → Set
 From ⤖ᴾ To = Bijectionᴾ From To
 
+-- Smart constructor
 bijᴾ : ∀ {A B} (to : A ⇀ B) (from : B ⇀ A) → from InverseOfᴾ to →
          A ⤖ᴾ B
 bijᴾ to from inv = record { to = to ; from = from ; inverse-of = inv }
@@ -49,34 +46,37 @@ id : ∀ {A} → A ⤖ᴾ A
 id = bijᴾ just just ((λ { refl → refl }) , (λ { refl → refl }))
 
 --------------------------------------------------------------------------------
--- TODO: So many variants ... need to clean up
+-- Membership
 
+-- x ∈ᵗ β indicates that the pair x is contained in the bijction,
+-- specifically in the "to" function. If x = (a , b) and x ∈ᵗ β then
+-- "to β x ≡ just b".
 _∈ᵗ_ : ∀ {A B} → A × B → A ⤖ᴾ B → Set
 x ∈ᵗ β = x ∈ to
   where open Bijectionᴾ β
 
--- TODO: would it be more readable to have A × B and then swap the pair in the def?
+-- Variant of the above for the "from" function.
 _∈ᶠ_ : ∀ {A B} → A × B → A ⤖ᴾ B → Set
 (a , b) ∈ᶠ β = (b , a) ∈ from
   where open Bijectionᴾ β
 
-∈ᶠ-∈ᵗ : ∀ {A B} {x : A × B} {β : A ⤖ᴾ B} → x ∈ᶠ β → x ∈ᵗ β
-∈ᶠ-∈ᵗ {β = β} x = left-inverse-of x
+-- x ∈ᵗ β implies (and is implied) by x ∈ᶠ β via property
+-- right-inverse-of (left-inverse-of) contained in the bijection
+-- record β.  For example:
+∈ᶠ⇒∈ᵗ : ∀ {A B} {x : A × B} {β : A ⤖ᴾ B} → x ∈ᶠ β → x ∈ᵗ β
+∈ᶠ⇒∈ᵗ {β = β} x = left-inverse-of x
   where open Bijectionᴾ β
 
--- Don't think we have use ∈ᶠ maybe we can export ᵗ as just ∈ᴮ
-_∈ᴮ_ : ∀ {A B} → A × B → A ⤖ᴾ B → Set
-x ∈ᴮ β = (x ∈ᵗ β) × (x ∈ᶠ β)
+--------------------------------------------------------------------------------
+-- Domain and range inclusion
 
+-- "a ∈ᴰ β" if "a" is a pre-image of some "b" in the bijection β.
 _∈ᴰ_ : ∀ {A B} → A → A ⤖ᴾ B → Set
 a ∈ᴰ β = ∃ (λ b → (a , b) ∈ᵗ β)
 
--- Not the best definition, ∈ᴿ′ seems better (more symmetric)
+-- "b ∈ᴰ β" if "b" is the pre-image of some "a" in the bijection β.
 _∈ᴿ_ : ∀ {A B} → B → A ⤖ᴾ B → Set
-b ∈ᴿ β = ∃ (λ a → (a , b) ∈ᵗ β)
-
-_∈ᴿ′_ : ∀ {A B} → B → A ⤖ᴾ B → Set
-b ∈ᴿ′ β = ∃ (λ a → (a , b) ∈ᶠ β)
+b ∈ᴿ β = ∃ (λ a → (a , b) ∈ᶠ β)
 
 --------------------------------------------------------------------------------
 -- Bijection extension
@@ -84,8 +84,9 @@ b ∈ᴿ′ β = ∃ (λ a → (a , b) ∈ᶠ β)
 _Extends_ : ∀ {A B} (β₁ β₂ : A ⤖ᴾ B) → Set
 β₂ Extends β₁ = ∀ {x} → x ∈ᵗ β₁ → x ∈ᵗ β₂
 
--- β₁ ⊆ β₂ iff β₂ is an extension of β₁
--- Defined as a record to ease inference of the bijections
+-- β₁ ⊆ β₂ iff β₂ is an extension of β₁, i.e., every pair defined in
+-- β₁ is also defined in β₂.  This property is defined as a record so
+-- that Agda can better infer the bijections.
 record _⊆_ {A B} (β₁ β₂ : A ⤖ᴾ B) : Set where
   field bij-⊆ : β₂ Extends β₁
 
@@ -105,7 +106,7 @@ trans-⊆ ⊆₁ ⊆₂ = record { bij-⊆ = λ ∈₁ → M₂.bij-⊆ (M₁.bi
 -- TODO: how do we call this properties?
 
 _⊆ᴿ_ : ∀ {A B C} → (A ⤖ᴾ B) → (B ⤖ᴾ C) → Set
-β₁ ⊆ᴿ β₂ = ∀ {y} → y ∈ᴿ′ β₁ → y ∈ᴰ β₂
+β₁ ⊆ᴿ β₂ = ∀ {y} → y ∈ᴿ β₁ → y ∈ᴰ β₂
 
 infixl 3 _⊆ᴿ_
 
@@ -206,11 +207,8 @@ module Singleton {A B} {{_≟ᴬ_ : DecEq A}} {{_≟ᴮ_ : DecEq B}} where
   _↔_ : ∀ (x : A) (y : B) → A ⤖ᴾ B
   _↔_ x y  = bijᴾ (x ↦ y) (y ↦ x) inverse-of-↦
 
-  ↔-∈ : ∀ x y → (x , y) ∈ᴮ (x ↔ y)
-  ↔-∈ x y = trivial x y , trivial y x
-
   ↔-∈ᵗ : ∀ x y → (x , y) ∈ᵗ (x ↔ y)
-  ↔-∈ᵗ x y = proj₁ (↔-∈ x y)
+  ↔-∈ᵗ x y = trivial x y
 
 open Singleton {{...}} public
 

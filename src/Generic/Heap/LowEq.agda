@@ -20,37 +20,6 @@ open IProps Ty Value
 open import Generic.Value.HLowEq {Ty} {Value} _≈⟨_⟩ⱽ_
 open import Data.Product as P
 
--- Here I  should make a distinction depending on the label of the cell.
--- All cells should have a label
--- data _≈⟨_⟩ᶜ_ : ∀ {τ} → Value τ → Bij → Value τ → Set where
---   -- ⌞_⌟ᴵ : ∀ {τ β} → {v v' : Value τ} → v ≈⟨ β ⟩ⱽ v' → ⌞ v ⌟ᴵ ≈⟨ β ⟩ᶜ ⌞ v' ⌟ᴵ
---   -- Not sure if I should make a distinction for ℓ ⋤ A ?
---   -- Probably no because when we read them, we get tainted with ℓ.
---   -- ⌞_⌟ᴴ : ∀ {ℓ τ β} → {v v' : Value τ} → v ≈⟨ β ⟩ⱽ v' → ⌞ v , ℓ ⌟ᴴ ≈⟨ β ⟩ᶜ ⌞ v' , ℓ ⌟ᴴ
---   -- TODO: here we need to remove the flow s
---   cellᴸ : ∀ {ℓ τ β} → {v v' : Value τ} → ℓ ⊑ A → v ≈⟨ β ⟩ⱽ v' → (v , ℓ) ≈⟨ β ⟩ᶜ (v' , ℓ)
---   cellᴴ : ∀ {ℓ ℓ' τ β} → {v v' : Value τ} → ℓ ⋤ A → ℓ' ⋤ A → (v , ℓ) ≈⟨ β ⟩ᶜ (v' , ℓ')
-
--- open import Relation.Nullary
-
--- -- TODO: move to Heap.LowEq
--- ≈ᶜ-⊑ :  ∀ {τ β} {v₁ v₂ : Value τ} (pc : Label) →
---                    let (v₁ , ℓ₁) = v₁
---                        (v₂ , ℓ₂) = v₂ in
---                        v₁ ≈⟨ β ⟩ᶜ v₂ → ( v₁ , (pc ⊔ ℓ₁) ) ≈⟨ β ⟩ᶜ ( v₂ , (pc ⊔ ℓ₂) )
--- ≈ᶜ-⊑ pc (cellᴸ {ℓ = ℓ} x x₁) with (pc ⊔ ℓ) ⊑? A
--- ... | yes p = cellᴸ p x₁
--- ... | no ¬p = cellᴴ ¬p ¬p
--- ≈ᶜ-⊑ pc (cellᴴ x x₁) = cellᴴ (trans-⋤ (join-⊑₂ _ _) x) (trans-⋤ (join-⊑₂ _ _) x₁)
-
-
--- -- Values
--- data _≅⟨_⟩ᶜ_ {τ} (c : Value τ) (β : Bij) : ∀ {τ'} → Value τ' → Set where
---   ⌞_⌟ : ∀ {c' : Value τ} → c ≈⟨ β ⟩ᶜ c' → c ≅⟨ β ⟩ᶜ c'
-
--- open import Data.Empty
--- open import Relation.Binary.PropositionalEquality
-
 open import Data.Product
 open import Data.Fin hiding (_<_ ; _≤_)
 open import Data.Nat renaming (_⊔_ to _⊔ᴺ_)
@@ -58,28 +27,14 @@ open import Data.Nat.Properties
 open import Data.Maybe
 open import Generic.Heap.Lemmas Ty Value
 
--- open import Generic.Heap.Base 𝑯 as H
-
---open import Relation.Binary.PropositionalEquality as P
-
 -- Domain inclusion between bijection and heap
 _⊆ᴰ_ : Bij → Heap → Set
 β ⊆ᴰ μ = ∀ {n : ℕ} → n ∈ᴰ β → n ∈ᴴ μ
 
 _⊆ᴿ_ : Bij → Heap → Set
-β ⊆ᴿ μ = ∀ {n : ℕ} → n ∈ᴿ′ β → n ∈ᴴ μ
-
--- With the new definitions these seems not needed
--- ⊆ᴰ-⊆ᴿ : ∀ {β μ} → β ⊆ᴰ μ → (β ⁻¹) ⊆ᴿ μ
--- ⊆ᴰ-⊆ᴿ {β} ⊆ (n , x) = ⊆ (n , x)
--- --  where open Bijectionᴾ (β ⁻¹)
-
--- ⊆ᴿ-⊆ᴰ : ∀ {β μ} → β ⊆ᴿ μ → (β ⁻¹) ⊆ᴰ μ
--- ⊆ᴿ-⊆ᴰ {β} ⊆ (n , x) = {!!} -- ⊆ (n , left-inverse-of x)
---   where open Bijectionᴾ β
+β ⊆ᴿ μ = ∀ {n : ℕ} → n ∈ᴿ β → n ∈ᴴ μ
 
 -- Homogeneous L-equivalence.
--- TODO: do we ever use this?
 Lift-≈ : Heap → Heap → Bij → Set
 Lift-≈ μ₁ μ₂ β =
   ∀ {n₁ n₂ τ} {v₁ v₂ : Value τ} →
@@ -158,9 +113,8 @@ module ≈ᴴ-Props
   snoc-⊆ᴿ : ∀ {β μ τ} {v : Value τ} → β ⊆ᴿ μ → β ⊆ᴿ (snocᴴ μ v)
   snoc-⊆ᴿ ⊆₁ x = wken-∈′ (⊆₁ x)
 
-
-  ∣_∣ᴴ : Heap → ℕ
-  ∣_∣ᴴ = ∥_∥ᴴ
+  -- ∣_∣ᴴ : Heap → ℕ
+  -- ∣_∣ᴴ = ∥_∥ᴴ
 
   -- A cell is valid for a store if the domain of its content points
   -- inside the store.
@@ -170,34 +124,34 @@ module ≈ᴴ-Props
   -- Validᴴ : Heap → Set
   -- Validᴴ μ = ∀ {τ s n} {c : Value τ s} → n ↦ c ∈ μ → Validᶜ c μ
 
-  refl-⊆ᴰ : ∀ {μ} → ι ∣ μ ∣ᴴ ⊆ᴰ μ
-  refl-⊆ᴰ {μ} (n , ∈ᴮ) with Id.lemma ∣ μ ∣ᴴ ∈ᴮ
+  refl-⊆ᴰ : ∀ {μ} → ι ∥ μ ∥ᴴ ⊆ᴰ μ
+  refl-⊆ᴰ {μ} (n , ∈ᴮ) with Id.lemma ∥ μ ∥ᴴ ∈ᴮ
   ... | refl , n< = <-∈ n<
 
-  refl-≈ᴴ : ∀ {μ} {{validᴴ : Validᴴ μ}} → μ ≈⟨ ι ∣ μ ∣ᴴ ⟩ᴴ μ
+  refl-≈ᴴ : ∀ {μ} {{validᴴ : Validᴴ μ}} → μ ≈⟨ ι ∥ μ ∥ᴴ ⟩ᴴ μ
   refl-≈ᴴ {μ} {{validᴴ}} =
     record { dom-⊆ = dom-⊆
            ; rng-⊆ = rng-⊆
            ; lift-≅ = lift-≅ }
     where
           -- Use Generic lemma
-          open Id ∣ μ ∣ᴴ
-          dom-⊆ : ι ∣ μ ∣ᴴ ⊆ᴰ μ
+          open Id ∥ μ ∥ᴴ
+          dom-⊆ : ι ∥ μ ∥ᴴ ⊆ᴰ μ
           dom-⊆ (n , ∈ᴮ) with lemma ∈ᴮ
           ... | refl , n< = <-∈ n<
 
-          rng-⊆ : ι ∣ μ ∣ᴴ ⊆ᴿ μ
+          rng-⊆ : ι ∥ μ ∥ᴴ ⊆ᴿ μ
           rng-⊆ (n , ∈ᴮ) with lemma ∈ᴮ
           ... | refl , n< = <-∈ n<
 
           -- Here I need to know that references in the heap are valid
           -- (point to the heap) to prove that they are related by the
-          -- finite identity bijection of size ∣ μ ∣ᴴ.  Intuitively if
+          -- finite identity bijection of size ∥ μ ∥ᴴ.  Intuitively if
           -- μ = [ 0 ↦ Refᴴ L 1 ] I cannot prove that μ ≈⟨ ι 1 ⟩ μ,
           -- because Refᴴ L 1 ≈⟨ ι 1 ⟩ Refᴴ L 1, because ι 1 = 0 ↔ 0,
           -- i.e., 1 is not defined in the bijection.
           -- Why ... it seems that this definition works ...
-          lift-≅ : Lift-≅ μ μ (ι ∣ μ ∣ᴴ)
+          lift-≅ : Lift-≅ μ μ (ι ∥ μ ∥ᴴ)
           lift-≅ {_} {_} {τ₁} {τ₂} {v₁} {v₂} x ∈₁ ∈₂ rewrite idᴾ-≡ x with inj-∈′ ∈₁ ∈₂
           ... | refl , refl = ⌞ (wken-≈ⱽ (ι-⊆ (valid-≤ _ (validᴴ ∈₁))) refl-≈ⱽ) ⌟
 
@@ -277,7 +231,7 @@ module ≈ᴴ-Props
   writeᴴ-≈ᴴ {μ} {μ'} {n} {{validᴴ}} n∈μ w ≈₁ =
     record { dom-⊆ = refl-⊆ᴰ ; rng-⊆ = rng-⊆ ; lift-≅ = lift-≅ }
     where
-      open Id ∣ μ ∣ᴴ
+      open Id ∥ μ ∥ᴴ
       open import Relation.Nullary
       rng-⊆ : ι ∥ μ ∥ᴴ ⊆ᴿ μ'
       rng-⊆ (n , ∈ᴮ) with lemma ∈ᴮ
@@ -315,12 +269,13 @@ module ≈ᴴ-Props
 
   square-≈ᴴ-ι : ∀ {β μ₁ μ₁' μ₂ μ₂'} →
                 μ₁ ≈⟨ β ⟩ᴴ μ₂ →
-                μ₁ ≈⟨ ι ∣ μ₁ ∣ᴴ ⟩ᴴ μ₁' →
-                μ₂ ≈⟨ ι ∣ μ₂ ∣ᴴ ⟩ᴴ μ₂' →
+                μ₁ ≈⟨ ι ∥ μ₁ ∥ᴴ ⟩ᴴ μ₁' →
+                μ₂ ≈⟨ ι ∥ μ₂ ∥ᴴ ⟩ᴴ μ₂' →
                 μ₁' ≈⟨ β ⟩ᴴ μ₂'
   square-≈ᴴ-ι {β} {μ₁} {μ₂ = μ₂} ≈₁ ≈₂ ≈₃ =
     with-≡ (square-≈ᴴ ≈₁ ≈₂ ≈₃) (square-lemma ⊆ᴿ-ι ⊆ᴰ-ι)
     where open _≈⟨_⟩ᴴ_ ≈₁
+
   newᴴ-≈ᴴ : ∀ {μ₁ μ₂ β τ} {v₁ v₂ : Value τ} →
               μ₁ ≈⟨ β ⟩ᴴ μ₂ →
              (snocᴴ μ₁ v₁) ≈⟨ β ⟩ᴴ (snocᴴ μ₂ v₂)
