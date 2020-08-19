@@ -15,7 +15,7 @@ open import Generic.PState.Base Ty₁ Ty₂ Value₁ Value₂
 open import Data.Product
 open import Generic.Store.Valid Ty₁ Value₁ Valid₁ public
 open import Generic.Heap.Base Ty₂ Value₂
-open import Generic.Heap.Valid Ty₂ Value₂ Valid₂ public
+open import Generic.Heap.Valid Ty₂ Value₂ Valid₂ hiding (snoc-valid) public
 
 open PState
 

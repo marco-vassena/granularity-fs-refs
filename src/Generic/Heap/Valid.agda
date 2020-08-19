@@ -19,10 +19,11 @@ open import Relation.Binary.PropositionalEquality
 
 open import Generic.Container.Valid ⊤ Ty Value Validⱽ -- (λ n v → ∥ v ∥ⱽ ≤ n)
   renaming ( read-valid to read-validⱽ
-           ; snoc-valid to snoc-validᴴ
+--           ; snoc-valid to snoc-validᴴ
            ; write-valid to write-validᴴ
            ; tail-valid to tail-validᴴ
-           ; valid-⊆ to valid-⊆ᴴ )
+--           ; valid-⊆ to valid-⊆ᴴ
+           )
   public
 
 -- postulate write-validᴴ : ∀ {τ μ μ' n} {v : Value τ} → Validᴴ μ → μ' ≔ μ [ n ↦ v ]ᴴ → Validⱽ ∥ μ ∥ᴴ v → Validᴴ μ'

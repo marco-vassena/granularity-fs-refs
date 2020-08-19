@@ -168,7 +168,7 @@ step-≤ (New x) = step-≤ x
 step-≤ (Read x _ _) = step-≤ x
 step-≤ (Write x _ x₁ _ _) = ≤-trans (step-≤ x) (step-≤ x₁)
 step-≤ (LabelOfRef-FS x _ _) = step-≤ x
-step-≤ (New-FS {μ' = μ'} {v = v} x) = ≤-trans (step-≤ x)  snoc-≤
+step-≤ (New-FS {μ' = μ'} {v = v} x) = ≤-trans (step-≤ x) snoc-≤
 step-≤ (Read-FS x _ _) = step-≤ x
 step-≤ (Write-FS x x₁ _ _ _ w) rewrite write-length-≡ w = ≤-trans (step-≤ x) (step-≤ x₁)
 step-≤ (Id x) = step-≤ x

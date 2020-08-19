@@ -17,10 +17,15 @@ tail-valid : ∀ {ℓ n τ} {v : Value τ} {C : Container ℓ} → Valid n (v �
 tail-valid valid ∈ = valid (There ∈)
   where open import Generic.Container.Lemmas Label Ty Value
 
-postulate read-valid : ∀ {ℓ τ n'} {v : Value τ} {C : Container ℓ} n → Valid n C → n' ↦ v ∈ C → Validⱽ n v
+read-valid : ∀ {ℓ τ n'} {v : Value τ} {C : Container ℓ} n → Valid n C → n' ↦ v ∈ C → Validⱽ n v
+read-valid n isV ∈₁ = isV ∈₁ -- Can be inlined
 
+-- We need this just for memory
 postulate snoc-valid : ∀ {ℓ τ} {v : Value τ} {C : Container ℓ} n → Valid n C → Validⱽ n v → Valid n (C ∷ᴿ v)
 
-postulate write-valid : ∀ {ℓ τ n'} {v : Value τ} {C C' : Container ℓ} n → Valid n C → C' ≔ C [ n' ↦ v ] → Validⱽ n v → Valid n C'
+postulate write-valid : ∀ {ℓ τ n'} {v : Value τ} {C C' : Container ℓ} n →
+              Valid n C → C' ≔ C [ n' ↦ v ] → Validⱽ n v → Valid n C'
+-- write-valid = ?
 
-postulate valid-⊆ : ∀ {ℓ n n'} {C : Container ℓ} → n ≤ n' → Valid n C → Valid n' C
+-- Need weakining to prove this, but not needed
+-- postulate valid-⊆ : ∀ {ℓ n n'} {C : Container ℓ} → n ≤ n' → Valid n C → Valid n' C
