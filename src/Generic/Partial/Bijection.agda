@@ -78,24 +78,6 @@ b ∈ᴿ β = ∃ (λ a → (a , b) ∈ᵗ β)
 _∈ᴿ′_ : ∀ {A B} → B → A ⤖ᴾ B → Set
 b ∈ᴿ′ β = ∃ (λ a → (a , b) ∈ᶠ β)
 
-
--- TODO : remove
-∈-∈ᴰ : ∀ {A B} {x : A × B} {β : A ⤖ᴾ B} → x ∈ᵗ β → (proj₁ x) ∈ᴰ β
-∈-∈ᴰ p = _ , p
-
--- ∈-∈ᴿ : ∀ {A B} {x : A × B} {β : A ⤖ᴾ B} → x ∈ᵗ β → (proj₂ x) ∈ᴿ β
--- ∈-∈ᴿ p = _ , p
-
-
--- only-oneᶠ {β = β} {x} {y₁ = y₁} {y₂} ∈₁ ∈₂ = just-injective proof
---   where open Bijectionᴾ β
---         open ≡-Reasoning
---         proof : just x₁ ≡ (just x₂)
---         proof =
---           begin just x₁ ≡⟨ sym (right-inverse-of ∈₁) ⟩
---           from y ≡⟨ right-inverse-of ∈₂ ⟩
---           just x₂ ∎
-
 --------------------------------------------------------------------------------
 -- Bijection extension
 
@@ -120,8 +102,22 @@ trans-⊆ ⊆₁ ⊆₂ = record { bij-⊆ = λ ∈₁ → M₂.bij-⊆ (M₁.bi
         module M₂ = _⊆_ ⊆₂
 
 --------------------------------------------------------------------------------
+-- TODO: how do we call this properties?
 
--- Composition
+_⊆ᴿ_ : ∀ {A B C} → (A ⤖ᴾ B) → (B ⤖ᴾ C) → Set
+β₁ ⊆ᴿ β₂ = ∀ {y} → y ∈ᴿ′ β₁ → y ∈ᴰ β₂
+
+infixl 3 _⊆ᴿ_
+
+_⊆ᴰ_ : ∀ {A B} → A ⤖ᴾ B → A ⤖ᴾ B → Set
+β₁ ⊆ᴰ β₂ = ∀ {x} → x ∈ᴰ β₁ → x ∈ᴰ β₂
+
+infixr 3 _⊆ᴰ_
+
+--------------------------------------------------------------------------------
+-- Operations
+
+-- Composition of bijections
 _∘_ : ∀ {A B C} → B ⤖ᴾ C → A ⤖ᴾ B → A ⤖ᴾ C
 _∘_ {A} {B} {C} f g =
   record { to = to g >=> to f
@@ -132,7 +128,6 @@ _∘_ {A} {B} {C} f g =
         open RawMonad {L.zero} monad
 
         -- Not the prettiest proof, but still a proof :-)
-        -- TODO: improve proof
         inv : (from f >=> from g) InverseOfᴾ (to g >=> to f)
         inv {c} {a} with to g a | inspect (to g) a | from f c | inspect (from f) c
         inv {c} {a} | just b₁ | [ ab∈g₁ ] | just b₂ | [ cb∈f₂ ] = left , right
@@ -167,6 +162,34 @@ _∘_ {A} {B} {C} f g =
 
 infixr 3 _∘_
 
+
+split-∈ᵗ : ∀ {A B C : Set} {a c} {β₁ : A ⤖ᴾ B} {β₂ : B ⤖ᴾ C} →
+             (a , c) ∈ᵗ (β₂ ∘ β₁) →
+             ∃ (λ b → (a , b) ∈ᵗ β₁ × (b , c) ∈ᵗ β₂)
+split-∈ᵗ {a = a} {β₁ = β₁} {β₂} ac∈ with Bijectionᴾ.to β₁  a
+split-∈ᵗ {a = a} {β₁ = β₁} {β₂} ac∈ | just b with Bijectionᴾ.to β₂ b | inspect (Bijectionᴾ.to β₂) b
+... | just c' | [ eq ] rewrite just-injective ac∈ | eq = b , refl  , eq
+split-∈ᵗ {a = a} {β₁ = β₁} {β₂} () | just b | nothing | _
+split-∈ᵗ {a = a} {β₁ = β₁} {β₂} () | nothing
+
+split-∈ᶠ : ∀ {A B C : Set} {a c} {β₁ : A ⤖ᴾ B} {β₂ : B ⤖ᴾ C} →
+             (a , c) ∈ᶠ (β₂ ∘ β₁) →
+             ∃ (λ b → (a , b) ∈ᶠ β₁ × (b , c) ∈ᶠ β₂)
+split-∈ᶠ {β₁ = β₁} {β₂} ∈∘ =
+  let (b , ∈₁ , ∈₂) = split-∈ᵗ {β₁ = β₁} {β₂} (left-inverse-of (β₂ ∘ β₁) ∈∘)
+  in b , right-inverse-of β₁ ∈₁ , right-inverse-of β₂ ∈₂
+  where open Bijectionᴾ
+
+join-∈ᵗ : ∀ {A B C : Set} {a b c} {β₁ : A ⤖ᴾ B} {β₂ : B ⤖ᴾ C} →
+            (a , b) ∈ᵗ β₁ → (b , c) ∈ᵗ β₂ → (a , c) ∈ᵗ (β₂ ∘ β₁)
+join-∈ᵗ {a = a} {b} {c} {β₁} {β₂} x y with Bijectionᴾ.to β₁ a
+join-∈ᵗ {a = a} {b} {c} {β₁} {β₂} x y | just b' with just-injective x
+join-∈ᵗ {a = a} {.b} {c} {β₁} {β₂} x y | just b | refl = y
+join-∈ᵗ {a = a} {b} {c} {β₁} {β₂} () y | nothing
+
+
+--------------------------------------------------------------------------------
+
 -- Invert a bijection
 _⁻¹ : ∀ {A : Set} {B : Set} → A ⤖ᴾ B → B ⤖ᴾ A
 β ⁻¹ = record { to = from ; from = to ; inverse-of = right-inverse-of , left-inverse-of }
@@ -174,6 +197,7 @@ _⁻¹ : ∀ {A : Set} {B : Set} → A ⤖ᴾ B → B ⤖ᴾ A
 
 infixr 5 _⁻¹
 
+-- Singleton Bijection (containing only 1 pair)
 module Singleton {A B} {{_≟ᴬ_ : DecEq A}} {{_≟ᴮ_ : DecEq B}} where
   instance _ = _≟ᴬ_
            _ = _≟ᴮ_
@@ -191,7 +215,6 @@ module Singleton {A B} {{_≟ᴬ_ : DecEq A}} {{_≟ᴮ_ : DecEq B}} where
 open Singleton {{...}} public
 
 --------------------------------------------------------------------------------
--- TODO: Are these ever used?
 
 -- Disjoint bijections.
 -- β₁ # β₂ denotes that β₂ is disjoint from β₁, i.e., the
@@ -228,7 +251,6 @@ _∣ᴮ_ {A} {B} β₁ β₂ {{ to-# , from-# }} =
         right = inverse-compose B₁.right-inverse-of B₂.right-inverse-of to-# from-#
 
 
--- TODO: probably it'd be nice to do the other one to
 ∣ᴮ-⊆₁  : ∀ {A B} → (β₁ β₂ : Bijectionᴾ A B) {{β₁#β₂ : β₁ # β₂}} → β₁ ⊆ (β₁ ∣ᴮ β₂)
 ∣ᴮ-⊆₁ β₁ β₂ = record { bij-⊆ = bij-⊆′ }
   where module B₁ = Bijectionᴾ β₁
@@ -251,115 +273,36 @@ _∣ᴮ_ {A} {B} β₁ β₂ {{ to-# , from-# }} =
         bij-⊆′ {x , y} () | just x₁ | [ eq ] | r | nothing | [ eq' ]
         bij-⊆′ {x , y} ∈₁ | nothing | _ = ∈₁
 
--- _∣ᴮ_[_] : ∀ {A B} → (β₁ β₂ : Bijectionᴾ A B) (β₁#β₂ : β₁ # β₂) → Bijectionᴾ A B
--- β₁ ∣ᴮ β₂ [ β₁#β₂ ] = β₁ ∣ᴮ β₂
---   where instance _ = β₁#β₂
-
--- These seem too complicated to use in practice
-
--- Maybe module?
-
--- Add a single pair to the right of a bijection
--- _▻_ : ∀ {A B} (β : Bijectionᴾ A B) (x : A × B) →
---        let (a , b) = x in
---          {{∉ᴬ : a ∉ᴰ Bijectionᴾ.to β}} {{∉ᴮ : b ∉ᴰ Bijectionᴾ.from β}}
---          {{_≟ᴬ_ : DecEq A}} {{_≟ᴮ_ : DecEq B}} → Bijectionᴾ A B
--- _▻_ β (a , b) {{ ∉ᴬ }} {{ ∉ᴮ }} {{_≟ᴬ_}} {{_≟ᴮ_}} = β ∣ᴮ (a ↔ b)
---   where instance _ = _≟ᴬ_
---                  _ = _≟ᴮ_
---                  _ : β # a ↔ b
---                  _ = ∉-# (Bijectionᴾ.to β) ∉ᴬ , ∉-# (Bijectionᴾ.from β) ∉ᴮ
-
--- -- Add a single pair to the left of a bijection
--- _◅_ : ∀ {A B} (x : A × B) (β : Bijectionᴾ A B) →
---        let (a , b) = x in
---          {{∉ᴬ : a ∉ᴰ Bijectionᴾ.to β}} {{∉ᴮ : b ∉ᴰ Bijectionᴾ.from β}}
---          {{_≟ᴬ_ : DecEq A}} {{_≟ᴮ_ : DecEq B}} → Bijectionᴾ A B
--- _◅_ (a , b) β {{ ∉ᴬ }} {{ ∉ᴮ }} {{_≟ᴬ_}} {{_≟ᴮ_}} = (a ↔ b) ∣ᴮ β
---   where instance _ = _≟ᴬ_
---                  _ = _≟ᴮ_
---                  _ : (a ↔ b) # β
---                  _ = sym-# (∉-# (Bijectionᴾ.to β) ∉ᴬ) , sym-# (∉-# (Bijectionᴾ.from β) ∉ᴮ)
-
-split-∈ᵗ : ∀ {A B C : Set} {a c} {β₁ : A ⤖ᴾ B} {β₂ : B ⤖ᴾ C} →
-             (a , c) ∈ᵗ (β₂ ∘ β₁) →
-             ∃ (λ b → (a , b) ∈ᵗ β₁ × (b , c) ∈ᵗ β₂)
-split-∈ᵗ {a = a} {β₁ = β₁} {β₂} ac∈ with Bijectionᴾ.to β₁  a
-split-∈ᵗ {a = a} {β₁ = β₁} {β₂} ac∈ | just b with Bijectionᴾ.to β₂ b | inspect (Bijectionᴾ.to β₂) b
-... | just c' | [ eq ] rewrite just-injective ac∈ | eq = b , refl  , eq
-split-∈ᵗ {a = a} {β₁ = β₁} {β₂} () | just b | nothing | _
-split-∈ᵗ {a = a} {β₁ = β₁} {β₂} () | nothing
-  where module B₁ = Bijectionᴾ β₁
-        module B₂ = Bijectionᴾ β₂
-
-split-∈ᶠ : ∀ {A B C : Set} {a c} {β₁ : A ⤖ᴾ B} {β₂ : B ⤖ᴾ C} →
-             (a , c) ∈ᶠ (β₂ ∘ β₁) →
-             ∃ (λ b → (a , b) ∈ᶠ β₁ × (b , c) ∈ᶠ β₂)
-split-∈ᶠ {β₁ = β₁} {β₂} ∈∘ =
-  let (b , ∈₁ , ∈₂) = split-∈ᵗ {β₁ = β₁} {β₂} (left-inverse-of (β₂ ∘ β₁) ∈∘)
-  in b , right-inverse-of β₁ ∈₁ , right-inverse-of β₂ ∈₂
-  where open Bijectionᴾ
-
-join-∈ᵗ : ∀ {A B C : Set} {a b c} {β₁ : A ⤖ᴾ B} {β₂ : B ⤖ᴾ C} →
-            (a , b) ∈ᵗ β₁ → (b , c) ∈ᵗ β₂ → (a , c) ∈ᵗ (β₂ ∘ β₁)
-join-∈ᵗ {a = a} {b} {c} {β₁} {β₂} x y with Bijectionᴾ.to β₁ a
-join-∈ᵗ {a = a} {b} {c} {β₁} {β₂} x y | just b' with just-injective x
-join-∈ᵗ {a = a} {.b} {c} {β₁} {β₂} x y | just b | refl = y
-join-∈ᵗ {a = a} {b} {c} {β₁} {β₂} () y | nothing
-
 --------------------------------------------------------------------------------
+-- Equality of bijections
 
--- open Bijectionᴾ
+-- Basic functional extensionality.
+postulate funext : ∀ {A : Set} {B : Set} (f g : A → B) → (∀ x → f x ≡ g x) → f ≡ g
 
+-- Function extensionality for dependently typed functions (with implicit arguments)
+postulate funext₂ : ∀ {A B : Set} {F : A → B → Set} (f g : ∀ {x y} → F x y) →
+                      (∀ x y → f {x} {y} ≡ g {x} {y}) →
+                      (λ {x} {y} → f {x} {y}) ≡ (λ {x} {y} → g {x} {y})
 
--- lemma : ∀ {A} {a a' : A} {β} → to β a ≡ just a' → to β a' ≡ just a → a ≡ a'
--- lemma {_} {a} {a'} {β} eq₁ eq₂ with right-inverse-of β eq₁ | right-inverse-of β eq₂ | to β a | to β a'
--- ... | eq₁' | eq₂' | x | y = {!left-inverse-of β eq₁'!}
+-- Functions over equalities are equal
+≡-equality-funs : ∀ {A B : Set} {a b : A} {c d : B} (f g : a ≡ b → c ≡ d) (eq : a ≡ b) → f eq ≡ g eq
+≡-equality-funs f g eq rewrite ≡-irrelevance (f eq) (g eq) = refl
 
--- TODO: needed? remove
--- ⊆⁻¹ : ∀ {A} (β₁ β₂ : A ⤖ᴾ A) → β₁ ⊆ β₂ → β₂ ⁻¹ ⊆ β₁
--- ⊆⁻¹ = {!!}
+≡-inverse-of : ∀ {A : Set} {f g : A ⇀ A} → (p q : f InverseOfᴾ g) (x y : A) → p {x} {y} ≡ q {x} {y}
+≡-inverse-of p q x y with p {x} {y} | q {x} {y}
+... | a , b | c , d
+  rewrite funext a c (≡-equality-funs a c) | funext b d (≡-equality-funs b d)
+  = refl
 
--- injective : ∀ {A B a a' b} {β : A ⤖ᴾ B} → to β a ≡ just b → to β a' ≡ just b → a ≡ a'
--- injective = {!!}
-
-
--- TODO: remove
--- Is this true?
--- Can this be generalized
--- ∘-⊆ : ∀ {A} {β β₁ β₂ : A ⤖ᴾ A} → β ⊆ β₁ → β ⊆ β₂ → β ⊆ β₁ ∘ β ∘ β₂
--- ∘-⊆ {β = β} {β₁} {β₂} ⊆₁ ⊆₂ {(a , a')} x∈β with ⊆₁ x∈β | ⊆₂ x∈β
--- ... | r | q rewrite q  = join-∈ᵗ {b = a} {β₁ = β} {β₁} {!x∈β!} r
--- with injective x∈β {!!}
--- ... | eq = {!!}
--- with to β a'
--- ... | just x rewrite x∈β = {!!}
--- ... | nothing = {!⊥-elim!}
-
-
--- with inspect (to β) a' | to β a'
--- ... | [ eq ] | just a'' = {!!}
--- ... | [ eq ] | nothing = {!trans (sym x∈β) ?!}
-
-
---  with right-inverse-of (β₂ ⁻¹) (⊆₂ x∈β)
--- ... | eq = {!eq!}
--- with ⊆₁ x∈β | ⊆⁻¹ β β₂ ⊆₂ (right-inverse-of β₂ (⊆₂ x∈β))
--- ... | r | q = {!!}
-
--- rewrite q with right-inverse-of β x∈β
--- ... | x rewrite x = {!!}
-
--- ∘-⊆ {β₁ = β₁} {β₂} (a , b) x∈β₁ with Bijectionᴾ.to β₁ a | Bijectionᴾ.to β₂ a
--- ∘-⊆ {β₁ = β₁} {β₂} (a , .x) refl | just x | just x₁ = {!!}
--- ∘-⊆ {β₁ = β₁} {β₂} (a , .x) refl | just x | nothing = {!!}
--- ∘-⊆ {β₁ = β₁} {β₂} (a , b) () | nothing | y
-
--- Do we need also this? I think so.
--- ∘-⊆′ : ∀ {A} {β₁ β₂ : A ⤖ᴾ A} → β₁ ⊆ β₂ ∘ β₁
--- ∘-⊆′ {β₁ = β₁} {β₂} (a , b) x∈β₁ with Bijectionᴾ.to β₁ a
--- ∘-⊆′ {β₁ = β₁} {β₂} (a , .x) refl | just x = {!!}
--- ∘-⊆′ {β₁ = β₁} {β₂} (a , b) () | nothing
+bij-≡ : ∀ {A} → (β₁ β₂ : Bijectionᴾ A A) →
+        let module B₁ = Bijectionᴾ
+            module B₂ = Bijectionᴾ in
+        B₁.to β₁ ≡ B₂.to β₂ → B₁.from β₁ ≡ B₂.from β₂ → β₁ ≡ β₂
+bij-≡
+  record { to = to₁ ; from = from₁ ; inverse-of = inverse-of₁ }
+  record { to = to₂ ; from = from₂ ; inverse-of = inverse-of₂ } refl refl
+  rewrite funext₂ (λ {x} {y} → inverse-of₁ {x} {y}) inverse-of₂ (≡-inverse-of inverse-of₁ inverse-of₂)
+  = refl
 
 --------------------------------------------------------------------------------
 -- More lemmas
@@ -381,3 +324,5 @@ only-oneᵗ : ∀ {A B} {x y₁ y₂} (β : Bijectionᴾ A B) →
              (x , y₁) ∈ᵗ β → (x , y₂) ∈ᵗ β → y₁ ≡ y₂
 only-oneᵗ β ∈₁ ∈₂ = only-oneᶠ (β ⁻¹) (left-inverse-of ∈₁) (left-inverse-of ∈₂)
   where open Bijectionᴾ (β ⁻¹)
+
+-- TODO: maybe move lemmas in a separate module
