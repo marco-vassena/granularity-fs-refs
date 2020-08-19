@@ -22,7 +22,7 @@ inj-∈ x y with inj-∈′ x y
 ... | refl , eq = eq
 
 -- TODO: fix this import
-open import Lattice hiding (Label) -- Here just because it defines the pragma {#- BUILTIN REWRITE #-}
+--open import Lattice hiding (Label ; _≟_) -- Here just because it defines the pragma {#- BUILTIN REWRITE #-}
 open import Data.Nat
 
 ∥snoc∥ : ∀ {ℓ τ} (C : Container ℓ) (v : Value τ) → ∥ C ∷ᴿ v ∥ ≡ suc ∥ C ∥
@@ -216,7 +216,7 @@ write-∈ : ∀ {τ n ℓ} {Σ Σ' : Container ℓ} {c : Value τ} → Σ' ≔ �
 write-∈ Here = Here
 write-∈ (There x) = There (write-∈ x)
 
-write-∈′ : ∀ {ℓ τ n} {Σ Σ' : Container ℓ} {c : Value τ} → Σ' ≔ Σ [ n ↦ c ] → n  ∈ Σ
+write-∈′ : ∀ {ℓ τ n} {Σ Σ' : Container ℓ} {c : Value τ} → Σ' ≔ Σ [ n ↦ c ] → n ∈ Σ
 write-∈′ Here = _ , _ , Here
 write-∈′ (There x) with write-∈′ x
 ... | _ , _ , y = _ , _ , There y
@@ -270,3 +270,18 @@ split-lookup (x ∷ C) v' Here = inj₁ Here
 split-lookup (x ∷ C) v' (There ∈₁) with split-lookup C v' ∈₁
 ... | inj₁ ∈₁' = inj₁ (There ∈₁')
 ... | inj₂ (refl , refl) = inj₂ (refl , refl)
+
+
+split-write :  ∀ {ℓ τ τ' n n'} {v : Value τ} {C C' : Container ℓ} {v' : Value τ'} →
+                 C' ≔ C [ n' ↦ v' ] → n ↦ v ∈ C' →
+                 (n ↦ v ∈ C) ⊎ (Σ (τ ≡ τ') (λ { refl → v ≡ v' }))
+split-write {n = n} {n'} w ∈₁′ with n' ≟  n
+split-write {n = n} {n'} w ∈₁′ | yes refl with inj-∈′ ∈₁′ (write-∈ w)
+... | refl , refl = inj₂ (refl , refl)
+split-write {n = n} {n'} w ∈₁′ | no ¬p with write-∈′′ w (_ , _ , ∈₁′)
+... | _ , _ , ∈₁ with write-only-one′ w ¬p ∈₁ ∈₁′
+... | refl , refl = inj₁ ∈₁
+
+join-≤ : ∀ {x y z} → x ≤ z → y ≤ z → x ⊔ y ≤ z
+join-≤ {z = z} x≤z y≤z with ⊔-mono-≤ x≤z y≤z
+... | ≤₁ rewrite m≤n⇒m⊔n≡n {z} ≤-refl = ≤₁

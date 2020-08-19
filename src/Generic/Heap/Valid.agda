@@ -1,13 +1,16 @@
 open import Data.Nat
 open import Lattice
+open import Generic.Valid
 
 module Generic.Heap.Valid
+  {{𝑳 : Lattice}}
   (Ty : Set)
   (Value : Ty → Set)
-  {{𝑳 : Lattice}}
-  (Validⱽ : ∀ {τ} → ℕ → Value τ  → Set)
+--  (Validⱽ : ∀ {τ} → ℕ → Value τ  → Set)
+  {{𝑽 : IsValid Value}}
 -- (∥_∥ⱽ : ∀ {τ} → Value τ → ℕ)
   where
+
 
 open import Data.Unit hiding (_≤_)
 import Generic.Container.Base ⊤ Ty Value as B
@@ -17,7 +20,10 @@ open import Data.Product
 open import Data.Nat.Properties
 open import Relation.Binary.PropositionalEquality
 
-open import Generic.Container.Valid ⊤ Ty Value Validⱽ -- (λ n v → ∥ v ∥ⱽ ≤ n)
+open IsValid 𝑽 renaming (Valid to Validⱽ)
+
+
+open import Generic.Container.Valid ⊤ Ty Value -- (λ n v → ∥ v ∥ⱽ ≤ n)
   renaming ( read-valid to read-validⱽ
 --           ; snoc-valid to snoc-validᴴ
            ; write-valid to write-validᴴ
@@ -29,11 +35,9 @@ open import Generic.Container.Valid ⊤ Ty Value Validⱽ -- (λ n v → ∥ v �
 -- postulate write-validᴴ : ∀ {τ μ μ' n} {v : Value τ} → Validᴴ μ → μ' ≔ μ [ n ↦ v ]ᴴ → Validⱽ ∥ μ ∥ᴴ v → Validᴴ μ'
 
 Validᴴ : Heap → Set
-Validᴴ μ = Valid ∥ μ ∥ᴴ μ
+Validᴴ μ = Validᶜ ∥ μ ∥ᴴ μ
 
 open import Data.Sum
-
-postulate wken-valid : ∀ {τ n n'} (v : Value τ) → n ≤ n' → Validⱽ n v → Validⱽ n' v
 
 snoc-validᴴ′ : ∀ {τ} {μ : Heap} {v : Value τ} → Validᴴ μ →  Validⱽ (suc ∥ μ ∥ᴴ) v → Validᴴ (snocᴴ μ v)
 snoc-validᴴ′ {μ = μ} {v} isV isVⱽ {n} ∈₁ with split-lookup μ v ∈₁
