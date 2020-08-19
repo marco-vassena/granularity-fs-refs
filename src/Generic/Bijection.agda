@@ -178,19 +178,9 @@ _⊆ᴰ_ : ∀ {A B} → A ⤖ᴾ B → A ⤖ᴾ B → Set
 
 infixr 3 _⊆ᴰ_
 
--- TODO: Remove, this seems unused
--- open import Generic.Partial.Function as P
--- open import Data.Sum
--- from-∈? : ∀ (n : ℕ) (β : Bij) → (n P.∈ᴰ (from β)) ⊎ n P.∉ᴰ (from β)
--- from-∈? n β with from β n
--- from-∈? n β | just x = inj₁ (just _)
--- from-∈? n β | nothing = inj₂ nothing
-
--- to-∈? : ∀ (n : ℕ) (β : Bij) → (n P.∈ᴰ (to β)) ⊎ n P.∉ᴰ (to β)
--- to-∈? n β with to β n
--- to-∈? n β | just x = inj₁ (just _)
--- to-∈? n β | nothing = inj₂ nothing
-
+ι-⊆ᴿ : ∀ {n m} → n ≤ m → ι n ⊆ᴿ ι m
+ι-⊆ᴿ {n} {m} n≤m (x , ∈₁) rewrite ι-≡ ∈₁ = _ , bij-⊆ (ι-⊆ n≤m) ∈₁′
+  where ∈₁′ = left-inverse-of (ι n) ∈₁
 
 -- Absorbs the ι with the greater domain.
 absorb-ι₁ : ∀ {n β} →  β ⊆ᴿ (ι n) → (ι n ∘ β) ≡ β
@@ -242,26 +232,7 @@ absorb-ι₂ {n} {β} ⊆₁ = bij-≡ (β ∘ ι n) β (funext _ _ to-ι) (fune
 -- Absorbs the ι with the greater domain.
 -- This seems a particular instance of the above.
 absorb-ι : ∀ {n m} → m ≤ n → (ι n ∘ ι m) ≡ ι m
-absorb-ι {n} {m} m≤n = bij-≡ (ι n ∘ ι m) (ι m) (funext _ _ (ι-∘ᵀ n m m≤n)) (funext _ _ (ι-∘ᶠ n m m≤n))
-  where
-
-        ι-∘ᵀ : ∀ n m → m ≤ n → (ι n ∘ ι m) ≈ᵀ ι m
-        ι-∘ᵀ n m m≤n x with x <? m
-        ι-∘ᵀ n m m≤n x | yes p with x <? n
-        ι-∘ᵀ n m m≤n x | yes p | yes p₁ = refl
-        ι-∘ᵀ n m m≤n x | yes x<m | no x≮n = ⊥-elim (x≮n (≤-trans x<m m≤n))
-        ι-∘ᵀ n m m≤n x | no ¬p = refl
-
-        ι-∘ᶠ : ∀ n m → m ≤ n → (ι n ∘ ι m) ≈ᶠ ι m
-        ι-∘ᶠ n m m≤n x with x <? n | x <? m
-        ι-∘ᶠ n m m≤n x | yes p | yes p₁ with x <? m
-        ι-∘ᶠ n m m≤n x | yes p | yes p₁ | yes p₂ = refl
-        ι-∘ᶠ n m m≤n x | yes x<m | yes x<n | no x≮n = ⊥-elim (x≮n x<n)
-        ι-∘ᶠ n m m≤n x | yes p | no ¬p with x <? m
-        ι-∘ᶠ n m m≤n x | yes p | no x≮m | yes x<m = ⊥-elim (x≮m x<m)
-        ι-∘ᶠ n m m≤n x | yes p | no ¬p | no ¬p₁ = refl
-        ι-∘ᶠ n m m≤n x | no x≮n | yes x<m = ⊥-elim (x≮n (≤-trans x<m m≤n))
-        ι-∘ᶠ n m m≤n x | no ¬p | no ¬p₁ = refl
+absorb-ι {n} {m} m≤n = absorb-ι₁ (ι-⊆ᴿ m≤n)
 
 ι-inv : ∀ n → (ι n) ≡ (ι n)⁻¹
 ι-inv n = bij-≡ _ _ refl refl

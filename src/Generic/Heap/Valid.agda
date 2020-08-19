@@ -23,17 +23,11 @@ open import Relation.Binary.PropositionalEquality
 
 open IsValid 𝑽 renaming (Valid to Validⱽ)
 
-
 open import Generic.Container.Valid ⊤ 𝑽
   renaming ( read-valid to read-validⱽ
---           ; snoc-valid to snoc-validᴴ
            ; write-valid to write-validᴴ
-           ; tail-valid to tail-validᴴ
---           ; valid-⊆ to valid-⊆ᴴ
-           )
+           ; tail-valid to tail-validᴴ )
   hiding (∥_∥ᶜ ; snoc-valid) public
-
--- postulate write-validᴴ : ∀ {τ μ μ' n} {v : Value τ} → Validᴴ μ → μ' ≔ μ [ n ↦ v ]ᴴ → Validⱽ ∥ μ ∥ᴴ v → Validᴴ μ'
 
 Validᴴ : Heap → Set
 Validᴴ μ = Validᶜ ∥ μ ∥ᴴ μ

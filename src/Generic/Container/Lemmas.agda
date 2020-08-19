@@ -230,14 +230,8 @@ last-≡ {Σ = []} Here = refl , refl
 last-≡ {Σ = _ ∷ Σ₁} (There x) with last-≡ x
 ... | refl , refl = refl , refl
 
--- TODO: remove
--- Is this needed?
--- postulate snoc-⊆ : ∀ {ℓ τ} (C : Container ℓ) (v : Value τ) → C ⊆ (C ∷ᴿ v)
-
 refl-⊆ : ∀ {ℓ} {C : Container ℓ} → C ⊆ C
 refl-⊆ = _,_ _
-
--- postulate write-⊆ᴹ : ∀ {ℓ τ n} {v : Value τ} {C C' : Container ℓ} → C' ≔ C [ n ↦ v ] → C ⊆ C'
 
 open import Data.Sum
 
