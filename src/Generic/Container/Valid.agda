@@ -54,9 +54,6 @@ valid-≤ᶜ : ∀ {ℓ n} (C : Container ℓ) → Validᶜ n C → ∥ C ∥ᶜ
 valid-≤ᶜ B.[] isV = z≤n
 valid-≤ᶜ (v B.∷ C) isV = join-≤ (valid-≤ⱽ v (isV Here)) (valid-≤ᶜ C (tail-valid isV))
 
--- Need weakining to prove this, but not needed
--- postulate valid-⊆ : ∀ {ℓ n n'} {C : Container ℓ} → n ≤ n' → Validᶜ n C → Validᶜ n' C
-
 instance
   IsValidᶜ : IsValid Label Container ∥_∥ᶜ
   IsValidᶜ = record { Valid = Validᶜ
