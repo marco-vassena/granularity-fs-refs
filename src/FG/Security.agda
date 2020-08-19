@@ -23,6 +23,10 @@ open import Data.Nat hiding (_^_)
 
 -- TODO: rename validᴱ-⊆ᴴ
 
+open import Generic.Valid
+open IsValid isValidᴱ
+open Validᴾ
+
 step-≈ᴾ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
              let ⟨ Σ , μ , _ ⟩ = c
                  ⟨ Σ' , μ' , _ ⟩ = c' in
@@ -51,12 +55,12 @@ step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Test₂ x x₁ ℓ⊑ refl) pc⋤A =
 
 step-≈ᴾ Fun pc⋤A = refl-≈ᴾ
 
-step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (App {θ' = θ'} x₁ x₂ refl x₃) pc⋤A =
+step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (App x₁ x₂ refl x₃) pc⋤A =
   let isV₁ᴱ ∧ isVᴾ′ ∧ isVᴱ′ = valid-invariant x₁ (isVᴾ ∧ isVᴱ)
       _ ∧ isVᴾ′′ ∧ isVⱽ = valid-invariant x₂ (isVᴾ′ ∧ isV₁ᴱ)
       ≈ᴾ′ = step-≈ᴾ x₁ pc⋤A
       ≈ᴾ′′ = step-≈ᴾ {{ isVᴾ′ }} {{ isV₁ᴱ }} x₂ pc⋤A
-      isVᴱ′′ = validᴱ-⊆ᴴ {θ = θ'} (step-⊆ᴴ x₂) isVᴱ′
+      isVᴱ′′ = validᴱ-⊆ᴴ (step-⊆ᴴ x₂) isVᴱ′
       ≈ᴾ′′′ = step-≈ᴾ {{ isVᴾ′′ }} {{  isVⱽ ∧ isVᴱ′′  }} x₃ (join-⋤₁ pc⋤A)
   in trans-≈ᴾ-ι ≈ᴾ′ (trans-≈ᴾ-ι ≈ᴾ′′ ≈ᴾ′′′)
 
@@ -119,16 +123,16 @@ step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Write x ⊑₁ x₁ ⊑₂ w) pc⋤A =
 
 step-≈ᴾ (LabelOfRef-FS x x₁ eq) pc⋤A = step-≈ᴾ x pc⋤A
 
--- Do we need all of them
-step-≈ᴾ {{⟨ isVˢ , isVᴴ ⟩}} {{isVᴱ}} (New-FS {Σ = Σ} {Σ' = Σ'} {μ = μ} {μ' = μ'} {v = v} x) pc⋤A =
-  let ⟨ ≈ˢ , ≈ᴴ ⟩ = step-≈ᴾ {{ ⟨ isVˢ , isVᴴ ⟩ }} {{isVᴱ}} x pc⋤A
-      _ ∧ ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ _ = valid-invariant x (⟨ isVˢ , isVᴴ ⟩ ∧ isVᴱ)
-      ≈ˢ′ = trans-≈ˢ-ι {Σ₁ = Σ} {Σ₂ = Σ'} {Σ₃ = Σ'} {n₁ = ∥ μ ∥ᴴ} {n₂ = ∥ μ' ∥ᴴ} ≈ˢ (refl-≈ˢ {{ isVˢ′ }}) in
+-- TODO: Do we need all of them implicits?
+step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (New-FS x) pc⋤A =
+  let ⟨ ≈ˢ , ≈ᴴ ⟩ = step-≈ᴾ {{ isVᴾ }} {{isVᴱ}} x pc⋤A
+      isVᴾ′ ∧ _ = validᴾ-⇓ x (isVᴾ ∧ isVᴱ)
+      ≈ˢ′ = trans-≈ˢ-ι ≈ˢ (refl-≈ˢ {{ validˢ isVᴾ′ }}) in
       ⟨ ≈ˢ′ , snoc-≈ᴴ _ ≈ᴴ ⟩
 
 step-≈ᴾ (Read-FS x x₁ eq) pc⋤A = step-≈ᴾ x pc⋤A
 
-step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Write-FS {ℓ = ℓ} {ℓ₁} {ℓ₂} {ℓ₂'} x x₁ ∈₁ ⊑₁ refl w) pc⋤A =
+step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Write-FS x x₁ ∈₁ ⊑₁ refl w) pc⋤A =
   let isVᴱ′ ∧ isVᴾ′ ∧ _ = valid-invariant x (isVᴾ ∧ isVᴱ)
       isVᴱ′′ ∧ isVᴾ′′ ∧ _ = valid-invariant x₁ (isVᴾ′ ∧ isVᴱ′)
       ≈ᴾ′ = step-≈ᴾ x pc⋤A
@@ -146,10 +150,6 @@ wken-∃ : ∀ {τ β β'} {c₁ c₂ : FConf τ} →
          β ⊆ β' → (x : ∃ (λ β'' → β' ⊆ β'' × c₁ ≈⟨ β'' ⟩ᶜ c₂)) →
          ∃ (λ β'' → β ⊆ β'' × c₁ ≈⟨ β'' ⟩ᶜ c₂)
 wken-∃ β⊆β' (β'' ∧ β'⊆β'' ∧ ≈₁)  = β'' ∧ (trans-⊆ β⊆β' β'⊆β'') ∧ ≈₁
-
-open import Generic.Valid
-open IsValid isValidᴱ
-open Validᴾ
 
 mutual
 
@@ -190,7 +190,7 @@ mutual
 
   tiniᴸ {{isV₁}} {{isV₂}} (Test₁ x₁ x₂ ℓ₁⊑ℓ₂ refl) (Test₁ y₁ y₂ _ refl) ≈ᴾ θ₁≈θ₂ pc⊑A
     | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ pc⋤ℓ₁' pc⋤ℓ₂' ⟩
-    with tiniᴸ {{ validᴾ-⇓ x₁ isV₁ }} {{ validᴾ-⇓ y₁ isV₂ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A --  validᴾ-⇓ x₁ ( isV₁)
+    with tiniᴸ {{ validᴾ-⇓ x₁ isV₁ }} {{ validᴾ-⇓ y₁ isV₂ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
   ... |  β'' ∧ β'⊆β'' ∧ ⟨ ≈ᴾ′′ , v≈ ⟩
     = β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ ≈ᴾ′′ , Valueᴴ (join-⋤₁ pc⋤ℓ₁') (join-⋤₁ pc⋤ℓ₂') ⟩
 
@@ -289,7 +289,7 @@ mutual
   -- End App Cases
   --------------------------------------------------------------------------------
 
-  tiniᴸ {{ isV₁ᴾ ∧ isV₁ᴱ }} {{ isV₂ᴾ ∧ isV₂ᴱ}} (Wken {μ' = μ₁'} p x) (Wken {μ' = μ₂'} .p y) ≈ᴾ θ≈ pc⊑A =
+  tiniᴸ {{ isV₁ᴾ ∧ isV₁ᴱ }} {{ isV₂ᴾ ∧ isV₂ᴱ}} (Wken p x) (Wken .p y) ≈ᴾ θ≈ pc⊑A =
     let θ≈′ = slice-≈ᴱ θ≈ p
         isV₁ᴱ′ = slice-validᴱ _ p isV₁ᴱ
         isV₂ᴱ′ = slice-validᴱ _ p isV₂ᴱ in
@@ -402,13 +402,13 @@ mutual
   ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , (Valueᴴ (join-⋤₁ ℓ₁⋤A) (join-⋤₁ ℓ₂⋤A)) ⟩
   ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ (join-⋤₂ ℓ₁⋤A) (join-⋤₂ ℓ₂⋤A) ⟩
 
-  tiniᴸ {{isV₁}} {{isV₂}} (New {μ' = μ₁} x₁) (New {μ' = μ₂} y₁) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ₁≈θ₂ pc⊑A
+  tiniᴸ {{isV₁}} {{isV₂}} (New x₁) (New y₁) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ y₁ ≈ᴾ θ₁≈θ₂ pc⊑A
   ... | β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , Valueᴴ ⋤₁ ⋤₂  ⟩ =
     let isV₁ᴾ′ ∧ _  = validᴾ-⇓ x₁ isV₁
         isV₂ᴾ′ ∧ _  = validᴾ-⇓ y₁ isV₂
         Σ₁≈ = updateᴴ-≈ˢ {{ validˢ isV₁ᴾ′ }} ⋤₁
         Σ₂≈ = updateᴴ-≈ˢ {{ validˢ isV₂ᴾ′ }} ⋤₂
-        Σ≈′ = square-≈ˢ-ι {n₁ = ∥ μ₁ ∥ᴴ} {n₂ = ∥ μ₂ ∥ᴴ}  Σ≈ Σ₁≈ Σ₂≈
+        Σ≈′ = square-≈ˢ-ι Σ≈ Σ₁≈ Σ₂≈
         v≈′ = Valueᴸ pc⊑A (Ref-Iᴴ ⋤₁ ⋤₂) in
         β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈′ , μ≈ ⟩ , v≈′ ⟩
 
@@ -431,7 +431,7 @@ mutual
   ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴴ ℓ₁⋤A ℓ₂⋤A ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , v≈ ⟩
     where v≈ = Valueᴴ (join-⋤₂ ℓ₁⋤A) (join-⋤₂ ℓ₂⋤A)
 
-  tiniᴸ {{isV₁}} {{isV₂}} (Write {μ₃ = μ₃} x₁ ⊑₁ x₂ ℓ₂⊑ℓ w₁) (Write {μ₃ = μ₃′} y₁ ⊑₂ y₂ ℓ₂⊑ℓ' w₂) ≈ᴾ θ₁≈θ₂ pc⊑A
+  tiniᴸ {{isV₁}} {{isV₂}} (Write x₁ ⊑₁ x₂ ℓ₂⊑ℓ w₁) (Write y₁ ⊑₂ y₂ ℓ₂⊑ℓ' w₂) ≈ᴾ θ₁≈θ₂ pc⊑A
     with  validᴾ-⇓ x₁ isV₁ | validᴾ-⇓ y₁ isV₂ | tiniᴸ x₁ y₁ ≈ᴾ θ₁≈θ₂ pc⊑A
 
   -- Write low-data to a secret-dependent reference
@@ -454,7 +454,7 @@ mutual
             Σ≈′ = updateᴸ-≈ˢ Σ≈ (update-≈ᴹ M≈ (extract-≈ᴿ v≈ (trans-⊑ ℓ₂⊑ℓ ⊑₁)) w₁ w₂)
 
   -- Write low data to high reference
-  tiniᴸ  {{isV₁}} {{isV₂}} (Write {μ₃ = μ₃} x₁ ⊑₁ x₂ ⊑₁′ w₁) (Write {μ₃ = μ₃′} y₁ ⊑₂ y₂ ⊑₂′ w₂) ≈ᴾ θ₁≈θ₂ pc⊑A
+  tiniᴸ  {{isV₁}} {{isV₂}} (Write x₁ ⊑₁ x₂ ⊑₁′ w₁) (Write y₁ ⊑₂ y₂ ⊑₂′ w₂) ≈ᴾ θ₁≈θ₂ pc⊑A
     | isV₁′ | isV₂′ | β' ∧ β⊆β'  ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Ref-Iᴴ ⋤₁ ⋤₂) ⟩
     with tiniᴸ {{ isV₁′ }} {{ isV₂′ }} x₂ y₂ ≈ᴾ′ (wken-≈ᴱ β⊆β' θ₁≈θ₂) pc⊑A
   ... | β'' ∧ β'⊆β'' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , v≈ ⟩ =
@@ -479,15 +479,16 @@ mutual
 
   tiniᴸ (New-FS {μ' = μ₁'} x₁) (New-FS {μ' = μ₂'} x₂) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
   ... | β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , v≈  ⟩ = β'' ∧ β⊆β'' ∧ ⟨ ⟨ wken-≈ˢ ⊆₁ Σ≈ , μ≈′ ⟩ , wken-≈ⱽ ⊆₂ v≈′ ⟩
-      where instance _ = _≟_
-                     _ = ≈-# μ≈
-            β₁ =  ∥ μ₁' ∥ᴴ ↔ ∥ μ₂' ∥ᴴ
-            β'' = β' ∣ᴮ β₁
-            ⊆₁ = ∣ᴮ-⊆₁ β' β₁
-            ⊆₂ = ∣ᴮ-⊆₂ β' β₁
-            β⊆β'' = trans-⊆ β⊆β' ⊆₁
-            μ≈′ = newᴸ-≈ᴴ v≈ μ≈
-            v≈′ = Valueᴸ pc⊑A (Ref-S (↔-∈ᵗ ∥ μ₁' ∥ᴴ ∥ μ₂' ∥ᴴ))
+      where
+        instance _ = _≟_
+                 _ = ≈-# μ≈
+        β₁ =  ∥ μ₁' ∥ᴴ ↔ ∥ μ₂' ∥ᴴ
+        β'' = β' ∣ᴮ β₁
+        ⊆₁ = ∣ᴮ-⊆₁ β' β₁
+        ⊆₂ = ∣ᴮ-⊆₂ β' β₁
+        β⊆β'' = trans-⊆ β⊆β' ⊆₁
+        μ≈′ = newᴸ-≈ᴴ v≈ μ≈
+        v≈′ = Valueᴸ pc⊑A (Ref-S (↔-∈ᵗ ∥ μ₁' ∥ᴴ ∥ μ₂' ∥ᴴ))
 
   tiniᴸ (Read-FS x₁ ∈₁ refl) (Read-FS x₂ ∈₂ refl) ≈ᴾ θ₁≈θ₂ pc⊑A with tiniᴸ x₁ x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
 
