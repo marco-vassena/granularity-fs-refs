@@ -146,7 +146,7 @@ irr-< (s≤s (s≤s p)) (s≤s (s≤s q)) = cong s≤s (irr-< (s≤s p) (s≤s q
 --------------------------------------------------------------------------------
 -- Equality about composition of identity bijections
 
-open import Relation.Binary.HeterogeneousEquality hiding (inspect ; sym ; cong ; cong₂)
+open import Relation.Binary.HeterogeneousEquality hiding (inspect ; sym ; cong ; cong₂ ; subst)
 
 -- Basic functional extensionality.
 postulate funext : ∀ {A : Set} {B : Set} (f g : A → B) → (∀ x → f x ≡ g x) → f ≡ g
@@ -168,11 +168,15 @@ _≈ᶠ_ : Bij → Bij → Set
 postulate bij-≡ : ∀ (β₁ β₂ : Bij) → to β₁ ≡ to β₂ → from β₁ ≡ from β₂ → β₁ ≡ β₂
 
 -- Move to bijection
-_⊆ᴿ_ : ∀ {A B C} → A ⤖ᴾ B → B ⤖ᴾ C → Set
+_⊆ᴿ_ : ∀ {A B C} → (A ⤖ᴾ B) → (B ⤖ᴾ C) → Set
 β₁ ⊆ᴿ β₂ = ∀ {y} → y ∈ᴿ′ β₁ → y ∈ᴰ β₂
+
+infixl 3 _⊆ᴿ_
 
 _⊆ᴰ_ : ∀ {A B} → A ⤖ᴾ B → A ⤖ᴾ B → Set
 β₁ ⊆ᴰ β₂ = ∀ {x} → x ∈ᴰ β₁ → x ∈ᴰ β₂
+
+infixr 3 _⊆ᴰ_
 
 -- TODO: Remove, this seems unused
 -- open import Generic.Partial.Function as P
@@ -259,8 +263,32 @@ absorb-ι {n} {m} m≤n = bij-≡ (ι n ∘ ι m) (ι m) (funext _ _ (ι-∘ᵀ 
         ι-∘ᶠ n m m≤n x | no x≮n | yes x<m = ⊥-elim (x≮n (≤-trans x<m m≤n))
         ι-∘ᶠ n m m≤n x | no ¬p | no ¬p₁ = refl
 
-ι-inv : ∀ {n} → (ι n) ≡ (ι n)⁻¹
-ι-inv {n} = bij-≡ _ _ refl refl
+ι-inv : ∀ n → (ι n) ≡ (ι n)⁻¹
+ι-inv n = bij-≡ _ _ refl refl
+
+cong₃ : ∀ {a b c d} {A : Set a} {B : Set b} {C : Set c} {D : Set d}
+        (f : A → B → C → D) {x y u v w z} → x ≡ y → u ≡ v → z ≡ w → f x u z ≡ f y v w
+cong₃ f refl refl refl = refl
+
+square-lemma : ∀ {n₁ n₂ β} → β ⊆ᴿ (ι n₂) → β ⊆ᴰ (ι n₁) → (ι n₂ ∘ β ∘ (ι n₁) ⁻¹) ≡ β
+square-lemma {n₁} {n₂} {β} ⊆₁ ⊆₂ = ≡β
+  where open ≡-Reasoning
+
+        ⊆₁′ : (β ∘ ι n₁) ⊆ᴿ (ι n₂)
+        ⊆₁′ {x} (_ , ∈₁) with split-∈ᶠ {β₁ = ι n₁} {β₂ = β} ∈₁
+        ... | y , ∈ᴵ , ∈ᴮ = ⊆₁ (_ , ∈ᴮ)
+
+        ≡β : (ι n₂ ∘ β ∘ (ι n₁) ⁻¹) ≡ β
+        ≡β = begin
+               ι n₂ ∘ β ∘ (ι n₁) ⁻¹
+             ≡⟨ cong₃ (λ a b c → a ∘ b ∘ c) refl refl (ι-inv n₁) ⟩
+               ι n₂ ∘ β ∘ (ι n₁)
+             ≡⟨ absorb-ι₁ ⊆₁′ ⟩
+               β ∘ (ι n₁)
+             ≡⟨ absorb-ι₂ ⊆₂ ⟩
+               β
+             ∎
+
 
 --------------------------------------------------------------------------------
 

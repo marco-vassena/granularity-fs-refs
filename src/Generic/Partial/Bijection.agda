@@ -292,6 +292,13 @@ split-∈ᵗ {a = a} {β₁ = β₁} {β₂} () | nothing
   where module B₁ = Bijectionᴾ β₁
         module B₂ = Bijectionᴾ β₂
 
+split-∈ᶠ : ∀ {A B C : Set} {a c} {β₁ : A ⤖ᴾ B} {β₂ : B ⤖ᴾ C} →
+             (a , c) ∈ᶠ (β₂ ∘ β₁) →
+             ∃ (λ b → (a , b) ∈ᶠ β₁ × (b , c) ∈ᶠ β₂)
+split-∈ᶠ {β₁ = β₁} {β₂} ∈∘ =
+  let (b , ∈₁ , ∈₂) = split-∈ᵗ {β₁ = β₁} {β₂} (left-inverse-of (β₂ ∘ β₁) ∈∘)
+  in b , right-inverse-of β₁ ∈₁ , right-inverse-of β₂ ∈₂
+  where open Bijectionᴾ
 
 join-∈ᵗ : ∀ {A B C : Set} {a b c} {β₁ : A ⤖ᴾ B} {β₂ : B ⤖ᴾ C} →
             (a , b) ∈ᵗ β₁ → (b , c) ∈ᵗ β₂ → (a , c) ∈ᵗ (β₂ ∘ β₁)

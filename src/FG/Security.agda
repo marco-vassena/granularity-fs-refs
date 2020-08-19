@@ -108,7 +108,7 @@ step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (New x) pc⋤A =
   let ⟨ ≈ˢ , ≈ᴴ ⟩ = step-≈ᴾ x pc⋤A
       _ ∧ ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ _ = valid-invariant x (isVᴾ ∧ isVᴱ)
       ≈ˢ′ = updateᴴ-≈ˢ {{ isVˢ′ }} (trans-⋤ (step-⊑ x) pc⋤A) in
-      ⟨ trans-≈ˢ-ι ≈ˢ ≈ˢ′ , ≈ᴴ ⟩
+      ⟨ trans-≈ˢ-ι (step-≤ x) ≈ˢ ≈ˢ′ , ≈ᴴ ⟩
 
 step-≈ᴾ (Read x x₁ eq) pc⋤A = step-≈ᴾ x pc⋤A
 
@@ -127,7 +127,7 @@ step-≈ᴾ (LabelOfRef-FS x x₁ eq) pc⋤A = step-≈ᴾ x pc⋤A
 step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (New-FS x) pc⋤A =
   let ⟨ ≈ˢ , ≈ᴴ ⟩ = step-≈ᴾ {{ isVᴾ }} {{isVᴱ}} x pc⋤A
       isVᴾ′ ∧ _ = validᴾ-⇓ x (isVᴾ ∧ isVᴱ)
-      ≈ˢ′ = trans-≈ˢ-ι ≈ˢ (refl-≈ˢ {{ validˢ isVᴾ′ }}) in
+      ≈ˢ′ = trans-≈ˢ-ι (step-≤ x) ≈ˢ (refl-≈ˢ {{ validˢ isVᴾ′ }}) in
       ⟨ ≈ˢ′ , snoc-≈ᴴ _ ≈ᴴ ⟩
 
 step-≈ᴾ (Read-FS x x₁ eq) pc⋤A = step-≈ᴾ x pc⋤A
@@ -408,9 +408,10 @@ mutual
         isV₂ᴾ′ ∧ _  = validᴾ-⇓ y₁ isV₂
         Σ₁≈ = updateᴴ-≈ˢ {{ validˢ isV₁ᴾ′ }} ⋤₁
         Σ₂≈ = updateᴴ-≈ˢ {{ validˢ isV₂ᴾ′ }} ⋤₂
-        Σ≈′ = square-≈ˢ-ι Σ≈ Σ₁≈ Σ₂≈
+        Σ≈′ = square-≈ˢ-ι Σ≈ Σ₁≈ Σ₂≈ ⊆ᴿ-ι ⊆ᴰ-ι
         v≈′ = Valueᴸ pc⊑A (Ref-Iᴴ ⋤₁ ⋤₂) in
         β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈′ , μ≈ ⟩ , v≈′ ⟩
+    where open _≈⟨_⟩ᴴ_ μ≈
 
   ... | β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , Valueᴸ ℓ⊑A r≈ ⟩ = β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈′ , μ≈ ⟩ , v≈′ ⟩
       where M≈ = getᴸ Σ≈ ℓ⊑A
@@ -442,8 +443,9 @@ mutual
         isV₂ᴾ′′ ∧ _  = validᴾ-⇓ y₂ isV₂′
         Σ₁≈ = updateᴴ-≈ˢ {{ validˢ isV₁ᴾ′′ }} (trans-⋤ ⊑₁ ℓ₁⋤A)
         Σ₂≈ = updateᴴ-≈ˢ {{ validˢ isV₂ᴾ′′ }} (trans-⋤ ⊑₂ ℓ₂⋤A)
-        Σ≈′ = square-≈ˢ-ι Σ≈ Σ₁≈ Σ₂≈ in
+        Σ≈′ = square-≈ˢ-ι Σ≈ Σ₁≈ Σ₂≈ ⊆ᴿ-ι ⊆ᴰ-ι in
         β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ ⟨ Σ≈′ , μ≈ ⟩ , Valueᴸ pc⊑A Unit ⟩
+    where open _≈⟨_⟩ᴴ_ μ≈
 
   -- Write low data to low reference
   tiniᴸ {{isV₁}} {{isV₂}} (Write x₁ ℓ'⊑ℓ x₂ ℓ₂⊑ℓ w₁) (Write y₁ ℓ'⊑ℓ' y₂ ℓ₂⊑ℓ' w₂) ≈ᴾ θ₁≈θ₂ pc⊑A
@@ -462,8 +464,9 @@ mutual
         isV₂ᴾ′′ ∧ _  = validᴾ-⇓ y₂ isV₂′
         Σ₁≈ = updateᴴ-≈ˢ {{ validˢ isV₁ᴾ′′ }} ⋤₁
         Σ₂≈ = updateᴴ-≈ˢ {{ validˢ isV₂ᴾ′′ }} ⋤₂
-        Σ≈′ = square-≈ˢ-ι Σ≈ Σ₁≈ Σ₂≈ in
+        Σ≈′ = square-≈ˢ-ι Σ≈ Σ₁≈ Σ₂≈ ⊆ᴿ-ι ⊆ᴰ-ι in
         β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ ⟨ Σ≈′ , μ≈ ⟩ , Valueᴸ pc⊑A Unit ⟩
+    where open _≈⟨_⟩ᴴ_ μ≈
 
   tiniᴸ (Id x₁) (Id x₂) ≈ᴾ θ₁≈θ₂ pc⊑A with  tiniᴸ x₁ x₂ ≈ᴾ θ₁≈θ₂ pc⊑A
   ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , v≈ ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ pc⊑A (Id v≈) ⟩
