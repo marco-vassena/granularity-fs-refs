@@ -346,9 +346,10 @@ valid-invariant (UnId x _) (isVᴾ ∧ isVᴱ) =
 
 validᴾ-⇓ : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
                               c ⇓⟨ θ , ℓ ⟩ c' →
-                              Valid-Inputs c θ → Validᴾ ⟨ store c' , heap c' ⟩
-validᴾ-⇓ x vi with valid-invariant x vi
-... | _ ∧ isV ∧ _ = isV
+                              let ⟨ Σ' , μ' , _ ⟩ = c' in
+                              Valid-Inputs c θ → Validᴾ ⟨ Σ' , μ' ⟩ × Validᴱ ∥ μ' ∥ᴴ θ
+validᴾ-⇓ x vi  with valid-invariant x vi
+... | isVᴱ ∧ isVᴾ ∧ _ = isVᴾ ∧ isVᴱ
 
 --------------------------------------------------------------------------------
 -- TODO: remove
