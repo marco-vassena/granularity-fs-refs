@@ -4,11 +4,12 @@ open import Generic.Valid
 
 module Generic.Heap.Valid
   {{𝑳 : Lattice}}
-  (Ty : Set)
-  (Value : Ty → Set)
+  {Ty : Set}
+  {Value : Ty → Set}
+  {∥_∥ⱽ : ∀ {τ} → Value τ → ℕ}
 --  (Validⱽ : ∀ {τ} → ℕ → Value τ  → Set)
-  {{𝑽 : IsValid Value}}
--- (∥_∥ⱽ : ∀ {τ} → Value τ → ℕ)
+  (𝑽 : IsValid Ty Value ∥_∥ⱽ)
+
   where
 
 
@@ -23,14 +24,14 @@ open import Relation.Binary.PropositionalEquality
 open IsValid 𝑽 renaming (Valid to Validⱽ)
 
 
-open import Generic.Container.Valid ⊤ Ty Value -- (λ n v → ∥ v ∥ⱽ ≤ n)
+open import Generic.Container.Valid ⊤ 𝑽
   renaming ( read-valid to read-validⱽ
 --           ; snoc-valid to snoc-validᴴ
            ; write-valid to write-validᴴ
            ; tail-valid to tail-validᴴ
 --           ; valid-⊆ to valid-⊆ᴴ
            )
-  public
+  hiding (∥_∥ᶜ ; snoc-valid) public
 
 -- postulate write-validᴴ : ∀ {τ μ μ' n} {v : Value τ} → Validᴴ μ → μ' ≔ μ [ n ↦ v ]ᴴ → Validⱽ ∥ μ ∥ᴴ v → Validᴴ μ'
 

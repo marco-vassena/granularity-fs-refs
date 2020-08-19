@@ -4,15 +4,15 @@ open import Generic.Valid
 
 module Generic.Store.Valid
   {{𝑳 : Lattice}}
-  (Ty : Set)
-  (Value : Ty → Set)
-  {{𝑽 : IsValid Value}} where
+  {Ty : Set}
+  {Value : Ty → Set}
+  {∥_∥ⱽ : ∀ {τ} → Value τ → ℕ}
+  (𝑽 : IsValid Ty Value ∥_∥ⱽ ) where
 
 --  (Validⱽ : ∀ {τ} → ℕ → Value τ  → Set) where
---  (∥_∥ⱽ : ∀ {τ} → Value τ → ℕ) where
 
 open import Generic.Store Ty Value
-open import Generic.Memory.Valid Ty Value public
+open import Generic.Memory.Valid 𝑽 public
 
 Validˢ : ℕ → Store → Set
 Validˢ n Σ = ∀ ℓ → Validᴹ n (Σ ℓ)

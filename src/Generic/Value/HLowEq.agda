@@ -14,15 +14,14 @@ data _≅⟨_⟩ⱽ_ {τ} (v : Value τ) (β : Bij) : ∀ {τ} → Value τ → 
 ≅ⱽ-type-≡ : ∀ {τ₁ τ₂ β} {v₁ : Value τ₁} {v₂ : Value τ₂} → v₁ ≅⟨ β ⟩ⱽ v₂ → τ₁ ≡ τ₂
 ≅ⱽ-type-≡ ⌞ x ⌟ = refl
 
-private module V = IProps Ty Value
+-- private module V = IProps Ty Value
+-- open import Data.Nat
+
+open import Generic.ValidEquivalence Ty Value
 
 -- Why two modules?
-module Props (𝑽 : V.IsEquivalenceᴮ  _≈⟨_⟩ⱽ_) where
-  open V.IsEquivalenceᴮ 𝑽
-  open import Data.Nat
-
-  Domⱽ : ∀ {τ} → Value τ → ℕ
-  Domⱽ = Dom
+module Props (𝑽 : IsValidEquivalence  _≈⟨_⟩ⱽ_ ) where
+  open IsValidEquivalence 𝑽 renaming (∥_∥ to Domⱽ)
 
   refl-≅ⱽ : ∀ {τ} {v : Value τ} → v ≅⟨ ι (Domⱽ v) ⟩ⱽ v
   refl-≅ⱽ = ⌞ reflᴮ ⌟

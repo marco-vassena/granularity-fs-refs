@@ -398,26 +398,35 @@ mutual
 open import Generic.Bijection
 
 -- Why do we need this?
-𝑽 : V.IsEquivalenceᴮ _≈⟨_⟩ⱽ_
-𝑽 = record { Dom = ∥_∥ⱽ
-           ; reflᴮ = refl-≈ⱽ
+isEquivⱽ : V.IsEquivalenceᴮ _≈⟨_⟩ⱽ_ ∥_∥ⱽ
+isEquivⱽ = record { reflᴮ = refl-≈ⱽ
            ; wkenᴮ = wken-≈ⱽ
            ; symᴮ = sym-≈ⱽ
            ; transᴮ = trans-≈ⱽ }
 
-𝑹 : R.IsEquivalenceᴮ _≈⟨_⟩ᴿ_
-𝑹 = record { Dom = ∥_∥ᴿ
-           ; reflᴮ = refl-≈ᴿ
+isEquivᴿ : R.IsEquivalenceᴮ _≈⟨_⟩ᴿ_ ∥_∥ᴿ
+isEquivᴿ = record { reflᴮ = refl-≈ᴿ
            ; wkenᴮ = wken-≈ᴿ
            ; symᴮ = sym-≈ᴿ
            ; transᴮ = trans-≈ᴿ }
 
-𝑬 : E.IsEquivalenceᴮ _≈⟨_⟩ᴱ_
-𝑬 = record { Dom = ∥_∥ᴱ
-           ; reflᴮ = refl-≈ᴱ
+isEquivᴱ : E.IsEquivalenceᴮ _≈⟨_⟩ᴱ_  ∥_∥ᴱ
+isEquivᴱ = record { reflᴮ = refl-≈ᴱ
            ; wkenᴮ = wken-≈ᴱ
            ; symᴮ = sym-≈ᴱ
            ; transᴮ = trans-≈ᴱ }
+
+import Generic.ValidEquivalence as G
+open G Ty
+
+𝑹 : IsValidEquivalence Raw _≈⟨_⟩ᴿ_
+𝑹 = record { ∥_∥ = ∥_∥ᴿ ; isValid = isValidᴿ ; isEquiv = isEquivᴿ }
+
+𝑽 : IsValidEquivalence Value _≈⟨_⟩ⱽ_
+𝑽 = record { ∥_∥ = ∥_∥ⱽ ; isValid = isValidⱽ ; isEquiv = isEquivⱽ }
+
+𝑬 : G.IsValidEquivalence Ctx Env _≈⟨_⟩ᴱ_
+𝑬 = record { ∥_∥ = ∥_∥ᴱ ; isValid = isValidᴱ ; isEquiv = isEquivᴱ }
 
 -- TODO: remove
   -- Make them instance of my own Equivalence bijection-indexed relation
@@ -437,30 +446,30 @@ open import Generic.Bijection
 
 
 -- It doesn't seem we use this. Let's leave it out for now.
--- refl-≈ᴬ : ∀ {A} {R : Relᴮ A} {{𝑹 : IsEquivalenceᴮ R}} {c} → c ≈⟨ R ⟩ᴬ c
--- refl-≈ᴬ {{𝑹}} {c = ⟨ _ , μ , _ ⟩} = ⟨ ι , {!!} , {!!} , {!refl-≈ᴬ!} ⟩ -- refl-≈ˢ , refl-≈ᴴ
+-- refl-≈ᴬ : ∀ {A} {R : Relᴮ A} {{isEquivᴿ : IsEquivalenceᴮ R}} {c} → c ≈⟨ R ⟩ᴬ c
+-- refl-≈ᴬ {{isEquivᴿ}} {c = ⟨ _ , μ , _ ⟩} = ⟨ ι , {!!} , {!!} , {!refl-≈ᴬ!} ⟩ -- refl-≈ˢ , refl-≈ᴴ
 --   where _≈ᴿ_ : ∀ {τ} → Raw τ → Raw τ → Set
 --         _≈ᴿ_ = _≈⟨ ι′ ∥ μ ∥ᴴ ⟩ᴿ_
 
---         open IsEquivalenceᴮ 𝑹
+--         open IsEquivalenceᴮ isEquivᴿ
 --         open import Generic.Store.LowEq {Ty} {Raw} _≈ᴿ_ A
 --         open Props {!!}
 
--- sym-≈ᴬ : ∀ {A} {R : A → A → Set} {{𝑹 : IsEquivalence R}} {c₁ c₂} →
+-- sym-≈ᴬ : ∀ {A} {R : A → A → Set} {{isEquivᴿ : IsEquivalence R}} {c₁ c₂} →
 --            c₁ ≈⟨ R ⟩ᴬ c₂ →
 --            c₂ ≈⟨ R ⟩ᴬ c₁
--- sym-≈ᴬ {{𝑹}} ⟨ β , Σ≈ , μ≈ , t≈ ⟩ = ⟨ β ⁻¹ , sym-≈ˢ Σ≈ , sym-≈ᴴ {β = β} μ≈ , IsEquivalence.sym 𝑹 t≈  ⟩
+-- sym-≈ᴬ {{isEquivᴿ}} ⟨ β , Σ≈ , μ≈ , t≈ ⟩ = ⟨ β ⁻¹ , sym-≈ˢ Σ≈ , sym-≈ᴴ {β = β} μ≈ , IsEquivalence.sym isEquivᴿ t≈  ⟩
 
--- trans-≈ᴬ : ∀ {A} {R : A → A → Set} {{𝑹 : IsEquivalence R}} {c₁ c₂ c₃} →
+-- trans-≈ᴬ : ∀ {A} {R : A → A → Set} {{isEquivᴿ : IsEquivalence R}} {c₁ c₂ c₃} →
 --              c₁ ≈⟨ R ⟩ᴬ c₂ →
 --              c₂ ≈⟨ R ⟩ᴬ c₃ →
 --              c₁ ≈⟨ R ⟩ᴬ c₃
--- trans-≈ᴬ {{𝑹 = 𝑹}} ⟨ β₁ , Σ≈₁ , μ≈₁ , t≈₁ ⟩ ⟨ β₂ , Σ≈₂ , μ≈₂ , t≈₂ ⟩
---   = ⟨ β₂ ∘ᴮ β₁ , trans-≈ˢ Σ≈₁ Σ≈₂ , trans-≈ᴴ {β₁ = β₁} {β₂ = β₂} μ≈₁ μ≈₂ , IsEquivalence.trans 𝑹 t≈₁ t≈₂ ⟩
+-- trans-≈ᴬ {{isEquivᴿ = isEquivᴿ}} ⟨ β₁ , Σ≈₁ , μ≈₁ , t≈₁ ⟩ ⟨ β₂ , Σ≈₂ , μ≈₂ , t≈₂ ⟩
+--   = ⟨ β₂ ∘ᴮ β₁ , trans-≈ˢ Σ≈₁ Σ≈₂ , trans-≈ᴴ {β₁ = β₁} {β₂ = β₂} μ≈₁ μ≈₂ , IsEquivalence.trans isEquivᴿ t≈₁ t≈₂ ⟩
 
 -- instance
---   ≈ᴬ-IsEquivalence : ∀ {A} {R : A → A → Set} {{𝑹 : IsEquivalence R}}  → IsEquivalence _≈⟨ R ⟩ᴬ_
---   ≈ᴬ-IsEquivalence {{𝑹}} = record { refl = refl-≈ᴬ ; sym = sym-≈ᴬ ; trans = trans-≈ᴬ }
+--   ≈ᴬ-IsEquivalence : ∀ {A} {R : A → A → Set} {{isEquivᴿ : IsEquivalence R}}  → IsEquivalence _≈⟨ R ⟩ᴬ_
+--   ≈ᴬ-IsEquivalence {{isEquivᴿ}} = record { refl = refl-≈ᴬ ; sym = sym-≈ᴬ ; trans = trans-≈ᴬ }
 
 -- TODO: we probably need to make the bijection explicit in the relation.
 -- Define the "Equivalence up to bijection" class.
@@ -470,9 +479,9 @@ open import Generic.Bijection
 
 --------------------------------------------------------------------------------
 -- Subsumed by Generic.LowEq
--- open ≈ᴴ-Props 𝑽 public
+-- open ≈ᴴ-Props isEquivⱽ public
 -- -- (square-≈ᴴ ; ∣_∣ᴴ ; refl-≈ᴴ ; trans-≈ᴴ ; trans-≈ᴴ-ι ; snoc-≈ᴴ ; writeᴴ-≈ᴴ ; square-≈ᴴ-ι ; sym-≈ᴴ ; newᴴ-≈ᴴ ; newᴸ-≈ᴴ ; ≈-# ; readᴸ-≈ᶜ ; writeᴸ-≈ᴴ ) public
 
--- open ≈ˢ-Props 𝑹 public
+-- open ≈ˢ-Props isEquivᴿ public
 
-open ≈ᴾ-Props 𝑹 𝑽 Validᴿ Validⱽ validᴿ-≤ validⱽ-≤ public
+open ≈ᴾ-Props 𝑹 𝑽 public

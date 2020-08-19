@@ -1,19 +1,20 @@
 import Generic.Container.Base as B
 open import Data.Nat
 open import Generic.Valid
+open import Data.Nat
 
 module Generic.Container.Valid
   (Label : Set)
-  (Ty : Set)
-  (Value : Ty → Set)
-  {{𝑽 : IsValid Value}} where
+  {Ty : Set}
+  {Value : Ty → Set}
+  {∥_∥ⱽ : ∀ {τ} → Value τ → ℕ}
+  (𝑽 : IsValid Ty Value  ∥_∥ⱽ) where
 
-open IsValid 𝑽 renaming (Valid to Validⱽ ; ∥_∥ to ∥_∥ⱽ ; valid-≤ to valid-≤ⱽ)
+open IsValid 𝑽 renaming (Valid to Validⱽ ; valid-≤ to valid-≤ⱽ)
 
  -- (Validⱽ : ∀ {τ} → ℕ → Value τ  → Set) where
 
 open B Label Ty Value
-open import Data.Nat
 open import Generic.Container.Lemmas Label Ty Value
 open import Data.Sum
 open import Relation.Binary.PropositionalEquality
@@ -57,8 +58,7 @@ valid-≤ᶜ (v B.∷ C) isV = join-≤ (valid-≤ⱽ v (isV Here)) (valid-≤�
 -- postulate valid-⊆ : ∀ {ℓ n n'} {C : Container ℓ} → n ≤ n' → Validᶜ n C → Validᶜ n' C
 
 instance
-  IsValidᶜ : IsValid Container
+  IsValidᶜ : IsValid Label Container ∥_∥ᶜ
   IsValidᶜ = record { Valid = Validᶜ
-                    ; ∥_∥ = ∥_∥ᶜ
                     ; wken-valid = wken-validᶜ
                     ; valid-≤ = valid-≤ᶜ }

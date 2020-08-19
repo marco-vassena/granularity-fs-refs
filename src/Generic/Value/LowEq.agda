@@ -9,13 +9,14 @@ module Generic.Value.LowEq
 
 -- TODO: is not this just a renaming?
 
-open IProps Ty Value
+-- open IProps Ty Value
+open import Generic.ValidEquivalence Ty Value
 
 -- TODO: why do we need the inner module?
-module Props (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_) where
+module Props (𝑽 : IsValidEquivalence _≈⟨_⟩ⱽ_) where
 
-  open IsEquivalenceᴮ 𝑽 renaming
-    ( Dom to ∣_∣ⱽ
+  open IsValidEquivalence 𝑽 renaming
+    ( ∥_∥ to ∣_∣ⱽ
     ; reflᴮ to refl-≈ⱽ
     ; symᴮ to sym-≈ⱽ
     ; transᴮ to trans-≈ⱽ

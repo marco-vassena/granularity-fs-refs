@@ -122,10 +122,12 @@ record _≈⟨_⟩ᴴ_ (μ₁ : Heap) (β : Bij) (μ₂ : Heap) : Set where
 -- -- _≈ᴴ_ : Heap → Heap → Set
 -- -- μ₁ ≈ᴴ μ₂ = μ Bij⟨ μ₁ , μ₂ ⟩ (λ β → μ₁ ≈⟨ β ⟩ᴴ μ₂)
 
+open import Generic.ValidEquivalence Ty Value
+
 module ≈ᴴ-Props
-  (𝑽 : IsEquivalenceᴮ _≈⟨_⟩ⱽ_ )
-  (Validⱽ : ∀ {τ} → ℕ → Value τ → Set)
-  (valid-≤ : ∀ {τ n} (v : Value τ) → Validⱽ n v → Dom 𝑽 v ≤ n)
+  (𝑽 : IsValidEquivalence _≈⟨_⟩ⱽ_ )
+  -- (Validⱽ : ∀ {τ} → ℕ → Value τ → Set)
+  -- (valid-≤ : ∀ {τ n} (v : Value τ) → Validⱽ n v → Dom 𝑽 v ≤ n)
   where
 
   open import Generic.LValue Ty Value
@@ -136,14 +138,14 @@ module ≈ᴴ-Props
   open import Relation.Binary.PropositionalEquality
   import Function as F
 
-  open IsEquivalenceᴮ 𝑽 renaming
-    ( Dom to ∣_∣ⱽ
+  open IsValidEquivalence 𝑽 renaming
+    ( ∥_∥ to ∣_∣ⱽ
     ; reflᴮ to refl-≈ⱽ
     ; symᴮ to sym-≈ⱽ
     ; transᴮ to trans-≈ⱽ
     ; wkenᴮ to wken-≈ⱽ )
 
-  open import Generic.Heap.Valid Ty Value
+  open import Generic.Heap.Valid isValid
   open import Generic.Heap.Lemmas Ty Value
 
   snoc-⊆ᴿ : ∀ {β μ τ} {v : Value τ} → β ⊆ᴿ μ → β ⊆ᴿ (snocᴴ μ v)

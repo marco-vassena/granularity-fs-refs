@@ -3,7 +3,7 @@ open import Generic.Bijection
 
 module Generic.PState.Base
   {{𝑳 : Lattice}}
-  (Ty₁ : Set) (Ty₂ : Set)
+  {Ty₁ : Set} {Ty₂ : Set}
   (Value₁ : Ty₁ → Set) (Value₂ : Ty₂ → Set)
   where
 

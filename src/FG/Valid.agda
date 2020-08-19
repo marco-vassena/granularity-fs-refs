@@ -33,6 +33,7 @@ mutual
   ∥ v ∷ θ ∥ᴱ = ∥ v ∥ⱽ ⊔ᴺ ∥ θ ∥ᴱ
 
 mutual
+
   Validᴱ : ∀ {Γ} → ℕ → Env Γ → Set
   Validᴱ n [] = ⊤
   Validᴱ n (v ∷ θ) = Validⱽ n v × Validᴱ n θ
@@ -149,19 +150,19 @@ mutual
 open import Generic.Valid
 
 instance
-  IsValidⱽ : IsValid Value
-  IsValidⱽ = record { Valid = Validⱽ ; ∥_∥ = ∥_∥ⱽ ; wken-valid = validⱽ-⊆ᴴ′ ; valid-≤ = validⱽ-≤ }
+  isValidⱽ : IsValid Ty Value ∥_∥ⱽ
+  isValidⱽ = record { Valid = Validⱽ ; wken-valid = validⱽ-⊆ᴴ′ ; valid-≤ = validⱽ-≤ }
 
-  IsValidᴿ : IsValid Raw
-  IsValidᴿ = record { Valid = Validᴿ ; ∥_∥ = ∥_∥ᴿ ; wken-valid = validᴿ-⊆ᴴ′ ; valid-≤ = validᴿ-≤ }
+  isValidᴿ : IsValid Ty Raw ∥_∥ᴿ
+  isValidᴿ = record { Valid = Validᴿ ;  wken-valid = validᴿ-⊆ᴴ′ ; valid-≤ = validᴿ-≤ }
 
-  IsValidᴱ : IsValid Env
-  IsValidᴱ = record { Valid = Validᴱ ; ∥_∥ = ∥_∥ᴱ ; wken-valid = validᴱ-⊆ᴴ′ ; valid-≤ = validᴱ-≤ }
+  isValidᴱ : IsValid Ctx Env ∥_∥ᴱ
+  isValidᴱ = record { Valid = Validᴱ ; wken-valid = validᴱ-⊆ᴴ′ ; valid-≤ = validᴱ-≤ }
 
 open Conf
 open import FG.Semantics
-open import Generic.PState.Base Ty Ty Raw Value
-open import Generic.PState.Valid {{𝑳}} {{IsValidᴿ}} {{IsValidⱽ}} public
+open import Generic.PState.Base  Raw Value
+open import Generic.PState.Valid isValidᴿ isValidⱽ public
 
 Valid-Inputs : ∀ {Γ} {τ} → IConf Γ τ → Env Γ →  Set
 Valid-Inputs ⟨ Σ , μ , _ ⟩ θ = Validᴾ ⟨ Σ , μ ⟩ × Validᴱ ∥ μ ∥ᴴ θ

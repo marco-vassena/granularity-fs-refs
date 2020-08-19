@@ -43,15 +43,13 @@ open Store-≈ˢ public
 
 -- open import ValidEquiv {Ty} {Value}
 
+open import Generic.ValidEquivalence Ty Value
 
-module ≈ˢ-Props
-  (𝑽 : IProps.IsEquivalenceᴮ Ty Value _≈⟨_⟩ⱽ_)
-  (Validⱽ : ∀ {τ} → ℕ → Value τ → Set)
-  (valid-≤ : ∀ {τ n} (v : Value τ) → Validⱽ n v → IProps.Dom 𝑽 v ≤ n)
-  where
+module ≈ˢ-Props (𝑽 : IsValidEquivalence _≈⟨_⟩ⱽ_)  where
 
-  open M.≈ᴹ-Props 𝑽 Validⱽ valid-≤ public
-  open import Generic.Store.Valid Ty Value Validⱽ
+  open IsValidEquivalence 𝑽 renaming (Valid to Validⱽ)
+  open M.≈ᴹ-Props 𝑽 public
+  open import Generic.Store.Valid isValid
 
   open SProps Store
 

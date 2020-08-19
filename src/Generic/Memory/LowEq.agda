@@ -37,24 +37,26 @@ M₁ ≈⟨ β ⟩ᴹ′ M₂ = M₁ ≈⟨ β , _ ⊑? A ⟩ᴹ M₂
 ... | yes ℓ⊑A = M₁≈M₂
 ... | no ℓ⋤A = tt
 
-module V = IProps Ty Value
+-- module V = IProps Ty Value
 
-open import Data.Nat
+-- open import Data.Nat
+open import Generic.ValidEquivalence Ty Value
 
 module ≈ᴹ-Props
-  (𝑽 : IProps.IsEquivalenceᴮ Ty Value _≈⟨_⟩ⱽ_)
-  (Validⱽ : ∀ {τ} → ℕ → Value τ → Set)
-  (valid-≤ : ∀ {τ n} (v : Value τ) → Validⱽ n v → V.Dom 𝑽 v ≤ n)
+  (𝑽 : IsValidEquivalence _≈⟨_⟩ⱽ_)
+  -- (Validⱽ : ∀ {τ} → ℕ → Value τ → Set)
+  -- (valid-≤ : ∀ {τ n} (v : Value τ) → Validⱽ n v → V.Dom 𝑽 v ≤ n)
   where
 
   open import Generic.Value.LowEq {Ty} {Value} _≈⟨_⟩ⱽ_
 
-  open V.IsEquivalenceᴮ 𝑽 renaming
-    ( Dom to ∣_∣ⱽ
+  open IsValidEquivalence 𝑽 renaming
+    ( ∥_∥ to ∣_∣ⱽ
     ; reflᴮ to refl-≈ⱽ
     ; symᴮ to sym-≈ⱽ
     ; transᴮ to trans-≈ⱽ
     ; wkenᴮ to wken-≈ⱽ
+    ; Valid to Validⱽ
     )
 
 
@@ -71,7 +73,7 @@ module ≈ᴹ-Props
   module ≈ᴹ-Equivalence where
 
     open IProps Label Memory
-    open import Generic.Memory.Valid Ty Value Validⱽ
+    open import Generic.Memory.Valid isValid
     open import Data.Product
 
     wken-≈ᴹ : Wkenᴮ _≈⟨_⟩ᴹ_
@@ -110,7 +112,7 @@ module ≈ᴹ-Props
   module ≈ᴹ′-Equivalence  where
 
   open IProps Label Memory
-  open import Generic.Memory.Valid Ty Value Validⱽ
+  open import Generic.Memory.Valid isValid
 
   wken-≈ᴹ′ : Wkenᴮ _≈⟨_⟩ᴹ′_
   wken-≈ᴹ′ {a = ℓ} n≤m x with ℓ ⊑? A

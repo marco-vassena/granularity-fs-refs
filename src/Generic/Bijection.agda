@@ -469,9 +469,8 @@ module IProps (A : Set) (F : A → Set) where
   Transitiveᴮ : Relᴮ → Set
   Transitiveᴮ R = ∀ {a β₁ β₂} {x y z : F a} → R x β₁ y → R y β₂ z → R x (β₂ ∘ β₁) z
 
-  record IsEquivalenceᴮ (R : Relᴮ) : Set where
-    field Dom : ∀ {a} → F a → ℕ
-          wkenᴮ : Wkenᴮ R
+  record IsEquivalenceᴮ (R : Relᴮ) (Dom : ∀ {a} → F a → ℕ) : Set where
+    field wkenᴮ : Wkenᴮ R
           reflᴮ : Reflexiveᴮ R Dom
           symᴮ : Symmetricᴮ R
           transᴮ : Transitiveᴮ R
