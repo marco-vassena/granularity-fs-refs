@@ -20,7 +20,8 @@ open import Generic.Bijection as B hiding (_∈_)
 open import Data.Product renaming (_,_ to _∧_) hiding (,_)
 open import FG.Valid
 open import Data.Nat hiding (_^_)
---import Generic.Heap.Lemmas Ty Value as H
+
+-- TODO: rename validᴱ-⊆ᴴ
 
 step-≈ᴾ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
              let ⟨ Σ , μ , _ ⟩ = c
@@ -59,7 +60,7 @@ step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (App {θ' = θ'} x₁ x₂ refl x₃) pc⋤A =
       ≈ᴾ′′′ = step-≈ᴾ {{ isVᴾ′′ }} {{  isVⱽ ∧ isVᴱ′′  }} x₃ (join-⋤₁ pc⋤A)
   in trans-≈ᴾ-ι ≈ᴾ′ (trans-≈ᴾ-ι ≈ᴾ′′ ≈ᴾ′′′)
 
-step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Wken {μ = μ} p x) pc⋤A = step-≈ᴾ {{ isVᴾ }} {{ slice-validᴱ _ p isVᴱ }} x pc⋤A
+step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Wken p x) pc⋤A = step-≈ᴾ {{ isVᴾ }} {{ slice-validᴱ _ p isVᴱ }} x pc⋤A
 
 step-≈ᴾ (Inl x) pc⋤A = step-≈ᴾ x pc⋤A
 
@@ -99,25 +100,26 @@ step-≈ᴾ {{ isVᴾ }} {{isVᴱ}} (Taint refl x x₁ pc'⊑pc'') pc⋤A =
 
 step-≈ᴾ (LabelOfRef x eq) pc⋤A = step-≈ᴾ x pc⋤A
 
-step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (New {μ = μ} {μ'} x) pc⋤A =
+step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (New x) pc⋤A =
   let ⟨ ≈ˢ , ≈ᴴ ⟩ = step-≈ᴾ x pc⋤A
       _ ∧ ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ _ = valid-invariant x (isVᴾ ∧ isVᴱ)
-      ≈ˢ′ = updateᴴ-≈ˢ _ _ {{ isVˢ′ }} (trans-⋤ (step-⊑ x) pc⋤A) in
-      ⟨ trans-≈ˢ-ι {n₁ = ∥ μ ∥ᴴ} {n₂ = ∥ μ' ∥ᴴ} ≈ˢ ≈ˢ′ , ≈ᴴ ⟩
+      ≈ˢ′ = updateᴴ-≈ˢ {{ isVˢ′ }} (trans-⋤ (step-⊑ x) pc⋤A) in
+      ⟨ trans-≈ˢ-ι ≈ˢ ≈ˢ′ , ≈ᴴ ⟩
 
 step-≈ᴾ (Read x x₁ eq) pc⋤A = step-≈ᴾ x pc⋤A
 
-step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Write {ℓ = ℓ} {n = n} {τ = τ} x ⊑₁ x₁ ⊑₂ w) pc⋤A =
+step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Write x ⊑₁ x₁ ⊑₂ w) pc⋤A =
   let isVᴱ′ ∧ isVᴾ′ ∧ _ = valid-invariant x (isVᴾ ∧ isVᴱ)
       isVᴱ′′ ∧ ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ _ = valid-invariant x₁ (isVᴾ′ ∧ isVᴱ′)
       ≈ᴾ′ = step-≈ᴾ x pc⋤A
       ≈ᴾ′′ = step-≈ᴾ {{ isVᴾ′ }} {{ isVᴱ′ }} x₁ pc⋤A
       ℓ⋤A = trans-⋤ (trans-⊑ (step-⊑ x) ⊑₁) pc⋤A
-      ≈ᴾ′′′ = ⟨ updateᴴ-≈ˢ _ _ {{ isVˢ′ }} ℓ⋤A , refl-≈ᴴ {{ isVᴴ′ }} ⟩
+      ≈ᴾ′′′ = ⟨ updateᴴ-≈ˢ {{ isVˢ′ }} ℓ⋤A , refl-≈ᴴ {{ isVᴴ′ }} ⟩
   in trans-≈ᴾ-ι ≈ᴾ′ (trans-≈ᴾ-ι ≈ᴾ′′ ≈ᴾ′′′)
 
 step-≈ᴾ (LabelOfRef-FS x x₁ eq) pc⋤A = step-≈ᴾ x pc⋤A
 
+-- Do we need all of them
 step-≈ᴾ {{⟨ isVˢ , isVᴴ ⟩}} {{isVᴱ}} (New-FS {Σ = Σ} {Σ' = Σ'} {μ = μ} {μ' = μ'} {v = v} x) pc⋤A =
   let ⟨ ≈ˢ , ≈ᴴ ⟩ = step-≈ᴾ {{ ⟨ isVˢ , isVᴴ ⟩ }} {{isVᴱ}} x pc⋤A
       _ ∧ ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ _ = valid-invariant x (⟨ isVˢ , isVᴴ ⟩ ∧ isVᴱ)
@@ -404,8 +406,8 @@ mutual
   ... | β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , Valueᴴ ⋤₁ ⋤₂  ⟩ =
     let isV₁ᴾ′ ∧ _  = validᴾ-⇓ x₁ isV₁
         isV₂ᴾ′ ∧ _  = validᴾ-⇓ y₁ isV₂
-        Σ₁≈ = updateᴴ-≈ˢ _ _ {{ validˢ isV₁ᴾ′ }} ⋤₁
-        Σ₂≈ = updateᴴ-≈ˢ _ _ {{ validˢ isV₂ᴾ′ }} ⋤₂
+        Σ₁≈ = updateᴴ-≈ˢ {{ validˢ isV₁ᴾ′ }} ⋤₁
+        Σ₂≈ = updateᴴ-≈ˢ {{ validˢ isV₂ᴾ′ }} ⋤₂
         Σ≈′ = square-≈ˢ-ι {n₁ = ∥ μ₁ ∥ᴴ} {n₂ = ∥ μ₂ ∥ᴴ}  Σ≈ Σ₁≈ Σ₂≈
         v≈′ = Valueᴸ pc⊑A (Ref-Iᴴ ⋤₁ ⋤₂) in
         β' ∧ β⊆β' ∧ ⟨ ⟨ Σ≈′ , μ≈ ⟩ , v≈′ ⟩
@@ -438,8 +440,8 @@ mutual
   ... | β'' ∧ β'⊆β'' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩  , v≈ ⟩ =
     let isV₁ᴾ′′ ∧ _  = validᴾ-⇓ x₂ isV₁′
         isV₂ᴾ′′ ∧ _  = validᴾ-⇓ y₂ isV₂′
-        Σ₁≈ = updateᴴ-≈ˢ {n = ∥ μ₃ ∥ᴴ}  _ _ {{ validˢ isV₁ᴾ′′ }} (trans-⋤ ⊑₁ ℓ₁⋤A)
-        Σ₂≈ = updateᴴ-≈ˢ {n = ∥ μ₃′ ∥ᴴ} _ _ {{ validˢ isV₂ᴾ′′ }} (trans-⋤ ⊑₂ ℓ₂⋤A)
+        Σ₁≈ = updateᴴ-≈ˢ {{ validˢ isV₁ᴾ′′ }} (trans-⋤ ⊑₁ ℓ₁⋤A)
+        Σ₂≈ = updateᴴ-≈ˢ {{ validˢ isV₂ᴾ′′ }} (trans-⋤ ⊑₂ ℓ₂⋤A)
         Σ≈′ = square-≈ˢ-ι Σ≈ Σ₁≈ Σ₂≈ in
         β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ ⟨ Σ≈′ , μ≈ ⟩ , Valueᴸ pc⊑A Unit ⟩
 
@@ -458,8 +460,8 @@ mutual
   ... | β'' ∧ β'⊆β'' ∧ ⟨ ⟨ Σ≈ , μ≈ ⟩ , v≈ ⟩ =
     let isV₁ᴾ′′ ∧ _  = validᴾ-⇓ x₂ isV₁′
         isV₂ᴾ′′ ∧ _  = validᴾ-⇓ y₂ isV₂′
-        Σ₁≈ = updateᴴ-≈ˢ {n = ∥ μ₃ ∥ᴴ}  _ _ {{ validˢ isV₁ᴾ′′ }} ⋤₁
-        Σ₂≈ = updateᴴ-≈ˢ {n = ∥ μ₃′ ∥ᴴ} _ _ {{ validˢ isV₂ᴾ′′ }} ⋤₂
+        Σ₁≈ = updateᴴ-≈ˢ {{ validˢ isV₁ᴾ′′ }} ⋤₁
+        Σ₂≈ = updateᴴ-≈ˢ {{ validˢ isV₂ᴾ′′ }} ⋤₂
         Σ≈′ = square-≈ˢ-ι Σ≈ Σ₁≈ Σ₂≈ in
         β'' ∧ trans-⊆ β⊆β' β'⊆β'' ∧ ⟨ ⟨ Σ≈′ , μ≈ ⟩ , Valueᴸ pc⊑A Unit ⟩
 
