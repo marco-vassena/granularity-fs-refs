@@ -151,9 +151,10 @@ open import Relation.Binary.HeterogeneousEquality hiding (inspect ; sym ; cong ;
 -- Basic functional extensionality.
 postulate funext : ∀ {A : Set} {B : Set} (f g : A → B) → (∀ x → f x ≡ g x) → f ≡ g
 
--- Extended to dependently typed functions with 2 arguments.
-postulate funext₂ : ∀ {A B : Set} {F : A → B → Set} (f g : ∀ x y → F x y) → (∀ x y → f x y ≅ g x y) → f ≅ g
-
+-- Function extensionality for dependently typed functions (with implicit arguments)
+postulate funext₂ : ∀ {A B : Set} {F : A → B → Set} (f g : ∀ {x y} → F x y) →
+                      (∀ x y → f {x} {y} ≅ g {x} {y}) →
+                      (λ {x} {y} → f {x} {y}) ≡ (λ {x} {y} → g {x} {y})
 
 _≈ᵀ_ : Bij → Bij → Set
 β₁ ≈ᵀ β₂ = ∀ x → to β₁ x ≡ to β₂ x
@@ -163,9 +164,23 @@ _≈ᶠ_ : Bij → Bij → Set
 β₁ ≈ᶠ β₂ = ∀ x → from β₁ x ≡ from β₂ x
   where open Bijectionᴾ
 
--- TODO: We proved this postulate below. We just need to redefine inverse-of to take
--- the indexes explicitly instead of as implicit paramters
-postulate bij-≡ : ∀ (β₁ β₂ : Bij) → to β₁ ≡ to β₂ → from β₁ ≡ from β₂ → β₁ ≡ β₂
+-- Functions over equalities are equal
+≡-equality-funs : ∀ {A B : Set} {a b : A} {c d : B} (f g : a ≡ b → c ≡ d) (eq : a ≡ b) → f eq ≡ g eq
+≡-equality-funs f g eq rewrite ≡-irrelevance (f eq) (g eq) = refl
+
+≡-inverse-of : ∀ {f g : ℕ ⇀ ℕ} → (p q : f InverseOfᴾ g) (x y : ℕ) → p {x} {y}  ≅ q {x} {y}
+≡-inverse-of p q x y with p {x} {y} | q {x} {y}
+... | a , b | c , d
+  rewrite funext a c (≡-equality-funs a c) | funext b d (≡-equality-funs b d)
+  = refl
+
+-- TODO: move to bijection ?
+bij-≡ : ∀ (β₁ β₂ : Bij) → to β₁ ≡ to β₂ → from β₁ ≡ from β₂ → β₁ ≡ β₂
+bij-≡
+  record { to = to₁ ; from = from₁ ; inverse-of = inverse-of₁ }
+  record { to = to₂ ; from = from₂ ; inverse-of = inverse-of₂ } refl refl
+  rewrite funext₂ (λ {x} {y} → inverse-of₁ {x} {y}) inverse-of₂ (≡-inverse-of inverse-of₁ inverse-of₂)
+  = refl
 
 -- Move to bijection
 _⊆ᴿ_ : ∀ {A B C} → (A ⤖ᴾ B) → (B ⤖ᴾ C) → Set
@@ -263,194 +278,7 @@ square-lemma {n₁} {n₂} {β} ⊆₁ ⊆₂ = ≡β
 
 --------------------------------------------------------------------------------
 
--- _▻_ : Bij → (ℕ × ℕ) → Bij
--- β ▻ (x , y) = record { to = to' ; from = from' ; inverse-of = {!!} }
---   where
---         to' : ℕ ⇀ ℕ
---         to' x' with to β x'
---         to' x' | just y' = just y'
---         to' x' | nothing with x ≟ x'
---         to' x' | nothing | yes refl = just y
---         to' x' | nothing | no ¬p = nothing
-
---         from' : ℕ ⇀ ℕ
---         from' y' with from β y'
---         from' y' | just x' = just x'
---         from' y' | nothing with y ≟ y'
---         from' y' | nothing | yes refl = just x
---         from' y' | nothing | no ¬p = nothing
-
---         proof : from' InverseOfᴾ to'
---         proof = {!!} , {!!}
-
---         proof₁
---------------------------------------------------------------------------------
--- TODO: Adapt the definition of partial bijections to use the following
--- definition of InverseOf to avoid trouble with implicit parameters.
-
--- _InverseOf'_ : ℕ ⇀ ℕ → ℕ ⇀ ℕ → Set
--- _InverseOf'_ f g = ∀ x y → (x , y) ∈ f ⇔ (y , x) ∈ g
-
--- record Bij' : Set where
---   field to' : ℕ ⇀ ℕ
---         from' : ℕ ⇀ ℕ
---         inverse-of' : from' InverseOf' to' -- Irrelevance does not seem to help either :-(
-
--- open Bij'
-
--- -- Functions over equalities are equal
--- ≡-equality-funs : ∀ {A B : Set} {a b : A} {c d : B} (f g : a ≡ b → c ≡ d) (eq : a ≡ b) → f eq ≡ g eq
--- ≡-equality-funs f g eq rewrite ≡-irrelevance (f eq) (g eq) = refl
-
--- help : ∀ {f g : ℕ ⇀ ℕ} → (p q : f InverseOf' g) (x y : ℕ) → p x y ≅ q x y
--- help p q x y with p x y | q x y
--- ... | a , b | c , d with funext a c (≡-equality-funs a c) | funext b d (≡-equality-funs b d)
--- ... | eq₁ | eq₂ rewrite eq₁ | eq₂ = refl
-
-
--- bij-≡ : ∀ (β₁ β₂ : Bij') → to' β₁ ≡ to' β₂ → from' β₁ ≡ from' β₂ → β₁ ≡ β₂
--- bij-≡
---   record { to' = to₁ ; from' = from₁ ; inverse-of' = inverse-of₁ }
---   record { to' = to₂ ; from' = from₂ ; inverse-of' = inverse-of₂ } refl refl
---   with funext₂′ inverse-of₁ inverse-of₂ (help inverse-of₁ inverse-of₂)
--- ... | refl = refl
-
---------------------------------------------------------------------------------
-
--- Extends the codomain with one more address
--- _↑ᴿ  : ∀ {n m} → Bij n m → Bij n (suc m)
--- _↑ᴿ {n} {m} β = record { to = to¹ ; from = from¹ ; inverse-of = left , right }
---   where open Bijectionᴾ β
---         open import Function as F
-
---         to¹ : Fin n ⇀ Fin (suc m)
---         to¹ = M.map inject₁ F.∘ to
-
---         from¹ : Fin (suc m) ⇀ Fin n
---         from¹ y with (toℕ y) <? m
---         from¹ y | yes p = from (reduce₁ y p)
---         from¹ y | no ¬p = nothing
-
---         -- Definition of from¹ after the bounds test.
---         def-from¹ : ∀ {y} (y<m : toℕ y < m) → from¹ y ≡ from (reduce₁ y y<m)
---         def-from¹ {y} y<m with toℕ y <? m
---         def-from¹ {y} y<m | yes y<m' rewrite equal-< y<m y<m' = refl
---         def-from¹ {y} y<m | no y≮m = ⊥-elim (y≮m y<m)
-
---         -- If (x , y) belong to the extended bijection, then y can be
---         -- reduced and x and reduced y are in the original bijection. (case "to")
---         ∈¹-∈-to : ∀ {x y} (y<m : toℕ y < m) → (x , y) ∈ to¹ → (x , reduce₁ y y<m) ∈ to
---         ∈¹-∈-to {x} {y} y<m xy∈t¹ with to x
---         ∈¹-∈-to {x} {y} y<m () | nothing
---         ∈¹-∈-to {x} {y} y<m xy∈t¹ | just y'
---           rewrite sym (just-injective xy∈t¹) |
---                   toℕ-inject₁-≡ y' | red∘inj-≡-id y' y<m = refl
-
---         -- If (x , y) belong to the extended bijection, then y can be
---         -- reduced and x and reduced y are in the original bijection. (case "from")
---         ∈¹-∈-from : ∀ {x y} (y<m : toℕ y < m) → (y , x) ∈ from¹ → (reduce₁ y y<m , x ) ∈ from
---         ∈¹-∈-from {x} {y} y<m yx∈f with toℕ y <? m
---         ∈¹-∈-from {x} {y} y<m yx∈f | yes y<m' rewrite equal-< y<m y<m' = yx∈f
---         ∈¹-∈-from {x} {y} y<m yx∈f | no y≮m = ⊥-elim (y≮m y<m)
-
---         -- Fact about the domain (D) of from
---         from-<ᴰ : ∀ {y x} → (y , x) ∈ from¹ → toℕ y < m
---         from-<ᴰ {y} yx∈f with toℕ y <? m
---         from-<ᴰ {y} yx∈f | yes p = p
---         from-<ᴰ {y} () | no ¬p
-
---         -- Fact about the range (R) of to
---         to-<ᴿ : ∀ {x y} → (x , y) ∈ to¹ → toℕ y < m
---         to-<ᴿ {x} {y} xy∈t with to x
---         to-<ᴿ {x} {y} xy∈t | just y' with fin-< y'
---         ... | y<m rewrite sym (just-injective xy∈t) | toℕ-inject₁-≡ y' = y<m
---         to-<ᴿ {x} {y} () | nothing
-
---         -- Left inverse
---         left : ∀ {x y} → (y , x) ∈ from¹ → (x , y) ∈ to¹
---         left {x} {y} yx∈f =
---           let  y<m = from-<ᴰ yx∈f
---                xy∈t = left-inverse-of (∈¹-∈-from y<m yx∈f) in
---           to¹ x ≡⟨ refl ⟩
---           M.map inject₁ (to x) ≡⟨ cong (M.map inject₁) xy∈t ⟩
---           just (inject₁ (reduce₁ y y<m)) ≡⟨ cong just (inj∘red-≡-id y y<m) ⟩
---           just y ∎
---           where open ≡-Reasoning
-
---         -- Right inverse
---         right : ∀ {x y} → (x , y) ∈ to¹ → (y , x) ∈ from¹
---         right {x} {y} xy∈t =
---           let y<m = to-<ᴿ xy∈t
---               xy∈f = right-inverse-of (∈¹-∈-to y<m xy∈t) in
---           from¹ y ≡⟨ def-from¹ y<m ⟩
---           from (reduce₁ y y<m) ≡⟨ xy∈f ⟩
---           just x ∎
---           where open ≡-Reasoning
-
--- -- Extends the domain with one more address
--- _↑ᴰ  : ∀ {n m} → Bij n m → Bij (suc n) m
--- β ↑ᴰ =  ((β ⁻¹) ↑ᴿ) ⁻¹
-
--- -- Extend both the domain and the codomain
--- _↑ : ∀ {n m} → Bij n m → Bij (suc n) (suc m)
--- β ↑ = (β ↑ᴿ) ↑ᴰ
-
-
--- ↑ᴿ-∈ : ∀ {n m} {β : Bij n m} {x y} → (x , y) ∈ᵗ (β ↑ᴿ) → Σ (toℕ y < m) (λ y<m → (x , reduce₁ y y<m) ∈ᵗ β)
--- ↑ᴿ-∈ {β = β} {x} xy∈βᴿ with Bijectionᴾ.to (β ↑ᴿ) x | inspect (Bijectionᴾ.to (β ↑ᴿ)) x
--- ↑ᴿ-∈ {β = β} {x} xy∈βᴿ | just y' | [ eq ] with Bijectionᴾ.to β x
--- ↑ᴿ-∈ {β = β} {x} {y} xy∈βᴿ | just y' | [ eq ] | just y'' with fin-< y''
--- ... | y<m rewrite just-injective (sym xy∈βᴿ) | just-injective (sym eq)
---     | toℕ-inject₁-≡ y'' | red∘inj-≡-id y'' y<m = y<m , (cong just (sym (red∘inj-≡-id y'' y<m)))
--- ↑ᴿ-∈ {β = β} {x} xy∈βᴿ | just y' | [ () ] | nothing
--- ↑ᴿ-∈ {β = β} {x} () | nothing | w
-
---------------------------------------------------------------------------------
--- Equivalence class up to bijection.
-
--- Relᴮ : {Ty : Set} → (Ty → Set) → Set₁
--- Relᴮ V = ∀ {n m τ} → V τ → Bij n m → V τ → Set
-
--- I could define Rel : ∀ x y → Bij (Dom x) (Dom y), however this is
--- to restrictive. Definitions for values typically require at least
--- (Dom x) but that is too restrictive when values contain composite
--- values with different domains.
--- record IsEquivalenceᴮ {Ty : Set} {V : Ty → Set} (R : Relᴮ V) : Set where
---   field Dom : ∀ {τ} → V τ → ℕ
---         reflᴮ : ∀ {τ} {x : V τ} → R x (ι′ (Dom x)) x
---         symᴮ : ∀ {τ} {x y : V τ} {n m} {β : Bij n m} → R x β y → R y (β ⁻¹) x
---         transᴮ : ∀ {τ} {x y z : V τ} {n₁ n₂ n₃} {β₁ : Bij n₁ n₂} {β₂ : Bij n₂ n₃} →
---                    R x β₁ y → R y β₂ z → R x (β₂ ∘ β₁) z
-
-
---------------------------------------------------------------------------------
--- version without indexes
--- Relᴮ : Set → Set₁
--- Relᴮ A = A → Bij → A → Set
-
--- Wkenᴮ : {A : Set} (R : Relᴮ A) → Set
--- Wkenᴮ R = ∀ {n m x} → n ≤ m → R x (ι n) x → R x (ι m) x
-
--- Reflexiveᴮ : {A : Set} (R : Relᴮ A) (Dom : A → ℕ) → Set
--- Reflexiveᴮ R Dom = ∀ {x} → R x (ι (Dom x)) x
-
--- Symmetricᴮ : {A : Set} (R : Relᴮ A) → Set
--- Symmetricᴮ R =  ∀ {x y β} → R x β y → R y (β ⁻¹) x
-
--- Transitiveᴮ : {A : Set} (R : Relᴮ A) → Set
--- Transitiveᴮ R = ∀ {x y z β₁ β₂} → R x β₁ y → R y β₂ z → R x (β₂ ∘ β₁) z
-
--- record IsEquivalenceᴮ {A : Set} (R : Relᴮ A) : Set where
---   field Dom : A → ℕ
---         wkenᴮ : Wkenᴮ R
---         reflᴮ : Reflexiveᴮ R Dom
---         symᴮ : Symmetricᴮ R
---         transᴮ : Transitiveᴮ R
-
---------------------------------------------------------------------------------
--- Explicitly indexed
-
--- TODO: I would even remove the ᴮ from the names
+-- Bijection-indexed equivalence relations for indexed types
 module IProps (A : Set) (F : A → Set) where
 
   Relᴮ : Set₁
@@ -476,33 +304,9 @@ module IProps (A : Set) (F : A → Set) where
 
   open IsEquivalenceᴮ public
 
--- TODO: remove
--- module ValidEquivᴮ {A : Set} {F : A → Set} (Valid : ∀ {a} → ℕ → F a → Set) where
 
---   open IProps A F
-
---   record VEquivalenceᴮ {R : Relᴮ} (𝑹 : IsEquivalenceᴮ R) : Set where
---     field isEq : IsEquivalenceᴮ R
---           valid-≤ : ∀ {a n} {x : F a} → Valid n x → Dom 𝑹 x ≤ n
-
-
--- TODO: remove
--- Simple (not indexed) props
--- It does not seem we need this because store
--- are restricted anyway
+-- Bijection-indexed equivalence relations for simple (not-indexed) types
 module SProps (F : Set) where
 
   open import Data.Unit
   open IProps ⊤ (λ _ → F) public
-
-  -- Wkenᴮ : Relᴮ → Set
-  -- Wkenᴮ R = ∀ {a n m} {x : F a} → n ≤ m → R x (ι n) x → R x (ι m) x
-
-  -- Reflexiveᴮ : Relᴮ → (Dom : ∀ {a} → F a → ℕ) → Set
-  -- Reflexiveᴮ R Dom = ∀ {a} {x : F a} → R x (ι (Dom x)) x
-
-  -- Symmetricᴮ : Relᴮ → Set
-  -- Symmetricᴮ R = ∀ {a β} {x y : F a} → R x β y → R y (β ⁻¹) x
-
-  -- Transitiveᴮ : Relᴮ → Set
-  -- Transitiveᴮ R = ∀ {a β₁ β₂} {x y z : F a} → R x β₁ y → R y β₂ z → R x (β₂ ∘ β₁) z
