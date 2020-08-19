@@ -60,7 +60,7 @@ step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (App x₁ x₂ refl x₃) pc⋤A =
       _ ∧ isVᴾ′′ ∧ isVⱽ = valid-invariant x₂ (isVᴾ′ ∧ isV₁ᴱ)
       ≈ᴾ′ = step-≈ᴾ x₁ pc⋤A
       ≈ᴾ′′ = step-≈ᴾ {{ isVᴾ′ }} {{ isV₁ᴱ }} x₂ pc⋤A
-      isVᴱ′′ = validᴱ-⊆ᴴ (step-⊆ᴴ x₂) isVᴱ′
+      isVᴱ′′ = wken-valid _ (step-≤ x₂) isVᴱ′
       ≈ᴾ′′′ = step-≈ᴾ {{ isVᴾ′′ }} {{  isVⱽ ∧ isVᴱ′′  }} x₃ (join-⋤₁ pc⋤A)
   in trans-≈ᴾ-ι ≈ᴾ′ (trans-≈ᴾ-ι ≈ᴾ′′ ≈ᴾ′′′)
 
