@@ -152,11 +152,15 @@ write-length-≡ (There x) = cong suc (write-length-≡ x)
 
 open import Relation.Nullary
 
+-- TODO: every time we use this we could also use the one below
 ⊆-≤ : ∀ {ℓ} {Σ₁ Σ₂ : Container ℓ} → Σ₁ ⊆′ Σ₂ →  ∥ Σ₁ ∥ ≤ ∥ Σ₂ ∥
 ⊆-≤ {_} {Σ₁} {Σ₂} ⊆ with ∥ Σ₁ ∥ ≤? ∥ Σ₂ ∥
 ⊆-≤ {_} {Σ₁} {Σ₂} ⊆ | yes p = p
 ⊆-≤ {_} {Σ₁} {Σ₂} ⊆ | no ¬p with ≰-∉ ¬p
 ... | n , ∈₁ , ∉₂ = ⊥-elim (∉₂ (⊆ ∈₁))
+
+⊆⇒≤ : ∀ {ℓ} {Σ₁ Σ₂ : Container ℓ} → Σ₁ ⊆ Σ₂ →  ∥ Σ₁ ∥ ≤ ∥ Σ₂ ∥
+⊆⇒≤ ⊆₁ = ⊆-≤ (⊆-⊆′ ⊆₁)
 
 pred-≢ : ∀ {n n'} → suc n ≢ suc n' → n ≢ n'
 pred-≢ {n} {.n} ¬p refl = ⊥-elim (¬p refl)

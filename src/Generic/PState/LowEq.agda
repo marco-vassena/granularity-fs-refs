@@ -60,12 +60,18 @@ module ≈ᴾ-Props
   sym-≈ᴾ ⟨ ≈ˢ , ≈ᴴ ⟩ = ⟨ sym-≈ˢ ≈ˢ , sym-≈ᴴ ≈ᴴ ⟩
 
   trans-≈ᴾ : Transitiveᴮ _≈⟨_⟩ᴾ_
-  trans-≈ᴾ ⟨ ≈ˢ₁ , ≈₁ᴴ ⟩ ⟨ ≈ˢ₂ , ≈₂ᴴ ⟩ = ⟨ (trans-≈ˢ ≈ˢ₁ ≈ˢ₂) , trans-≈ᴴ ≈₁ᴴ ≈₂ᴴ ⟩
+  trans-≈ᴾ ⟨ ≈ˢ₁ , ≈₁ᴴ ⟩ ⟨ ≈ˢ₂ , ≈₂ᴴ ⟩ = ⟨ trans-≈ˢ ≈ˢ₁ ≈ˢ₂ , trans-≈ᴴ ≈₁ᴴ ≈₂ᴴ ⟩
 
-  postulate square-≈ᴾ-ι : ∀ {p₁ p₁' p₂ p₂' β} →
+  square-≈ᴾ-ι : ∀ {p₁ p₁' p₂ p₂' β} →
                 p₁ ≈⟨ β ⟩ᴾ p₂ →
                 p₁ ≈⟨ ι ∥ heap p₁ ∥ᴴ ⟩ᴾ p₁' →
                 p₂ ≈⟨ ι ∥ heap p₂ ∥ᴴ ⟩ᴾ p₂' →
                 p₁' ≈⟨ β ⟩ᴾ p₂'
+  square-≈ᴾ-ι ⟨ ≈ˢ₁ , ≈ᴴ₁ ⟩ ⟨ ≈ˢ₂ , ≈ᴴ₂ ⟩ ⟨ ≈ˢ₃ , ≈ᴴ₃ ⟩
+    = ⟨ square-≈ˢ-ι ≈ˢ₁ ≈ˢ₂ ≈ˢ₃ (⊆ᴿ-ι ≈ᴴ₁) (⊆ᴰ-ι ≈ᴴ₁) , square-≈ᴴ-ι ≈ᴴ₁ ≈ᴴ₂ ≈ᴴ₃ ⟩
+    where open _≈⟨_⟩ᴴ_
 
-  postulate trans-≈ᴾ-ι : ∀ {p₁ p₂ p₃} → p₁ ≈⟨ ι ∥ heap p₁ ∥ᴴ ⟩ᴾ p₂ → p₂ ≈⟨ ι ∥ heap p₂ ∥ᴴ ⟩ᴾ p₃ → p₁ ≈⟨ ι ∥ heap p₁ ∥ᴴ ⟩ᴾ p₃
+  trans-≈ᴾ-ι : ∀ {p₁ p₂ p₃} → p₁ ≈⟨ ι ∥ heap p₁ ∥ᴴ ⟩ᴾ p₂ → p₂ ≈⟨ ι ∥ heap p₂ ∥ᴴ ⟩ᴾ p₃ → p₁ ≈⟨ ι ∥ heap p₁ ∥ᴴ ⟩ᴾ p₃
+  trans-≈ᴾ-ι ⟨ ≈ˢ₁ , ≈ᴴ₁ ⟩ ⟨ ≈ˢ₂ , ≈ᴴ₂ ⟩ = ⟨ trans-≈ˢ-ι ≤₁ ≈ˢ₁ ≈ˢ₂ , trans-≈ᴴ-ι ≈ᴴ₁ ≈ᴴ₂ ⟩
+    where open import Generic.Heap.Lemmas Ty₂ Value₂
+          ≤₁ = ⊆⇒≤ (≈ᴴ-⊆ ≈ᴴ₁)

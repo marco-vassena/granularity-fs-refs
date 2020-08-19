@@ -320,7 +320,7 @@ module ≈ᴴ-Props
                 μ₁' ≈⟨ β ⟩ᴴ μ₂'
   square-≈ᴴ-ι {β} {μ₁} {μ₂ = μ₂} ≈₁ ≈₂ ≈₃ =
     with-≡ (square-≈ᴴ ≈₁ ≈₂ ≈₃) (square-lemma ⊆ᴿ-ι ⊆ᴰ-ι)
-
+    where open _≈⟨_⟩ᴴ_ ≈₁
   newᴴ-≈ᴴ : ∀ {μ₁ μ₂ β τ} {v₁ v₂ : Value τ} →
               μ₁ ≈⟨ β ⟩ᴴ μ₂ →
              (snocᴴ μ₁ v₁) ≈⟨ β ⟩ᴴ (snocᴴ μ₂ v₂)
