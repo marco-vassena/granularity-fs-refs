@@ -488,6 +488,7 @@ module IProps (A : Set) (F : A → Set) where
 --           valid-≤ : ∀ {a n} {x : F a} → Valid n x → Dom 𝑹 x ≤ n
 
 
+-- TODO: remove
 -- Simple (not indexed) props
 -- It does not seem we need this because store
 -- are restricted anyway

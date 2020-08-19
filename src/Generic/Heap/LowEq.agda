@@ -143,7 +143,7 @@ module ≈ᴴ-Props
     ; transᴮ to trans-≈ⱽ
     ; wkenᴮ to wken-≈ⱽ )
 
-  open import Generic.Heap.Valid Ty Value Validⱽ
+  open import Generic.Heap.Valid Ty Value
   open import Generic.Heap.Lemmas Ty Value
 
   snoc-⊆ᴿ : ∀ {β μ τ} {v : Value τ} → β ⊆ᴿ μ → β ⊆ᴿ (snocᴴ μ v)
