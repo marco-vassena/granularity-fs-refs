@@ -51,7 +51,7 @@ mutual
                θ₁ ≈⟨ β ⟩ᴱ θ₂ →
                ⟨ t , θ₁ ⟩ᵀ ≈⟨ β ⟩ⱽ ⟨ t , θ₂ ⟩ᵀ
 
-    Labeledᴸ : ∀ {τ ℓ β} {v₁ v₂ : Value τ} →
+    Labeledᴸ : ∀ {ℓ τ β} {v₁ v₂ : Value τ} →
                  ℓ ⊑ A →
                  v₁ ≈⟨ β ⟩ⱽ v₂ →
                  Labeled ℓ v₁ ≈⟨ β ⟩ⱽ Labeled ℓ v₂
@@ -154,12 +154,15 @@ data _≈⟨_⟩ᶜ_ {τ} : FConf τ → Bij → FConf τ → Set where
           ⟨ Σ₁ , μ₁ , pc₁ , v₁ ⟩ ≈⟨ β ⟩ᶜ ⟨ Σ₂ , μ₂ , pc₂ , v₂ ⟩
 
 
-postulate ≈ᴸ-⊔ : ∀ {τ β} {v₁ v₂ : LValue τ} (ℓ : Label) →
+≈ᴸ-⊔ : ∀ {τ β} {v₁ v₂ : LValue τ} (pc : Label) →
                    let ⟨ v₁′ , ℓ₁ ⟩ = v₁
                        ⟨ v₂′ , ℓ₂ ⟩ = v₂ in
                        v₁ ≈⟨ β ⟩ᴸ v₂ →
-                       ⟨ v₁′ , ℓ ⊔ ℓ₁ ⟩ ≈⟨ β ⟩ᴸ ⟨ v₂′ , ℓ ⊔ ℓ₂ ⟩
--- ≈ᴸ-⊑ ℓ c = {!!}
+                       ⟨ v₁′ , pc ⊔ ℓ₁ ⟩ ≈⟨ β ⟩ᴸ ⟨ v₂′ , pc ⊔ ℓ₂ ⟩
+≈ᴸ-⊔ pc (Labeledᴸ {ℓ} x ≈ᴸ) with pc ⊔ ℓ ⊑? A
+... | yes ⊑₁ =  Labeledᴸ ⊑₁ ≈ᴸ
+... | no ⋤₁ =  Labeledᴴ ⋤₁ ⋤₁
+≈ᴸ-⊔ ℓ (Labeledᴴ x x₁) = Labeledᴴ (join-⋤₂ x) (join-⋤₂ x₁)
 
 label-of-≈ᶜ : ∀ {τ β Σ₁ Σ₂ μ₁ μ₂ pc} {v₁ v₂ : LValue τ} → pc ⊑ A →
          let ⟨ _ , ℓ₁ ⟩ = v₁
