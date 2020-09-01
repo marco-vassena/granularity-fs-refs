@@ -293,6 +293,8 @@ valid-invariant (UnId x _) (isVᴾ ∧ isVᴱ) =
   let (isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ) = valid-invariant x (isVᴾ ∧ isVᴱ)
   in isVᴱ′ ∧ isVᴾ′ ∧ isVⱽ
 
+-- TODO: it could be useful to have the version where we already add the result
+-- in the environment
 validᴾ-⇓ : ∀ {τ Γ ℓ} {θ : Env Γ} {c : IConf Γ τ} {c' : FConf τ} →
                               c ⇓⟨ θ , ℓ ⟩ c' →
                               let ⟨ Σ' , μ' , _ ⟩ = c' in

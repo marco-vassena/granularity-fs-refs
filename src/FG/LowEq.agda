@@ -25,6 +25,7 @@ open import Generic.Bijection renaming (_∘_ to _∘ᴮ_)
 open import Data.Product as P renaming (_,_ to ⟨_,_⟩)
 open import FG.Valid
 
+-- TODO: remove
 -- mutual
   -- Moved to Valid
   -- "Size" of a value
@@ -413,6 +414,7 @@ isEquivᴱ = record { reflᴮ = refl-≈ᴱ
            ; symᴮ = sym-≈ᴱ
            ; transᴮ = trans-≈ᴱ }
 
+-- Why this?
 import Generic.ValidEquivalence as G
 open G Ty
 

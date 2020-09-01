@@ -155,8 +155,8 @@ mutual
 
   -- TINI for low steps
   tiniᴸ : ∀ {pc β τ Γ μ₁ μ₂ Σ₁ Σ₂ e} {θ₁ θ₂ : Env Γ} {c₁' c₂' : FConf τ} →
-                    let c₁ = ⟨ Σ₁ , μ₁ ,  e ⟩
-                        c₂ = ⟨ Σ₂ , μ₂ ,  e ⟩ in
+                    let c₁ = ⟨ Σ₁ , μ₁ , e ⟩
+                        c₂ = ⟨ Σ₂ , μ₂ , e ⟩ in
                     {{valid₁ : Valid-Inputs c₁ θ₁}} {{valid₂ : Valid-Inputs c₂ θ₂}} →
                     c₁ ⇓⟨ θ₁ , pc ⟩ c₁' →
                     c₂ ⇓⟨ θ₂ , pc ⟩ c₂' →
