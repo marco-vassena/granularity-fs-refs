@@ -1,5 +1,7 @@
 module CG.Types where
 
+open import Generic.Calculus using (Flow; S; I) public
+
 -- Types τ
 data Ty : Set where
   unit : Ty                      -- Unit type
@@ -9,7 +11,7 @@ data Ty : Set where
   𝓛 : Ty                        -- Label
   LIO : Ty → Ty                  -- LIO computation
   Labeled : Ty → Ty              -- Labeled value
-  Ref :  Ty → Ty                 -- Labeled mutable reference
+  Ref : Flow → Ty → Ty           -- Labeled mutable reference
 
 infixr 3 _➔_
 infixr 3 _×_

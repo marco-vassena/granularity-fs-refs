@@ -94,19 +94,19 @@ mutual
     taint : Expr Γ 𝓛 → Thunk Γ (LIO unit)
 
    --------------------------------------------------------------------------------
-   -- Memory operations.
+   -- Memory operations
 
     -- Creates a new mutable reference at a given security level
-    new : ∀ {τ} → Expr Γ (Labeled τ) → Thunk Γ (LIO (Ref τ))
+    new : ∀ {τ s} → Expr Γ (Labeled τ) → Thunk Γ (LIO (Ref s τ))
 
     -- Reads the content of a mutable reference
-    !_ : ∀ {τ} → Expr Γ (Ref τ) → Thunk Γ (LIO τ)
+    !_ : ∀ {τ s} → Expr Γ (Ref s τ) → Thunk Γ (LIO τ)
 
     -- Overvwrites the content of a mutable reference
-    _≔_ : ∀ {τ} → Expr Γ (Ref τ) → Expr Γ (Labeled τ) → Thunk Γ (LIO unit)
+    _≔_ : ∀ {τ s} → Expr Γ (Ref s τ) → Expr Γ (Labeled τ) → Thunk Γ (LIO unit)
 
     -- Retrieve the label of a labeled reference
-    labelOfRef : ∀ {τ} → Expr Γ (Ref τ) → Thunk Γ (LIO 𝓛)
+    labelOfRef : ∀ {τ s} → Expr Γ (Ref s τ) → Thunk Γ (LIO 𝓛)
 
   -- Value enviroment
   data Env : (Γ : Ctx) → Set where
@@ -133,8 +133,11 @@ mutual
     -- Labeled value
     Labeled : ∀ {τ} (ℓ : Label) → Value τ → Value (Labeled τ)
 
-    -- Labeled reference
-    Ref : ∀ {τ} (ℓ : Label) (n : ℕ) → Value (Ref τ)
+    -- Labeled reference (flow insensitive)
+    Refᴵ : ∀ {τ} (ℓ : Label) (n : ℕ) → Value (Ref I τ)
+
+    -- Labeled reference (flow sensitive)
+    Refˢ : ∀ {τ} → ℕ → Value (Ref S τ)
 
     -- First class labels
     ⌞_⌟ : (ℓ : Label) → Value 𝓛
@@ -154,6 +157,8 @@ if_then_else_ : ∀ {Γ τ} → Expr Γ Bool → Expr Γ τ → Expr Γ τ → E
 if_then_else_ c t e = case c (wken t (drop refl-⊆)) (wken e (drop refl-⊆))
 
 --------------------------------------------------------------------------------
+-- TODO: maybe not needed
+
 -- Implementation of the HasLabel generic interface for Labeled values
 
 open import Generic.LValue
@@ -169,11 +174,14 @@ open import Generic.LValue
 
 -- Generic store.
 open import Generic.Store Ty Value public
+open import Generic.Heap Ty Value public
+
 
 -- Generic configuration container.
 record Conf (A : Set) : Set where
-  constructor ⟨_,_,_⟩
+  constructor ⟨_,_,_,_⟩
   field store : Store
+        heap : Heap
         pc : Label
         term : A
 
