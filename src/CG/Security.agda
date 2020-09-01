@@ -67,9 +67,9 @@ mutual
   step-≈ᴾ (Return x) pc⋤A = refl-≈ᴾ
 
   step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Bind x x₁) pc⋤A =
-    let isVᴱ′′ ∧ isVᴾ′ ∧ isV = valid-invariantᶠ x (isVᴾ ∧ isVᴱ)
+    let isVᴾ′ ∧ isVᴱ′′ = validᴾ-⇓ᶠ x (isVᴾ ∧ isVᴱ)
         ≈ᴾ′ = stepᶠ-≈ᴾ x pc⋤A
-        ≈ᴾ′′ = stepᶠ-≈ᴾ {{ isVᴾ′ }} {{ isV ∧ isVᴱ′′ }} x₁ (trans-⋤ (stepᶠ-⊑ x) pc⋤A)
+        ≈ᴾ′′ = stepᶠ-≈ᴾ {{ isVᴾ′ }} {{ isVᴱ′′ }} x₁ (trans-⋤ (stepᶠ-⊑ x) pc⋤A)
     in trans-≈ᴾ-ι ≈ᴾ′ ≈ᴾ′′
 
   step-≈ᴾ (Unlabel x eq) pc⋤A = refl-≈ᴾ
