@@ -11,36 +11,42 @@ open import FG.Syntax public
 -- Big-step semantics
 open import FG.Semantics public
 
+-- References are valid
+open import FG.Valid public
+
+-- Bijections
+open import Generic.Bijection hiding (id)
+
 --------------------------------------------------------------------------------
 -- Top-level low-equivalence bindings that explicitly take the
 -- adversary security level
 
-_≈ᴵ⟨_⟩_ : ∀ {τ Γ} → IConf Γ τ → Label → IConf Γ τ → Set
-c₁ ≈ᴵ⟨ A ⟩ c₂ = c₁ ≈ᴵ c₂
+_≈ᴵ⟨_,_⟩_ : ∀ {τ Γ} → IConf Γ τ → Label → Bij → IConf Γ τ → Set
+c₁ ≈ᴵ⟨ A , β ⟩ c₂ = c₁ ≈⟨ β ⟩ᴵ c₂
   where open import FG.LowEq A
 
-_≈ᶜ⟨_⟩_ : ∀ {τ} → FConf τ → Label → FConf τ → Set
-c₁ ≈ᶜ⟨ A ⟩ c₂ = c₁ ≈ᶜ c₂
+_≈ᶜ⟨_,_⟩_ : ∀ {τ} → FConf τ → Label → Bij → FConf τ → Set
+c₁ ≈ᶜ⟨ A , β ⟩ c₂ = c₁ ≈⟨ β ⟩ᶜ c₂
   where open import FG.LowEq A
 
-_≈ⱽ⟨_⟩_ : ∀ {τ} → Value τ → Label → Value τ → Set
-v₁ ≈ⱽ⟨ A ⟩ v₂ = v₁ ≈ⱽ v₂
+_≈ⱽ⟨_,_⟩_ : ∀ {τ} → Value τ → Label → Bij → Value τ → Set
+v₁ ≈ⱽ⟨ A , β ⟩ v₂ = v₁ ≈⟨ β ⟩ⱽ v₂
   where open import FG.LowEq A
 
-_≈ᴿ⟨_⟩_ : ∀ {τ} → Raw τ → Label → Raw τ → Set
-r₁ ≈ᴿ⟨ A ⟩ r₂ = r₁ ≈ᴿ r₂
+_≈ᴿ⟨_,_⟩_ : ∀ {τ} → Raw τ → Label → Bij → Raw τ → Set
+r₁ ≈ᴿ⟨ A , β ⟩ r₂ = r₁ ≈⟨ β ⟩ᴿ r₂
   where open import FG.LowEq A
 
-_≈ᴱ⟨_⟩_ : ∀ {Γ} → Env Γ → Label → Env Γ → Set
-r₁ ≈ᴱ⟨ A ⟩ r₂ = r₁ ≈ᴱ r₂
+_≈ᴱ⟨_,_⟩_ : ∀ {Γ} → Env Γ → Label → Bij → Env Γ → Set
+r₁ ≈ᴱ⟨ A , β ⟩ r₂ = r₁ ≈⟨ β ⟩ᴱ r₂
   where open import FG.LowEq A
 
-_≈ᴹ⟨_⟩_ : ∀ {ℓ} → Memory ℓ → Label → Memory ℓ → Set
-M₁ ≈ᴹ⟨ A ⟩ M₂ = M₁ ≈⟨ _ ⊑? A  ⟩ᴹ M₂
+_≈ᴹ⟨_,_⟩_ : ∀ {ℓ} → Memory ℓ → Label → Bij → Memory ℓ → Set
+M₁ ≈ᴹ⟨ A , β ⟩ M₂ = M₁ ≈⟨ β , _ ⊑? A ⟩ᴹ M₂
   where open import FG.LowEq A
 
-_≈ˢ⟨_⟩_ : Store → Label → Store → Set
-Σ₁ ≈ˢ⟨ A ⟩ Σ₂ = Σ₁ ≈ˢ Σ₂
+_≈ˢ⟨_,_⟩_ : Store → Label → Bij → Store → Set
+Σ₁ ≈ˢ⟨ A , β ⟩ Σ₂ = Σ₁ ≈⟨ β ⟩ˢ Σ₂
   where open import FG.LowEq A
 
 --------------------------------------------------------------------------------
@@ -57,14 +63,16 @@ open import Relation.Binary.PropositionalEquality
          ; Input = λ Γ → (Env Γ) ∧ Label
          ; IConf = IConf
          ; FConf = FConf
+         ; Valid-Inputs = λ { c (θ , ℓ) → Valid-Inputs c θ }
          ; I⟨_⟩ = id
          ; _⇓⟨_⟩_ = λ { c (θ , pc) c' → c ⇓⟨ θ , pc ⟩ c' }
-         ; _≈ᴱ⟨_⟩_ = λ { (θ₁ , pc₁) A (θ₂ , pc₂) → θ₁ ≈ᴱ⟨ A ⟩ θ₂ ∧ pc₁ ≡ pc₂}
-         ; _≈ᴵ⟨_⟩_ = _≈ᴵ⟨_⟩_
-         ; _≈ᶠ⟨_⟩_ = _≈ᶜ⟨_⟩_
+         ; _≈ᴱ⟨_,_⟩_ = λ { (θ₁ , pc₁) A β (θ₂ , pc₂) → θ₁ ≈ᴱ⟨ A , β ⟩ θ₂ ∧ pc₁ ≡ pc₂}
+         ; _≈ᴵ⟨_,_⟩_ = _≈ᴵ⟨_,_⟩_
+         ; _≈ᶠ⟨_,_⟩_ = _≈ᶜ⟨_,_⟩_
          }
 
 λ^FG-TINI : TINI λ^FG
-λ^FG-TINI {A = A} c₁⇓ c₂⇓ c₁≈c₂ (θ₁≈θ₂ , refl) = tini c₁⇓ c₂⇓ c₁≈c₂ θ₁≈θ₂
+λ^FG-TINI {A = A} isV₁ isV₂ c₁⇓ c₂⇓ c₁≈c₂ (θ₁≈θ₂ , refl)
+  = tini {{ isV₁ }} {{ isV₂ }} c₁⇓ c₂⇓ c₁≈c₂ θ₁≈θ₂
   where open import FG.Security A
         open Calculus λ^FG

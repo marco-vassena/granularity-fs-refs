@@ -27,12 +27,16 @@ open import Data.Nat.Properties
 open import Data.Maybe
 open import Generic.Heap.Lemmas Ty Value
 
--- Domain inclusion between bijection and heap
+--------------------------------------------------------------------------------
+-- Domain and range inclusion between bijection and heap
+
 _⊆ᴰ_ : Bij → Heap → Set
 β ⊆ᴰ μ = ∀ {n : ℕ} → n ∈ᴰ β → n ∈ᴴ μ
 
 _⊆ᴿ_ : Bij → Heap → Set
 β ⊆ᴿ μ = ∀ {n : ℕ} → n ∈ᴿ β → n ∈ᴴ μ
+
+--------------------------------------------------------------------------------
 
 -- Homogeneous L-equivalence.
 Lift-≈ : Heap → Heap → Bij → Set
