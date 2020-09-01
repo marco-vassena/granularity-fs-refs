@@ -324,9 +324,9 @@ mutual
   refl-≈ᴿ {x = ⟨ _ , θ ⟩ᶜ} = Fun refl-≈ᴱ
   refl-≈ᴿ {x = (inl v)} = Inl refl-≈ⱽ
   refl-≈ᴿ {x = (inr v)} = Inr refl-≈ⱽ
-  refl-≈ᴿ {x = ⟨ v₁ , v₂ ⟩} = Pair ≈₁′ ≈₂′
-    where ≈₁′ = wken-≈ⱽ (ι-⊆ (m≤m⊔n ∥ v₁ ∥ⱽ ∥ v₂ ∥ⱽ)) refl-≈ⱽ
-          ≈₂′ = wken-≈ⱽ (ι-⊆ (n≤m⊔n ∥ v₁ ∥ⱽ ∥ v₂ ∥ⱽ)) refl-≈ⱽ
+  refl-≈ᴿ {x = ⟨ v₁ , v₂ ⟩} = Pair ≈₁ ≈₂
+    where ≈₁ = wken-≈ⱽ (ι-⊆ (m≤m⊔n ∥ v₁ ∥ⱽ ∥ v₂ ∥ⱽ)) refl-≈ⱽ
+          ≈₂ = wken-≈ⱽ (ι-⊆ (n≤m⊔n ∥ v₁ ∥ⱽ ∥ v₂ ∥ⱽ)) refl-≈ⱽ
   refl-≈ᴿ {x = (Refᴵ ℓ n)} with ℓ ⊑? A
   ... | yes ℓ⊑A = Ref-Iᴸ ℓ⊑A
   ... | no ℓ⋤A = Ref-Iᴴ ℓ⋤A ℓ⋤A
@@ -343,11 +343,11 @@ mutual
 ----------------------------------------------------------------------------------
 
   -- Symmetric
-  sym-≈ⱽ : ∀ {β τ} {v₁ v₂ : Value τ} → v₁ ≈⟨ β ⟩ⱽ v₂ → v₂ ≈⟨ β ⁻¹ ⟩ⱽ v₁
+  sym-≈ⱽ : V.Symmetricᴮ _≈⟨_⟩ⱽ_
   sym-≈ⱽ (Valueᴸ ℓ⊑A r≈) = Valueᴸ ℓ⊑A (sym-≈ᴿ r≈)
   sym-≈ⱽ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = Valueᴴ ℓ₂⋤A ℓ₁⋤A
 
-  sym-≈ᴿ : ∀ {β τ} {r₁ r₂ : Raw τ} → r₁ ≈⟨ β ⟩ᴿ r₂ → r₂ ≈⟨ β ⁻¹ ⟩ᴿ r₁
+  sym-≈ᴿ : R.Symmetricᴮ _≈⟨_⟩ᴿ_
   sym-≈ᴿ Unit = Unit
   sym-≈ᴿ (Lbl ℓ) = Lbl ℓ
   sym-≈ᴿ (Inl x) = Inl (sym-≈ⱽ x)
@@ -359,13 +359,12 @@ mutual
   sym-≈ᴿ {β = β} (Ref-S x) = Ref-S (Bijectionᴾ.right-inverse-of β x)
   sym-≈ᴿ (Id x) = Id (sym-≈ⱽ x)
 
-  sym-≈ᴱ : ∀ {β Γ} {θ₁ θ₂ : Env Γ} → θ₁ ≈⟨ β ⟩ᴱ θ₂ → θ₂ ≈⟨ β ⁻¹ ⟩ᴱ θ₁
+  sym-≈ᴱ : E.Symmetricᴮ _≈⟨_⟩ᴱ_
   sym-≈ᴱ [] = []
   sym-≈ᴱ (≈ⱽ ∷ ≈ᴱ) = sym-≈ⱽ ≈ⱽ ∷ sym-≈ᴱ ≈ᴱ
 
   -- Transitive
-  trans-≈ᴿ : ∀ {β₁ β₂ τ} {r₁ r₂ r₃ : Raw τ} →
-               r₁ ≈⟨ β₁ ⟩ᴿ r₂ → r₂ ≈⟨ β₂ ⟩ᴿ r₃ → r₁ ≈⟨ β₂ ∘ᴮ β₁ ⟩ᴿ r₃
+  trans-≈ᴿ : R.Transitiveᴮ _≈⟨_⟩ᴿ_
   trans-≈ᴿ Unit Unit = Unit
   trans-≈ᴿ (Lbl ℓ) (Lbl .ℓ) = Lbl ℓ
   trans-≈ᴿ (Inl x) (Inl y) = Inl (trans-≈ⱽ x y)
@@ -381,15 +380,13 @@ mutual
     = Ref-S (join-∈ᵗ {β₁ = β₁} {β₂} x y)
   trans-≈ᴿ (Id x) (Id y) = Id (trans-≈ⱽ x y)
 
-  trans-≈ⱽ : ∀ {β₁ β₂ τ} {v₁ v₂ v₃ : Value τ} →
-               v₁ ≈⟨ β₁ ⟩ⱽ v₂ → v₂ ≈⟨ β₂ ⟩ⱽ v₃ → v₁ ≈⟨ β₂ ∘ᴮ β₁ ⟩ⱽ v₃
+  trans-≈ⱽ : V.Transitiveᴮ _≈⟨_⟩ⱽ_
   trans-≈ⱽ (Valueᴸ ℓ⊑A r≈) (Valueᴸ ℓ⊑A₁ r≈₁) = Valueᴸ ℓ⊑A₁ (trans-≈ᴿ r≈ r≈₁)
   trans-≈ⱽ (Valueᴸ ℓ⊑A r≈) (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = ⊥-elim (ℓ₁⋤A ℓ⊑A)
   trans-≈ⱽ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) (Valueᴸ ℓ⊑A r≈) = ⊥-elim (ℓ₂⋤A ℓ⊑A)
   trans-≈ⱽ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) (Valueᴴ ℓ₁⋤A₁ ℓ₂⋤A₁) = Valueᴴ ℓ₁⋤A ℓ₂⋤A₁
 
-  trans-≈ᴱ : ∀ {β₁ β₂ Γ} {θ₁ θ₂ θ₃ : Env Γ} →
-               θ₁ ≈⟨ β₁ ⟩ᴱ θ₂ → θ₂ ≈⟨ β₂ ⟩ᴱ θ₃ → θ₁ ≈⟨ β₂ ∘ᴮ β₁ ⟩ᴱ θ₃
+  trans-≈ᴱ : E.Transitiveᴮ _≈⟨_⟩ᴱ_
   trans-≈ᴱ [] [] = []
   trans-≈ᴱ (≈ⱽ₁ ∷ ≈ᴱ₁) (≈ⱽ₂ ∷ ≈ᴱ₂) = trans-≈ⱽ ≈ⱽ₁ ≈ⱽ₂ ∷ trans-≈ᴱ ≈ᴱ₁ ≈ᴱ₂
 
