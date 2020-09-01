@@ -1,5 +1,3 @@
-{-# OPTIONS --allow-unsolved-metas #-}
-
 open import Lattice
 open import Generic.Bijection
 open import Data.Nat hiding (_≟_)
