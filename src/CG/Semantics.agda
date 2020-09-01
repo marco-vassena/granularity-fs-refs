@@ -7,6 +7,7 @@ module CG.Semantics {{𝑳 : Lattice}} where
 open import CG.Types
 open import CG.Syntax
 open import Relation.Binary.PropositionalEquality
+open import Data.Product hiding (_×_) renaming (_,_ to _^_)
 
 mutual
 
@@ -124,6 +125,9 @@ mutual
               pc' ≡ pc ⊔ ℓ →
               Step θ ⟨ Σ , μ , pc , (taint e) ⟩ ⟨ Σ , μ , pc'  , （） ⟩
 
+  --------------------------------------------------------------------------------
+  -- Flow Insensitive references
+
     New : ∀ {Σ μ pc ℓ τ} {e : Expr Γ _} {v : Value τ} →
           e ⇓ᴾ⟨ θ ⟩ (Labeled ℓ v) →
           pc ⊑ ℓ →
@@ -151,6 +155,36 @@ mutual
                  e ⇓ᴾ⟨ θ ⟩ Refᴵ ℓ n →
                  (eq : pc' ≡ pc ⊔ ℓ) →
                  Step θ ⟨ Σ , μ , pc , labelOfRef e ⟩ ⟨ Σ , μ , pc' , ⌞ ℓ ⌟ ⟩
+
+  --------------------------------------------------------------------------------
+  -- Flow Sensitive references
+
+    New-FS : ∀ {Σ μ pc ℓ τ} {e : Expr Γ _} {v : Value τ} →
+             e ⇓ᴾ⟨ θ ⟩ (Labeled ℓ v) →
+             pc ⊑ ℓ →
+             Step θ ⟨ Σ , μ , pc , new e ⟩  ⟨ Σ , snocᴴ μ (v ^ ℓ) , pc , Refˢ ∥ μ ∥ᴴ ⟩
+
+    Read-FS : ∀ {Σ μ pc ℓ pc' n τ} {e : Expr _ (Ref S τ)} {v : Value τ} →
+              e ⇓ᴾ⟨ θ ⟩ Refˢ n →
+              (n∈μ : n ↦ v ^ ℓ ∈ᴴ μ) →
+              (eq : pc' ≡ pc ⊔ ℓ) →
+              Step θ ⟨ Σ , μ , pc , ! e ⟩  ⟨ Σ , μ , pc' , v ⟩
+
+    Write-FS : ∀ {Σ μ μ' pc ℓ ℓ' ℓ'' n τ} {M' : Memory ℓ} {e₁ : Expr _ (Ref S τ)} {e₂ : Expr _ (Labeled τ)} {v₂ v₂' : Value τ} →
+             e₁ ⇓ᴾ⟨ θ ⟩ Refˢ n →
+             e₂ ⇓ᴾ⟨ θ ⟩ Labeled ℓ' v₂ →
+             (n∈μ : n ↦ v₂' ^ ℓ ∈ᴴ μ) →
+             pc ⊑ ℓ →
+             (ℓ'' ≡ pc ⊔ ℓ') →  -- Fix manuscript
+             (up : μ' ≔ μ [ n ↦ v₂ ^ ℓ'' ]ᴴ) →
+             Step θ ⟨ Σ , μ , pc , e₁ ≔ e₂ ⟩ ⟨ Σ , μ' , pc , （） ⟩
+
+    LabelOfRef-FS : ∀ {Σ μ ℓ pc pc' n τ} {e : Expr _ (Ref S τ)} {v : Value τ} →
+                    e ⇓ᴾ⟨ θ ⟩ Refˢ n →
+                    (n∈μ : n ↦ v ^ ℓ ∈ᴴ μ) →
+                    (eq : pc' ≡ pc ⊔ ℓ) →
+                    Step θ ⟨ Σ , μ , pc , labelOfRef e ⟩ ⟨ Σ , μ , pc' , ⌞ ℓ ⌟ ⟩
+
 
   -- Pretty syntax.
   _⇓⟨_⟩_ : ∀ {Γ τ} → TConf Γ (LIO τ) → Env Γ → FConf τ → Set
@@ -269,6 +303,10 @@ mutual
   step-⊑ (Read x u refl) = join-⊑₁ _ _
   step-⊑ (Write x _ x₁ _ _) = refl-⊑
   step-⊑ (LabelOfRef x refl) = join-⊑₁ _ _
+  step-⊑ (New-FS x x₁) = refl-⊑
+  step-⊑ (Read-FS x n∈μ refl) = join-⊑₁ _ _
+  step-⊑ (Write-FS x x₁ n∈μ x₂ eq up) = refl-⊑
+  step-⊑ (LabelOfRef-FS x n∈μ refl) = join-⊑₁ _ _
 
   stepᶠ-⊑ : ∀ {τ Γ c₂} {θ : Env Γ} {c₁ : EConf Γ (LIO τ)} →
               c₁ ⇓ᶠ⟨ θ ⟩ c₂ →

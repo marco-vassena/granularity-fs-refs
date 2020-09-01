@@ -172,30 +172,35 @@ open import Generic.LValue
 --------------------------------------------------------------------------------
 -- Configurations
 
+-- Pair of value and label (isomorphic to labeled value)
+LValue : Ty → Set
+LValue τ = Value τ P.× Label
+  where import Data.Product as P
+
 -- Generic store.
 open import Generic.Store Ty Value public
-open import Generic.Heap Ty Value public
-
+open import Generic.Heap Ty LValue public
 
 -- Generic configuration container.
-record Conf (A : Set) : Set where
+record Conf (F : Ctx → Ty → Set) (Γ : Ctx) (τ : Ty) : Set where
   constructor ⟨_,_,_,_⟩
   field store : Store
         heap : Heap
         pc : Label
-        term : A
+        term : F Γ τ
 
 -- Initial Configuration (Expr)
 EConf : Ctx → Ty → Set
-EConf Γ τ = Conf (Expr Γ τ)
+EConf Γ τ = Conf Expr Γ τ
 
 -- Initial Configuration (Thunk)
 TConf : Ctx → Ty → Set
-TConf Γ τ = Conf (Thunk Γ τ)
+TConf Γ τ = Conf Thunk Γ τ
 
 -- Final configuration (Value)
 FConf : Ty → Set
-FConf τ = Conf (Value τ)
+FConf τ = Conf (const Value) [] τ
+  where open import Function
 
 -- Projections
 
