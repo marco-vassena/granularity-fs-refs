@@ -124,12 +124,27 @@ open import CG.Semantics
 open import Generic.PState.Base  Value LValue
 open import Generic.PState.Valid isValidⱽ isValidᴸ public
 
-postulate step-≤ :  ∀ {τ Γ θ} {c : TConf Γ (LIO τ)} {c' : FConf τ} → c ⇓⟨ θ ⟩ c' → ∥ heap c ∥ᴴ ≤ ∥ heap c' ∥ᴴ
+mutual
 
-postulate stepᶠ-≤ :  ∀ {τ Γ θ} {c : EConf Γ (LIO τ)} {c' : FConf τ} → c ⇓ᶠ⟨ θ ⟩ c' → ∥ heap c ∥ᴴ ≤ ∥ heap c' ∥ᴴ
+  step-≤ :  ∀ {τ Γ θ} {c : TConf Γ (LIO τ)} {c' : FConf τ} → c ⇓⟨ θ ⟩ c' → ∥ heap c ∥ᴴ ≤ ∥ heap c' ∥ᴴ
+  step-≤ (Return x) = ≤-refl
+  step-≤ (Bind x x₁) = ≤-trans (stepᶠ-≤ x) (stepᶠ-≤ x₁)
+  step-≤ (Unlabel x eq) = ≤-refl
+  step-≤ (ToLabeled x) = stepᶠ-≤ x
+  step-≤ (LabelOf x x₁) = ≤-refl
+  step-≤ GetLabel = ≤-refl
+  step-≤ (Taint x x₁) = ≤-refl
+  step-≤ (New x x₁) = ≤-refl
+  step-≤ (Read x n∈M eq) = ≤-refl
+  step-≤ (Write x x₁ x₂ x₃ up) = ≤-refl
+  step-≤ (LabelOfRef x eq) = ≤-refl
+  step-≤ (New-FS x x₁) = snoc-≤
+  step-≤ (Read-FS x n∈μ eq) = ≤-refl
+  step-≤ (Write-FS x x₁ n∈μ x₂ x₃ w) rewrite write-length-≡ w = ≤-refl
+  step-≤ (LabelOfRef-FS x n∈μ eq) = ≤-refl
 
-
-
+  stepᶠ-≤ :  ∀ {τ Γ θ} {c : EConf Γ (LIO τ)} {c' : FConf τ} → c ⇓ᶠ⟨ θ ⟩ c' → ∥ heap c ∥ᴴ ≤ ∥ heap c' ∥ᴴ
+  stepᶠ-≤ (Force x x₁) = step-≤
 
 Valid-Inputs : ∀ {F} {Γ} {τ} → Conf F Γ τ → Env Γ →  Set
 Valid-Inputs ⟨ Σ , μ , _ , _ ⟩ θ = Validᴾ ⟨ Σ , μ ⟩ × Validᴱ ∥ μ ∥ᴴ θ
