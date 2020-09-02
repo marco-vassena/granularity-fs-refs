@@ -144,7 +144,7 @@ mutual
   step-≤ (LabelOfRef-FS x n∈μ eq) = ≤-refl
 
   stepᶠ-≤ :  ∀ {τ Γ θ} {c : EConf Γ (LIO τ)} {c' : FConf τ} → c ⇓ᶠ⟨ θ ⟩ c' → ∥ heap c ∥ᴴ ≤ ∥ heap c' ∥ᴴ
-  stepᶠ-≤ (Force x x₁) = step-≤
+  stepᶠ-≤ (Force x x₁) = step-≤ x₁
 
 Valid-Inputs : ∀ {F} {Γ} {τ} → Conf F Γ τ → Env Γ →  Set
 Valid-Inputs ⟨ Σ , μ , _ , _ ⟩ θ = Validᴾ ⟨ Σ , μ ⟩ × Validᴱ ∥ μ ∥ᴴ θ
@@ -186,38 +186,38 @@ open Validᴾ
 
 mutual
 
-  validᴾ-⇓ : ∀ {τ Γ} {θ : Env Γ} {c : TConf Γ (LIO τ)} {c' : FConf τ} →
+  validᴼ-⇓ : ∀ {τ Γ} {θ : Env Γ} {c : TConf Γ (LIO τ)} {c' : FConf τ} →
                c ⇓⟨ θ ⟩ c' →
                let ⟨ Σ' , μ' , _  , v ⟩ = c' in
                Valid-Inputs c θ →
                Valid-Outputs c' -- × Validᴱ ∥ μ' ∥ᴴ θ
-  validᴾ-⇓ (Return x) (isVᴾ ∧ isVᴱ) = (isVᴾ ∧ validⱽ-⇓ᴾ x isVᴱ) -- ∧ isVᴱ
-  validᴾ-⇓ (Bind x₁ x₂) isV =
-    let (isVᴾ ∧ isVⱽ ) = validᴾ-⇓ᶠ′ x₁ isV
+  validᴼ-⇓ (Return x) (isVᴾ ∧ isVᴱ) = (isVᴾ ∧ validⱽ-⇓ᴾ x isVᴱ) -- ∧ isVᴱ
+  validᴼ-⇓ (Bind x₁ x₂) isV =
+    let (isVᴾ ∧ isVⱽ ) = validᴼ-⇓ᶠ x₁ isV
         isVᴱ = wken-validᴱ _ (stepᶠ-≤ x₁) (proj₂ isV)
-        (isVᴾ′ ∧ isVⱽ′) = validᴾ-⇓ᶠ′ x₂ (isVᴾ ∧ isVⱽ ∧ isVᴱ)
+        (isVᴾ′ ∧ isVⱽ′) = validᴼ-⇓ᶠ x₂ (isVᴾ ∧ isVⱽ ∧ isVᴱ)
     in isVᴾ′ ∧ isVⱽ′
 
-  validᴾ-⇓ (Unlabel x eq) (isVᴾ ∧ isVᴱ) = isVᴾ ∧ validⱽ-⇓ᴾ x isVᴱ
+  validᴼ-⇓ (Unlabel x eq) (isVᴾ ∧ isVᴱ) = isVᴾ ∧ validⱽ-⇓ᴾ x isVᴱ
 
-  validᴾ-⇓ (ToLabeled x) isV = validᴾ-⇓ᶠ′ x isV
-  validᴾ-⇓ (LabelOf x x₁) (isVᴾ ∧ isVᴱ) = isVᴾ ∧ tt
-  validᴾ-⇓ GetLabel (isVᴾ ∧ isVᴱ) = isVᴾ ∧ tt
-  validᴾ-⇓ (Taint x x₁) (isVᴾ ∧ isVᴱ) = isVᴾ ∧ tt
+  validᴼ-⇓ (ToLabeled x) isV = validᴼ-⇓ᶠ x isV
+  validᴼ-⇓ (LabelOf x x₁) (isVᴾ ∧ isVᴱ) = isVᴾ ∧ tt
+  validᴼ-⇓ GetLabel (isVᴾ ∧ isVᴱ) = isVᴾ ∧ tt
+  validᴼ-⇓ (Taint x x₁) (isVᴾ ∧ isVᴱ) = isVᴾ ∧ tt
 
-  validᴾ-⇓ (New {μ = μ} x x₁) (⟨ isVˢ , isVᴴ ⟩ ∧ isVᴱ) = ⟨ isVˢ′ , isVᴴ ⟩ ∧ tt
+  validᴼ-⇓ (New {μ = μ} x x₁) (⟨ isVˢ , isVᴴ ⟩ ∧ isVᴱ) = ⟨ isVˢ′ , isVᴴ ⟩ ∧ tt
     where isVᴹ = snoc-validᴹ  ∥ μ ∥ᴴ (isVˢ _) (validⱽ-⇓ᴾ x isVᴱ)
           isVˢ′ = update-validˢ ∥ μ ∥ᴴ isVˢ isVᴹ
 
-  validᴾ-⇓ (Read {μ = μ} x ∈₁ eq) (isVᴾ ∧ isVᴱ) = isVᴾ ∧ read-validᴿ ∥ μ ∥ᴴ (validˢ isVᴾ _) ∈₁
+  validᴼ-⇓ (Read {μ = μ} x ∈₁ eq) (isVᴾ ∧ isVᴱ) = isVᴾ ∧ read-validᴿ ∥ μ ∥ᴴ (validˢ isVᴾ _) ∈₁
 
-  validᴾ-⇓ (Write {μ = μ} x₁ x₂ ⊑₁ ⊑₂ w) (⟨ isVˢ , isVᴴ ⟩ ∧ isVᴱ) = ⟨ isVˢ′ , isVᴴ ⟩ ∧ tt
+  validᴼ-⇓ (Write {μ = μ} x₁ x₂ ⊑₁ ⊑₂ w) (⟨ isVˢ , isVᴴ ⟩ ∧ isVᴱ) = ⟨ isVˢ′ , isVᴴ ⟩ ∧ tt
     where isV = validⱽ-⇓ᴾ x₂ isVᴱ
           isVˢ′ = update-validˢ ∥ μ ∥ᴴ  isVˢ (write-validᴹ ∥ μ ∥ᴴ (isVˢ _) w isV)
 
-  validᴾ-⇓ (LabelOfRef x eq) (isVᴾ ∧ isVᴱ) = isVᴾ ∧ tt
+  validᴼ-⇓ (LabelOfRef x eq) (isVᴾ ∧ isVᴱ) = isVᴾ ∧ tt
 
-  validᴾ-⇓ (New-FS {μ = μ} {ℓ = ℓ} {v = v}  x _) (⟨ isVˢ , isVᴴ ⟩ ∧ isVᴱ) = ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ ≤₁
+  validᴼ-⇓ (New-FS {μ = μ} {ℓ = ℓ} {v = v}  x _) (⟨ isVˢ , isVᴴ ⟩ ∧ isVᴱ) = ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ ≤₁
     where lv = v ∧ ℓ
           eq = ∥snoc∥ μ lv
           ≤₁ : suc ∥ μ ∥ᴴ ≤ ∥ snocᴴ μ lv ∥ᴴ
@@ -226,28 +226,28 @@ mutual
           isV = validⱽ-⇓ᴾ x isVᴱ
           isVᴴ′ = snoc-validᴴ′ isVᴴ (wken-validⱽ v (≤-step ≤-refl) isV)
 
-  validᴾ-⇓ (Read-FS {μ = μ} x ∈₁ eq) (isVᴾ ∧ isVᴱ) = isVᴾ ∧ read-validⱽ ∥ μ ∥ᴴ (validᴴ isVᴾ) ∈₁
+  validᴼ-⇓ (Read-FS {μ = μ} x ∈₁ eq) (isVᴾ ∧ isVᴱ) = isVᴾ ∧ read-validⱽ ∥ μ ∥ᴴ (validᴴ isVᴾ) ∈₁
 
-  validᴾ-⇓ (Write-FS {μ' = μ} x₁ x₂ ∈₁ ⊑₁ eq w) (⟨ isVˢ , isVᴴ ⟩ ∧ isVᴱ)
+  validᴼ-⇓ (Write-FS {μ' = μ} x₁ x₂ ∈₁ ⊑₁ eq w) (⟨ isVˢ , isVᴴ ⟩ ∧ isVᴱ)
     rewrite sym (write-length-≡ w) = ⟨ isVˢ , isVᴴ′ ⟩ ∧ tt
     where isV = validⱽ-⇓ᴾ x₂ isVᴱ
           isVᴴ′ = write-validᴴ ∥ μ ∥ᴴ isVᴴ w isV
 
-  validᴾ-⇓ (LabelOfRef-FS x n∈μ eq) (isVᴾ ∧ isVᴱ) = isVᴾ ∧ tt
+  validᴼ-⇓ (LabelOfRef-FS x n∈μ eq) (isVᴾ ∧ isVᴱ) = isVᴾ ∧ tt
 
-  validᴾ-⇓ᶠ′ :  ∀ {τ Γ} {θ : Env Γ} {c : EConf Γ (LIO τ)} {c' : FConf τ} →
+  validᴼ-⇓ᶠ :  ∀ {τ Γ} {θ : Env Γ} {c : EConf Γ (LIO τ)} {c' : FConf τ} →
                 c ⇓ᶠ⟨ θ ⟩ c' →
                 let ⟨ Σ' , μ' , _  , v ⟩ = c' in
                 Valid-Inputs c θ →
                 Valid-Outputs c'
-  validᴾ-⇓ᶠ′ (Force x x₁) (isVᴾ ∧ isVᴱ) = validᴾ-⇓ x₁ (isVᴾ ∧ (validⱽ-⇓ᴾ x isVᴱ))
+  validᴼ-⇓ᶠ (Force x x₁) (isVᴾ ∧ isVᴱ) = validᴼ-⇓ x₁ (isVᴾ ∧ (validⱽ-⇓ᴾ x isVᴱ))
 
-  validᴾ-⇓ᶠ : ∀ {τ Γ} {θ : Env Γ} {c : EConf Γ (LIO τ)} {c' : FConf τ} →
+  valid-⇓ᶠ : ∀ {τ Γ} {θ : Env Γ} {c : EConf Γ (LIO τ)} {c' : FConf τ} →
                 c ⇓ᶠ⟨ θ ⟩ c' →
                 let ⟨ Σ' , μ' , _  , v ⟩ = c' in
                 Valid-Inputs c θ →
                 Validᴾ ⟨ Σ' , μ' ⟩ × Validᴱ ∥ μ' ∥ᴴ (v ∷ θ)
-  validᴾ-⇓ᶠ (Force x x₁) (isVᴾ ∧ isVᴱ) =
-    let isVᴱ′ = validⱽ-⇓ᴾ x isVᴱ
-        (isVᴾ′ ∧ isVⱽ) = validᴾ-⇓ x₁ (isVᴾ ∧ isVᴱ′)
-    in isVᴾ′ ∧ (isVⱽ ∧ wken-validᴱ _ (step-≤ x₁) isVᴱ)
+  valid-⇓ᶠ x isV =
+    let isVᴾ ∧ isVⱽ = validᴼ-⇓ᶠ x isV
+        isVᴱ = wken-validᴱ _ (stepᶠ-≤ x) (proj₂ isV)
+    in isVᴾ ∧ (isVⱽ ∧ isVᴱ)

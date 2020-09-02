@@ -67,7 +67,7 @@ mutual
   step-≈ᴾ (Return x) pc⋤A = refl-≈ᴾ
 
   step-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Bind x x₁) pc⋤A =
-    let isVᴾ′ ∧ isVᴱ′′ = validᴾ-⇓ᶠ x (isVᴾ ∧ isVᴱ)
+    let isVᴾ′ ∧ isVᴱ′′ = valid-⇓ᶠ x (isVᴾ ∧ isVᴱ)
         ≈ᴾ′ = stepᶠ-≈ᴾ x pc⋤A
         ≈ᴾ′′ = stepᶠ-≈ᴾ {{ isVᴾ′ }} {{ isVᴱ′′ }} x₁ (trans-⋤ (stepᶠ-⊑ x) pc⋤A)
     in trans-≈ᴾ-ι ≈ᴾ′ ≈ᴾ′′
@@ -166,7 +166,7 @@ mutual
   tiniᴸ (Return x) (Return x₁) Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A = _ ∧ refl-⊆ ∧ pcᴸ Σ₁≈Σ₂ pc⊑A (tiniᴾ x x₁ θ₁≈θ₂)
 
   tiniᴸ {{isV₁}} {{isV₂}} (Bind x₁ y₁) (Bind x₂ y₂) Σ₁≈Σ₂ θ₁≈θ₂ pc⊑A
-    with validᴾ-⇓ᶠ x₁ isV₁ | validᴾ-⇓ᶠ x₂ isV₂ | tiniᶠ x₁ x₂ ⟨ Σ₁≈Σ₂ , refl , refl ⟩ θ₁≈θ₂
+    with valid-⇓ᶠ x₁ isV₁ | valid-⇓ᶠ x₂ isV₂ | tiniᶠ x₁ x₂ ⟨ Σ₁≈Σ₂ , refl , refl ⟩ θ₁≈θ₂
 
   ... | isV₁′ | isV₂′ | β' ∧ β⊆β' ∧ pcᴸ Σ₁'≈Σ₂' pc'⊑A v₁≈v₂
     = wken-∃ β⊆β' (tiniᶠ {{ isV₁′ }} {{isV₂′}} y₁ y₂ ⟨ Σ₁'≈Σ₂' , refl , refl ⟩ (v₁≈v₂ ∷ wken-≈ᴱ β⊆β' θ₁≈θ₂))
