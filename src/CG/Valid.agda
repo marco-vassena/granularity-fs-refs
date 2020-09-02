@@ -9,7 +9,7 @@ open import Data.Nat renaming (_⊔_ to _⊔ᴺ_) hiding (_^_)
 open import Data.Nat.Properties
 open import Data.Unit hiding (_≤_)
 open import Relation.Binary.PropositionalEquality
-open import Generic.Heap.Lemmas Ty Value
+open import Generic.Heap.Lemmas Ty LValue
 
 mutual
 
@@ -195,11 +195,29 @@ mutual
           isVˢ′ = update-validˢ ∥ μ ∥ᴴ isVˢ isVᴹ
 
   validᴾ-⇓ (Read {μ = μ} x ∈₁ eq) (isVᴾ ∧ isVᴱ) = isVᴾ ∧ read-validᴿ ∥ μ ∥ᴴ (validˢ isVᴾ _) ∈₁
-  validᴾ-⇓ (Write x x₁ x₂ x₃ up) (isVᴾ ∧ isVᴱ) = {!!} ∧ tt
+
+  validᴾ-⇓ (Write {μ = μ} x₁ x₂ ⊑₁ ⊑₂ w) (⟨ isVˢ , isVᴴ ⟩ ∧ isVᴱ) = ⟨ isVˢ′ , isVᴴ ⟩ ∧ tt
+    where isV = validⱽ-⇓ᴾ x₂ isVᴱ
+          isVˢ′ = update-validˢ ∥ μ ∥ᴴ  isVˢ (write-validᴹ ∥ μ ∥ᴴ (isVˢ _) w isV)
+
   validᴾ-⇓ (LabelOfRef x eq) (isVᴾ ∧ isVᴱ) = isVᴾ ∧ tt
-  validᴾ-⇓ (New-FS x x₁) (isVᴾ ∧ isVᴱ) = {!!} ∧ {!!}
-  validᴾ-⇓ (Read-FS x n∈μ eq) (isVᴾ ∧ isVᴱ) = isVᴾ ∧ {!!}
-  validᴾ-⇓ (Write-FS x x₁ n∈μ x₂ x₃ up) (isVᴾ ∧ isVᴱ) = {!!} ∧ tt
+
+  validᴾ-⇓ (New-FS {μ = μ} {ℓ = ℓ} {v = v}  x _) (⟨ isVˢ , isVᴴ ⟩ ∧ isVᴱ) = ⟨ isVˢ′ , isVᴴ′ ⟩ ∧ ≤₁
+    where lv = v ∧ ℓ
+          eq = ∥snoc∥ μ lv
+          ≤₁ : suc ∥ μ ∥ᴴ ≤ ∥ snocᴴ μ lv ∥ᴴ
+          ≤₁ rewrite eq = s≤s ≤-refl
+          isVˢ′ = validˢ-⊆ᴴ snoc-≤ isVˢ
+          isV = validⱽ-⇓ᴾ x isVᴱ
+          isVᴴ′ = snoc-validᴴ′ isVᴴ (wken-validⱽ v (≤-step ≤-refl) isV)
+
+  validᴾ-⇓ (Read-FS {μ = μ} x ∈₁ eq) (isVᴾ ∧ isVᴱ) = isVᴾ ∧ read-validⱽ ∥ μ ∥ᴴ (validᴴ isVᴾ) ∈₁
+
+  validᴾ-⇓ (Write-FS {μ' = μ} x₁ x₂ ∈₁ ⊑₁ eq w) (⟨ isVˢ , isVᴴ ⟩ ∧ isVᴱ)
+    rewrite sym (write-length-≡ w) = ⟨ isVˢ , isVᴴ′ ⟩ ∧ tt
+    where isV = validⱽ-⇓ᴾ x₂ isVᴱ
+          isVᴴ′ = write-validᴴ ∥ μ ∥ᴴ isVᴴ w isV
+
   validᴾ-⇓ (LabelOfRef-FS x n∈μ eq) (isVᴾ ∧ isVᴱ) = isVᴾ ∧ tt
 
   validᴾ-⇓ᶠ′ :  ∀ {τ Γ} {θ : Env Γ} {c : EConf Γ (LIO τ)} {c' : FConf τ} →
