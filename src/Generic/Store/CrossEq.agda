@@ -38,10 +38,10 @@ _↓≈ˢ_ : T.Store → S.Store → Set
 infixr 2 _↓≈ˢ_
 
 -- Updating related stores with related memory gives related stores
-update-≈ˢ : ∀ {ℓ Σ Σ'} {M : T.Memory ℓ} {M' : S.Memory ℓ} →
+update-↓≈ˢ : ∀ {ℓ Σ Σ'} {M : T.Memory ℓ} {M' : S.Memory ℓ} →
             Σ ↓≈ˢ Σ' → M ↓≈ᴹ M' →
             (Σ T.[ ℓ ↦ M ]ˢ) ↓≈ˢ (Σ' S.[ ℓ ↦ M' ]ˢ)
-update-≈ˢ {ℓ} Σ≈ M≈ ℓ' with ℓ ≟ ℓ'
+update-↓≈ˢ {ℓ} Σ≈ M≈ ℓ' with ℓ ≟ ℓ'
 ... | yes refl = M≈
 ... | no ℓ≢ℓ' = Σ≈ ℓ'
 

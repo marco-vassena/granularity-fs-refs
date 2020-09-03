@@ -21,10 +21,11 @@ open import Relation.Binary.PropositionalEquality
 open import Data.Product renaming (_,_ to _∧_)
 
 -- Correctnesss for pure steps (the store does not change in FG).
-cg2fgᴾ : ∀ {Γ τ μ} {θ : CG.Env Γ} {θ' : FG.Env ⟦ Γ ⟧ᶜ} {e : CG.Expr Γ τ} {v : CG.Value τ} →
-           (Σ : FG.Store) (pc : Label) →
+cg2fgᴾ : ∀ {Γ τ} {θ : CG.Env Γ} {θ' : FG.Env ⟦ Γ ⟧ᶜ} {e : CG.Expr Γ τ} {v : CG.Value τ} →
+           (p : FG.PState) (pc : Label) →
            θ' ↓≈⟨ pc ⟩ᵉ θ →
            e ⇓ᴾ⟨ θ ⟩ v →
+           let FG.⟨ Σ , μ ⟩ = p in
            ∃ (λ r → (r ↓≈⟨ pc ⟩ᴿ v) × (⟨ Σ , μ , ⟦ e ⟧ᴱ ⟩ ⇓⟨ θ' , pc ⟩ ⟨ Σ , μ , r ^ pc ⟩))
 
 cg2fgᴾ Σ pc ≈θ Unit = （） ∧ （） ∧ Unit
@@ -49,10 +50,10 @@ cg2fgᴾ Σ pc ≈θ SThunk = _ ∧ Thunk′ (mkCg2Fgᵀ _) ≈θ ∧ Fun
 
 cg2fgᴾ Σ pc ≈θ Fun = _ ∧ Fun (mkCg2Fgᴱ _) ≈θ ∧ Fun
 
--- cg2fgᴾ Σ pc ≈θ (App x x₁ x₂) with cg2fgᴾ Σ pc ≈θ x | cg2fgᴾ Σ pc ≈θ x₁
--- ... | ⟨ ._ , _ ⟩ᶜ ∧ Fun {{c = c}} g ≈θ' ∧ x' | r₁ ∧  ≈r₁ ∧ x₁' with ≡-MkCtx c
--- ... | refl rewrite !-MkCtx c (mkCtx _) with cg2fgᴾ Σ pc ((refl-⊑ ↓ ≈r₁) ∷ ≈θ') x₂
--- ... | r ∧ ≈r ∧ x₂' rewrite ≡-Cg2Fgᴱ g = r ∧ ≈r ∧ App x' x₁' (idem-⊔' pc) x₂'
+cg2fgᴾ Σ pc ≈θ (App x x₁ x₂) with cg2fgᴾ Σ pc ≈θ x | cg2fgᴾ Σ pc ≈θ x₁
+... | ⟨ ._ , _ ⟩ᶜ ∧ Fun {{c = c}} g ≈θ' ∧ x' | r₁ ∧  ≈r₁ ∧ x₁' with ≡-MkCtx c
+... | refl rewrite !-MkCtx c (mkCtx _) with cg2fgᴾ Σ pc ((refl-⊑ ↓ ≈r₁) ∷ ≈θ') x₂
+... | r ∧ ≈r ∧ x₂' rewrite ≡-Cg2Fgᴱ g = r ∧ ≈r ∧ App x' x₁' (idem-⊔' pc) x₂'
 
 cg2fgᴾ Σ pc ≈θ (Inl x) with cg2fgᴾ Σ pc ≈θ x
 ... | r ∧ ≈r ∧ x' = inl (r ^ pc) ∧ Inl (refl-⊑ ↓ ≈r) ∧ Inl x'
@@ -77,7 +78,7 @@ cg2fgᴾ Σ pc ≈θ (Fst x) with cg2fgᴾ Σ pc ≈θ x
 cg2fgᴾ Σ pc ≈θ (Snd x) with cg2fgᴾ Σ pc ≈θ x
 ... | ⟨ _ , r₂ ^ ℓ₂ ⟩  ∧ Pair _  (ℓ₂⊑pc ↓ ≈r₂) ∧ x' = r₂ ∧ ≈r₂ ∧ (Snd x' (sym (ub' ℓ₂⊑pc)))
 
-
+open _↓≈ᴾ_
 mutual
 
   -- Forcing semantics.
@@ -87,11 +88,10 @@ mutual
                c₂ ↓≈ᴵ c₁ →
                c₁ ⇓ᶠ⟨ θ₁ ⟩ c₁' →
                  ∃ (λ c₂' → c₂' ↓≈ᶜ c₁' × c₂ ⇓⟨ θ₂ , pc ⟩ c₂' )
-  cg2fgᶠ {c₂ = ⟨ Σ' , _ , _ ⟩} {c₁ = ⟨ Σ , _ , pc , _ ⟩} ≈θ ⌞ ≈Σ ⌟ᴵ (Force x x₁) with cg2fgᴾ Σ' pc ≈θ x
+  cg2fgᶠ {c₂ = ⟨ Σ' , μ' , _ ⟩} {c₁ = ⟨ Σ , _ , pc , _ ⟩} ≈θ ⌞ ≈Σ ⌟ᴵ (Force x x₁) with cg2fgᴾ FG.⟨ Σ' , μ' ⟩ pc ≈θ x
   ... | ⟨ ._ , θ' ⟩ᶜ ∧ Thunk′ {{c = c}} g ≈θ' ∧ x'  with ≡-MkCtx c
-  ... | refl rewrite !-MkCtx c (mkCtx _) = ?
--- with cg2fg ≈θ' ⌞ ≈Σ ⌟ᵀ x₁
---   ... | c₂' ∧ ≈c₂  ∧ x₁' rewrite ≡-Cg2Fgᵀ g = c₂' ∧ ≈c₂ ∧ App x' (Id Unit) (idem-⊔' _) (↑¹-⇓ x₁')
+  ... | refl rewrite !-MkCtx c (mkCtx _) with cg2fg ≈θ' ⌞ ≈Σ ⌟ᵀ x₁
+  ... | c₂' ∧ ≈c₂  ∧ x₁' rewrite ≡-Cg2Fgᵀ g = c₂' ∧ ≈c₂ ∧ App x' (Id Unit) (idem-⊔' _) (↑¹-⇓ x₁')
 
   -- Thunk semantics.
   cg2fg : ∀ {Γ τ θ₂ c₂ c₁'} {θ₁ : CG.Env Γ} {c₁ : CG.TConf Γ (LIO τ)} →
@@ -122,7 +122,7 @@ mutual
                ∎
                where open ≡-Reasoning
 
-  cg2fg ≈θ (⌞_⌟ᵀ {Σ = Σ} ≈Σ)  (Unlabel {pc = pc} {ℓ = ℓ₁} {ℓ' = pc'} x eq) with cg2fgᴾ Σ pc ≈θ x
+  cg2fg ≈θ (⌞_⌟ᵀ {Σ = Σ} {μ = μ} ≈Σ)  (Unlabel {pc = pc} {ℓ = ℓ₁} {ℓ' = pc'} x eq) with cg2fgᴾ FG.⟨ Σ , μ ⟩ pc ≈θ x
   ... | Id (⟨ (.(⌞ ℓ₁ ⌟) ^ .ℓ₁) , r ^ ℓ₂ ⟩ ^ ℓ₄) ∧ Labeled {v' = r' ^ ℓ₃} ℓ₄⊑pc (ℓ₃⊑pc' ↓ r≈) ∧ x'
     rewrite eq = c ∧ ≈c ∧ ⇓c
       where
@@ -173,13 +173,13 @@ mutual
   ... | ⌞ ℓ ⌟ ∧ ⌞ .ℓ ⌟ ∧ x'
     = _ ∧ ⟨ ≈Σ , （） ⟩ ∧ Taint refl x' Unit (join-⊑₁ pc ℓ)
 
-  cg2fg ≈θ (⌞_⌟ᵀ {Σ = Σ}  ≈Σ)  (New {pc = pc} x₁ pc⊑ℓ) with sym (ub pc⊑ℓ) | cg2fgᴾ _ pc ≈θ x₁
+  cg2fg ≈θ (⌞_⌟ᵀ {Σ = Σ}  ⟨ ≈Σ , ≈μ ⟩)  (New {pc = pc} x₁ pc⊑ℓ) with sym (ub pc⊑ℓ) | cg2fgᴾ _ pc ≈θ x₁
   ... | pc-⊔-ℓ | Id (⟨ ⌞ ℓ ⌟ ^ .ℓ , r ^ ℓ' ⟩ ^ _) ∧ Labeled ⊑pc (ℓ'⊑ℓ ↓ ≈r) ∧ x₁' = c ∧ ≈c  ∧ ⇓c
     where
        M = Σ ℓ
        ≈M = ≈Σ ℓ
        c = ⟨ Σ FG.[ ℓ ↦ FG.snocᴹ M r ]ˢ , _ , Refᴵ ℓ FG.∥ M ∥ᴹ ^ pc ⟩
-       ≈c = ⟨ update-≈ˢ ≈Σ (new-≈ᴹ ≈M ≈r) , Ref′ ℓ ∥ ≈M ∥-≈ᴹ ⟩
+       ≈c = ⟨ ⟨ update-↓≈ˢ ≈Σ (new-↓≈ᴹ ≈M ≈r) , ≈μ ⟩ , Ref′ ℓ ∥ ≈M ∥-↓≈ᴹ ⟩
        ⇓c = New
             (App Fun (UnId x₁' (sym (ub' ⊑pc))) (idem-⊔' pc)
               (Taint pc-⊔-ℓ
@@ -188,20 +188,20 @@ mutual
                 refl-⊑))
 
   cg2fg ≈θ ⌞ ≈Σ ⌟ᵀ (Read {pc = pc} x₁ n∈M refl) with cg2fgᴾ _ pc ≈θ x₁
-  ... | Refᴵ .ℓ .n ∧ Ref ℓ n ∧ x₁' with lookup-≈ᴹ n∈M (≈Σ ℓ)
+  ... | Refᴵ .ℓ .n ∧ Refᴵ ℓ n ∧ x₁' with lookup-↓≈ᴹ n∈M (store-↓≈ˢ ≈Σ ℓ)
   ... | r ∧ n∈M' ∧ ≈r
     = ⟨ _ , _ , r ^ (pc ⊔ ℓ) ⟩ ∧ ⟨ ≈Σ , ≈ᴿ-⊑ ≈r (join-⊑₂ ℓ pc) ⟩ ∧ Read x₁' n∈M' (sym-⊔ _ _)
 
-  cg2fg ≈θ ⌞ ≈Σ ⌟ᵀ (Write {pc = pc} x₁ x₂ pc⊑ℓ ℓ₁⊑ℓ M≔) with cg2fgᴾ _ pc ≈θ x₁ | cg2fgᴾ _ pc ≈θ x₂
-  ... | Refᴵ .ℓ .n ∧ Ref ℓ n ∧ x₁' | Id (⟨ (⌞ ℓ₁ ⌟ ^ .ℓ₁) , r ^ ℓ' ⟩ ^ _ ) ∧ Labeled ⊑pc (ℓ'⊑ℓ₁ ↓ ≈r) ∧ x₂'
-    with write-≈ᴹ (≈ᴿ-⊑ ≈r ℓ₁⊑ℓ) M≔ (≈Σ ℓ)
+  cg2fg ≈θ ⌞ ⟨ ≈Σ , ≈μ ⟩ ⌟ᵀ (Write {pc = pc} x₁ x₂ pc⊑ℓ ℓ₁⊑ℓ M≔) with cg2fgᴾ _ pc ≈θ x₁ | cg2fgᴾ _ pc ≈θ x₂
+  ... | Refᴵ .ℓ .n ∧ Refᴵ ℓ n ∧ x₁' | Id (⟨ (⌞ ℓ₁ ⌟ ^ .ℓ₁) , r ^ ℓ' ⟩ ^ _ ) ∧ Labeled ⊑pc (ℓ'⊑ℓ₁ ↓ ≈r) ∧ x₂'
+    with write-↓≈ᴹ (≈ᴿ-⊑ ≈r ℓ₁⊑ℓ) M≔ (≈Σ ℓ)
   ... | M ∧ M≔' ∧ ≈M = c ∧ ≈c ∧ ⇓c
     where c = ⟨ _ , _ , （） ^ pc ⟩
-          ≈c = ⟨ update-≈ˢ ≈Σ ≈M , （） ⟩
-          ⇓c = ? -- Write x₁' refl-⊑ (Snd (UnId x₂' (sym (ub' ⊑pc))) refl) (join-⊑' pc⊑ℓ (trans-⊑ ℓ'⊑ℓ₁ ℓ₁⊑ℓ)) M≔'
+          ≈c = ⟨ ⟨ update-↓≈ˢ ≈Σ ≈M , ≈μ ⟩ , （） ⟩
+          ⇓c = Write x₁' pc⊑ℓ (Snd (UnId x₂' (sym (ub' ⊑pc))) refl) (join-⊑' pc⊑ℓ (trans-⊑ ℓ'⊑ℓ₁ ℓ₁⊑ℓ)) M≔'
 
   cg2fg ≈θ ⌞ ≈Σ ⌟ᵀ (LabelOfRef {pc = pc} x refl) with cg2fgᴾ _ pc ≈θ x
-  ... | Refᴵ .ℓ .n ∧ Ref ℓ n ∧ x' = ⟨ _ , _ , ⌞ ℓ ⌟ ^ (pc ⊔ ℓ) ⟩ ∧ ⟨ ≈Σ , ⌞ ℓ ⌟ ⟩ ∧ (LabelOfRef x' (sym-⊔ pc ℓ))
+  ... | Refᴵ .ℓ .n ∧ Refᴵ ℓ n ∧ x' = ⟨ _ , _ , ⌞ ℓ ⌟ ^ (pc ⊔ ℓ) ⟩ ∧ ⟨ ≈Σ , ⌞ ℓ ⌟ ⟩ ∧ (LabelOfRef x' (sym-⊔ pc ℓ))
 
 
 -- To prove the transformation correct we use the generalized theorem and
