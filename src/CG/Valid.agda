@@ -121,7 +121,6 @@ instance
 
 open Conf
 open import CG.Semantics
-open import Generic.PState.Base  Value LValue
 open import Generic.PState.Valid isValidⱽ isValidᴸ public
 
 mutual

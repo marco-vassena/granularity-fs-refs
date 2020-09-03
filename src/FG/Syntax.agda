@@ -157,8 +157,9 @@ if_then_else_ c t e = case c (wken t (drop refl-⊆)) (wken e (drop refl-⊆))
 -- Configurations
 
 -- Generic store and flow-sensitive heap
-open import Generic.Store Ty Raw public
-open import Generic.Heap Ty Value public -- hiding (_∈_ ; Write ; _⊆_)
+-- open import Generic.Store Ty Raw public
+-- open import Generic.Heap Ty Value public -- hiding (_∈_ ; Write ; _⊆_)
+open import Generic.PState Ty Ty Raw Value public
 
 -- Generic configuration container.
 record Conf (A : Set) : Set where

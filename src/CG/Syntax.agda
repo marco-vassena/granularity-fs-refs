@@ -178,8 +178,9 @@ LValue τ = Value τ P.× Label
   where import Data.Product as P
 
 -- Generic store.
-open import Generic.Store Ty Value public
-open import Generic.Heap Ty LValue public
+-- open import Generic.Store Ty Value public
+-- open import Generic.Heap Ty LValue public
+open import Generic.PState Ty Ty Value LValue public
 
 -- Generic configuration container.
 record Conf (F : Ctx → Ty → Set) (Γ : Ctx) (τ : Ty) : Set where

@@ -9,7 +9,7 @@ open import Data.Nat renaming (_⊔_ to _⊔ᴺ_) hiding (_^_)
 open import Data.Nat.Properties
 open import Data.Unit hiding (_≤_)
 open import Relation.Binary.PropositionalEquality
-open import Generic.Heap.Lemmas Ty Value
+open import Generic.Heap.Lemmas Ty Value -- hiding (∥_∥ᴴ)
 
 mutual
 
@@ -117,7 +117,6 @@ instance
 
 open Conf
 open import FG.Semantics
-open import Generic.PState.Base  Raw Value
 open import Generic.PState.Valid isValidᴿ isValidⱽ public
 
 Valid-Inputs : ∀ {Γ} {τ} → IConf Γ τ → Env Γ →  Set

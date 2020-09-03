@@ -24,7 +24,7 @@ open import Data.Nat hiding (_^_)
 -- TODO: rename validᴱ-⊆ᴴ
 
 open import Generic.Valid
-open IsValid isValidᴱ
+open IsValid isValidᴱ -- needed?
 open Validᴾ
 
 step-≈ᴾ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
