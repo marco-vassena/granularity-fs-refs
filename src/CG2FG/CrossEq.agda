@@ -11,8 +11,16 @@ open import FG as F hiding (_×_)
 open import CG as C hiding (_↑¹ ; _×_)
 open import CG2FG.Syntax
 open import CG2FG.Graph
+open import Data.Unit using (⊤)
+open import Data.Product renaming (_,_ to _^_)
+open import Relation.Binary.PropositionalEquality
+open import Relation.Nullary
 
 mutual
+
+  -- The relation is parametric in the cross-language relation for
+  -- types (MkTy) to ensure that only type-related values can be
+  -- related.
 
   -- Values.
   data CEqⱽ {τ τ'} (pc : Label) (p : MkTy τ τ') (v : C.Value τ) : F.Value τ' → Set where
@@ -25,7 +33,9 @@ mutual
 
      （） : CEqᴿ pc Unit （） （）
 
-     Ref : ∀ {τ τ'} {{p : MkTy τ τ'}} ℓ n → CEqᴿ pc (Ref p) (Ref ℓ n) (Ref ℓ n)
+     Refᴵ : ∀ {τ τ'} {{p : MkTy τ τ'}} ℓ n → CEqᴿ pc (Ref p) (Refᴵ ℓ n) (Refᴵ ℓ n)
+
+     Refˢ : ∀ {τ τ'} {{p : MkTy τ τ'}} n → CEqᴿ pc (Ref p) (Refˢ n) (Refˢ n)
 
      Fun : ∀ {τ₁ τ₁' τ₂ τ₂' Γ Γ' θ θ' e e'} {{p₁ : MkTy τ₁ τ₁'}} {{p₂ : MkTy τ₂ τ₂'}} {{c : MkCtx Γ Γ'}} →
            Cg2Fgᴱ (p₁ ∷ c) p₂ e e' →
@@ -64,14 +74,8 @@ mutual
             CEqᵉ pc c θ θ' →
             CEqᵉ pc (p ∷ c) (v ∷ θ ) (v' ∷ θ')
 
-trueᴿ : ∀ {pc} → CEqᴿ pc (Sum Unit Unit) C.true (F.true pc)
-trueᴿ = Inl (refl-⊑ ↓ （）)
-
-falseᴿ : ∀ {pc} → CEqᴿ pc (Sum Unit Unit) C.false (F.false pc)
-falseᴿ = Inr (refl-⊑ ↓ （）)
-
-
 --------------------------------------------------------------------------------
+
 -- Pretty syntax.
 
 -- Notice that this definition use instance arguments, e.g., {{p :
@@ -91,45 +95,26 @@ _↓≈⟨_⟩ᵉ_ {{c}} θ' pc θ = CEqᵉ pc c θ θ'
 _↓≈⟨_⟩ⱽ_ : ∀ {τ τ'} {{c : MkTy τ τ'}} → F.Value τ' → Label → C.Value τ → Set
 _↓≈⟨_⟩ⱽ_ {{c}} v' pc v = CEqⱽ pc c v v'
 
+_↓≈⟨_⟩ᴸ_ : ∀ {τ τ'} {{c : MkTy (Labeled τ) τ'}} → F.Value τ' → Label → C.LValue τ → Set
+_↓≈⟨_⟩ᴸ_ {{c}} v' pc (v ^ ℓ) = CEqⱽ pc c (Labeled ℓ v) v'
+
 _↓≈ᴱ_ : ∀ {τ τ' Γ Γ'} {{p : MkTy τ τ'}} {{c : MkCtx Γ Γ'}} → F.Expr Γ' (Id unit ➔ τ') → C.Expr Γ (LIO τ) → Set
 _↓≈ᴱ_ {{p}} {{c}} e e' = Cg2Fgᴱ c (LIO p) e' e
 
--- Memories.
-data _↓≈ᴹ_ {ℓ} : F.Memory ℓ → C.Memory ℓ → Set where
-  [] : F.[] ↓≈ᴹ C.[]
-  _∷_ : ∀ {M M' τ τ'} {v : C.Value τ} {r : F.Raw τ'} {{p : MkTy τ τ'}} →
-          r ↓≈⟨ ℓ ⟩ᴿ v →
-          M ↓≈ᴹ M' →
-          (r F.∷ M) ↓≈ᴹ (v C.∷ M')
+--------------------------------------------------------------------------------
+-- Shorthands
 
--- Stores
-_↓≈ˢ_ : F.Store → C.Store → Set
-Σ ↓≈ˢ Σ' = ∀ (ℓ : Label) → (Σ ℓ) ↓≈ᴹ (Σ' ℓ)
+trueᴿ : ∀ {pc} → (F.true pc) ↓≈⟨ pc ⟩ᴿ C.true
+trueᴿ = Inl (refl-⊑ ↓ （）)
 
-infixr 2 _↓≈ˢ_
+falseᴿ : ∀ {pc} → (F.false pc) ↓≈⟨ pc ⟩ᴿ C.false
+falseᴿ = Inr (refl-⊑ ↓ （）)
 
-open F.Conf
-open C.Conf
-
--- Initial configurations (Expr)
-data _↓≈ᴵ_ {Γ τ} : F.IConf ⟦ Γ ⟧ᶜ ⟦ τ ⟧ᵗ → C.EConf Γ (LIO τ) → Set where
-  ⌞_⌟ᴵ : ∀ {Σ pc Σ'} {e : C.Expr Γ (LIO τ)} → Σ ↓≈ˢ Σ' → ⟨ Σ , ⟦ e ⟧ᴱ ∘ (Id （）) ⟩ ↓≈ᴵ ⟨ Σ' , pc , e ⟩
-
-⌜_⌝ᴵ : ∀ {Γ τ c₁} {c₂ : EConf Γ (LIO τ)} → c₁ ↓≈ᴵ c₂ → (store c₁) ↓≈ˢ (store c₂)
-⌜_⌝ᴵ ⌞ Σ≈ ⌟ᴵ = Σ≈
-
--- Initial configurations (Thunk)
-data _↓≈ᵀ_ {Γ τ} : F.IConf ⟦ Γ ⟧ᶜ ⟦ τ ⟧ᵗ → C.TConf Γ (LIO τ) → Set where
-  ⌞_⌟ᵀ : ∀ {Σ pc Σ'} {t : C.Thunk Γ (LIO τ)} → Σ ↓≈ˢ Σ' → ⟨ Σ , ⟦ t ⟧ᵀ ⟩ ↓≈ᵀ ⟨ Σ' , pc , t ⟩
-
-⌜_⌝ᵀ : ∀ {Γ τ c₁} {c₂ : TConf Γ (LIO τ)} → c₁ ↓≈ᵀ c₂ → (store c₁) ↓≈ˢ (store c₂)
-⌜_⌝ᵀ ⌞ Σ≈ ⌟ᵀ = Σ≈
-
--- Final configurations.
-data _↓≈ᶜ_ {τ τ'} : F.FConf τ' → C.FConf τ → Set where
-  ⟨_,_⟩ : ∀ {Σ Σ' pc r v} {{p : MkTy τ τ'}} →  Σ ↓≈ˢ Σ' → r ↓≈⟨ pc ⟩ᴿ v → F.⟨ Σ , r ^ pc ⟩ ↓≈ᶜ ⟨ Σ' , pc , v ⟩
+Ref′ : ∀ {n₁ n₂ τ τ' pc} {{p : MkTy τ τ'}} ℓ → n₁ ≡ n₂ → Refᴵ {τ = τ'} ℓ n₁ ↓≈⟨ pc ⟩ᴿ Refᴵ {τ = τ} ℓ n₂
+Ref′ {n} {.n} ℓ refl = Refᴵ ℓ n
 
 --------------------------------------------------------------------------------
+
 -- Properties
 -- Equivalence up to annotations is "reflexive" under value transformation.
 
@@ -146,22 +131,29 @@ mutual
   refl-≈⟨ pc ⟩ᴿ (C.inr v) = Inr (refl-≈⟨ pc ⟩ⱽ v)
   refl-≈⟨ pc ⟩ᴿ C.⟨ v , v₁ ⟩ = Pair (refl-≈⟨ pc ⟩ⱽ v) (refl-≈⟨ pc ⟩ⱽ v₁)
   refl-≈⟨ pc ⟩ᴿ (C.Labeled ℓ v) = Labeled refl-⊑ (refl-≈⟨ ℓ ⟩ⱽ v)
-  refl-≈⟨ pc ⟩ᴿ (C.Ref ℓ n) = Ref ℓ n
+  refl-≈⟨ pc ⟩ᴿ (C.Refᴵ ℓ n) = Refᴵ ℓ n
+  refl-≈⟨ pc ⟩ᴿ (C.Refˢ n) = Refˢ n
   refl-≈⟨ pc ⟩ᴿ C.⌞ ℓ ⌟ = ⌞ ℓ ⌟
 
   refl-≈⟨_⟩ᵉ_ : ∀ {Γ} → (pc : Label) (θ : C.Env Γ) → ⟦ θ ⟧ᵉ pc ↓≈⟨ pc ⟩ᵉ θ
   refl-≈⟨ _ ⟩ᵉ C.[] = []
   refl-≈⟨ pc ⟩ᵉ (v C.∷ θ) = refl-≈⟨ pc ⟩ⱽ v ∷ (refl-≈⟨ pc ⟩ᵉ θ)
 
-refl-≈ᴹ : ∀ {ℓ} → (M : C.Memory ℓ) → ⟦ M ⟧ᴹ ↓≈ᴹ M
-refl-≈ᴹ C.[] = []
-refl-≈ᴹ (v C.∷ M) = (refl-≈⟨ _ ⟩ᴿ v) ∷ refl-≈ᴹ M
+import Generic.ICrossEq Label 𝑻 as R
 
-refl-≈ˢ : ∀ (Σ : C.Store) → ⟦ Σ ⟧ˢ ↓≈ˢ Σ
-refl-≈ˢ Σ = λ ℓ → refl-≈ᴹ (Σ ℓ)
+𝑹 : R.ICEq C.Value F.Raw
+𝑹 = record { ⟦_⟧ = ⟦_⟧ᴿ
+           ; _↓≈⟨_,_⟩_ = λ v₁ ℓ τ≈ v₂ → CEqᴿ ℓ τ≈ v₂ v₁
+           ; refl-↓≈⟨_⟩ = refl-≈⟨_⟩ᴿ_ }
 
-refl-≈ᴵ : ∀ {Γ τ} → (c : C.EConf Γ (LIO τ)) → ⟦ c ⟧ᴵ ↓≈ᴵ c
-refl-≈ᴵ ⟨ Σ , pc , e ⟩ = ⌞ refl-≈ˢ Σ ⌟ᴵ
+import Generic.ICrossEq ⊤ 𝑻ᴸ as L
+
+-- I guess here I should have a similar interface as for the transformation.
+-- TODO: why do we use pc in CEqⱽ ? Maybe it should be ℓ ?
+𝑳′ : L.ICEq C.LValue F.Value
+𝑳′ = record { ⟦_⟧ = λ lv _ → ⟦ lv ⟧ᴸ
+            ; _↓≈⟨_,_⟩_ = λ { v₁ _ τ≈ (v₂ ^ ℓ) → CEqⱽ ℓ τ≈ (Labeled ℓ v₂) v₁ }
+            ; refl-↓≈⟨_⟩ = λ { _ (v ^ ℓ) → refl-≈⟨ ℓ ⟩ⱽ (Labeled ℓ v) } }
 
 mutual
 
@@ -172,7 +164,8 @@ mutual
   ≈ᴿ-⊑ : ∀ {τ τ' pc₁ pc₂} {v : C.Value τ} {v' : F.Raw τ'} {{p : MkTy τ τ'}} → v' ↓≈⟨ pc₁ ⟩ᴿ v → pc₁ ⊑ pc₂ → v' ↓≈⟨ pc₂ ⟩ᴿ v
   ≈ᴿ-⊑ ⌞ ℓ ⌟ p = ⌞ ℓ ⌟
   ≈ᴿ-⊑ （） p = （）
-  ≈ᴿ-⊑ (Ref ℓ n) p = Ref ℓ n
+  ≈ᴿ-⊑ (Refˢ n) p = Refˢ n
+  ≈ᴿ-⊑ (Refᴵ ℓ n) p = Refᴵ ℓ n
   ≈ᴿ-⊑ (Fun x₁ x₂) p = Fun x₁ (≈ᵉ-⊑ x₂ p)
   ≈ᴿ-⊑ (Thunk′ x₁ x₂) p = Thunk′ x₁ (≈ᵉ-⊑ x₂ p)
   ≈ᴿ-⊑ (Pair x₁ x₂) p = Pair (≈ⱽ-⊑ x₁ p) (≈ⱽ-⊑ x₂ p)
@@ -188,11 +181,6 @@ mutual
 -- Lemmas about equivalent (↓≈) environments, memories and stores and
 -- their operations.
 
-open import Relation.Binary.PropositionalEquality
-open import Relation.Nullary
-open import Function
-open import Data.Product
-
 slice-↓≈ : ∀ {Γ Γ' pc} {θ₁ : F.Env ⟦ Γ ⟧ᶜ} {θ₂ : C.Env Γ} (p : Γ' C.⊆ Γ) → θ₁ ↓≈⟨ pc ⟩ᵉ θ₂  → F.slice θ₁ ⟦ p ⟧⊆ ↓≈⟨ pc ⟩ᵉ C.slice θ₂ p
 slice-↓≈ C.base [] = []
 slice-↓≈ (C.cons p) (x ∷ y) = x ∷ (slice-↓≈ p y)
@@ -202,41 +190,61 @@ slice-↓≈ (C.drop p) (x ∷ y) = slice-↓≈ p y
 !!-↓≈ C.here (x ∷ θ₁≈θ₂) = x
 !!-↓≈ (C.there τ∈Γ) (x ∷ θ₁≈θ₂) = !!-↓≈ τ∈Γ θ₁≈θ₂
 
+--------------------------------------------------------------------------------
+
+open import Generic.Container.CrossEq 𝑻 Label 𝑹
+  renaming (_↓≈_ to _↓≈ᴹ_
+           ; new-≈ to new-≈ᴹ
+           ; ∥_∥-≈ to ∥_∥-≈ᴹ
+           ; lookup-≈ to lookup-≈ᴹ
+           ; write-≈ to write-≈ᴹ
+           ; refl-≈ to refl-≈ᴹ) public
+
+
+open import Generic.Container.CrossEq 𝑻ᴸ ⊤ 𝑳′
+  renaming (_↓≈_ to _↓≈ᴴ_
+           ; new-≈ to new-≈ᴴ
+           ; ∥_∥-≈ to ∥_∥-≈ᴴ
+           ; lookup-≈ to lookup-≈ᴴ
+           ; write-≈ to write-≈ᴴ ) public
+
+-- Stores
+_↓≈ˢ_ : F.Store → C.Store → Set
+Σ ↓≈ˢ Σ' = ∀ (ℓ : Label) → (Σ ℓ) ↓≈ᴹ (Σ' ℓ)
+
+infixr 2 _↓≈ˢ_
+
+open F.Conf
+open C.Conf
+
+-- TODO: Adapt using PState
+
+-- Initial configurations (Expr)
+data _↓≈ᴵ_ {Γ τ} : F.IConf ⟦ Γ ⟧ᶜ ⟦ τ ⟧ᵗ → C.EConf Γ (LIO τ) → Set where
+  ⌞_⌟ᴵ : ∀ {Σ pc μ μ' Σ'} {e : C.Expr Γ (LIO τ)} → Σ ↓≈ˢ Σ' → ⟨ Σ , μ , ⟦ e ⟧ᴱ ∘ (Id （）) ⟩ ↓≈ᴵ ⟨ Σ' , μ' , pc , e ⟩
+
+⌜_⌝ᴵ : ∀ {Γ τ c₁} {c₂ : EConf Γ (LIO τ)} → c₁ ↓≈ᴵ c₂ → (store c₁) ↓≈ˢ (store c₂)
+⌜_⌝ᴵ ⌞ Σ≈ ⌟ᴵ = Σ≈
+
+-- Initial configurations (Thunk)
+data _↓≈ᵀ_ {Γ τ} : F.IConf ⟦ Γ ⟧ᶜ ⟦ τ ⟧ᵗ → C.TConf Γ (LIO τ) → Set where
+  ⌞_⌟ᵀ : ∀ {Σ pc Σ' μ μ'} {t : C.Thunk Γ (LIO τ)} → Σ ↓≈ˢ Σ' → ⟨ Σ , μ , ⟦ t ⟧ᵀ ⟩ ↓≈ᵀ ⟨ Σ' , μ' , pc , t ⟩
+
+⌜_⌝ᵀ : ∀ {Γ τ c₁} {c₂ : TConf Γ (LIO τ)} → c₁ ↓≈ᵀ c₂ → (store c₁) ↓≈ˢ (store c₂)
+⌜_⌝ᵀ ⌞ Σ≈ ⌟ᵀ = Σ≈
+
+-- Final configurations.
+data _↓≈ᶜ_ {τ τ'} : F.FConf τ' → C.FConf τ → Set where
+  ⟨_,_⟩ : ∀ {Σ Σ' μ μ' pc r v} {{p : MkTy τ τ'}} →  Σ ↓≈ˢ Σ' → r ↓≈⟨ pc ⟩ᴿ v → F.⟨ Σ , μ , r ^ pc ⟩ ↓≈ᶜ ⟨ Σ' , μ' , pc , v ⟩
+
 -- Updating related stores with related memory gives related stores
 update-≈ˢ : ∀ {ℓ Σ Σ'} {M : F.Memory ℓ} {M' : C.Memory ℓ} → Σ ↓≈ˢ Σ' → M ↓≈ᴹ M' → (Σ F.[ ℓ ↦ M ]ˢ) ↓≈ˢ (Σ' C.[ ℓ ↦ M' ]ˢ)
 update-≈ˢ {ℓ} Σ≈ M≈ ℓ' with ℓ ≟ ℓ'
 ... | yes refl = M≈
 ... | no ℓ≢ℓ' = Σ≈ ℓ'
 
--- Extending related memories with related values gives related memoryes.
-new-≈ᴹ : ∀ {ℓ τ} {M : F.Memory ℓ} {M' : C.Memory ℓ} {v : C.Value τ} {r : F.Raw ⟦ τ ⟧ᵗ} →
-           M ↓≈ᴹ M' →
-           r ↓≈⟨ ℓ ⟩ᴿ v →
-           (M F.∷ᴿ r) ↓≈ᴹ (M' C.∷ᴿ v)
-new-≈ᴹ [] r≈ = r≈ ∷ []
-new-≈ᴹ (r≈' ∷ M≈) r≈ = r≈' ∷ (new-≈ᴹ M≈ r≈)
+refl-≈ˢ : ∀ (Σ : C.Store) → ⟦ Σ ⟧ˢ ↓≈ˢ Σ
+refl-≈ˢ Σ = λ ℓ → refl-≈ᴹ (Σ ℓ)
 
-
-∥_∥-≈ᴹ : ∀ {ℓ} {M : F.Memory ℓ} {M' : C.Memory ℓ} → M ↓≈ᴹ M' → F.∥ M ∥ ≡ C.∥ M' ∥
-∥ [] ∥-≈ᴹ = refl
-∥ _ ∷ M≈ ∥-≈ᴹ rewrite ∥ M≈ ∥-≈ᴹ = refl
-
-Ref′ : ∀ {n₁ n₂ τ τ' pc} {{p : MkTy τ τ'}} ℓ → n₁ ≡ n₂ → Ref {τ = τ'} ℓ n₁ ↓≈⟨ pc ⟩ᴿ Ref {τ = τ} ℓ n₂
-Ref′ {n} {.n} ℓ refl = Ref ℓ n
-
-lookup-≈ᴹ : ∀ {n ℓ τ} {v : C.Value τ} {M : F.Memory ℓ} {M' : C.Memory ℓ} →
-                 n C.↦ v ∈ᴹ M' →
-                 M ↓≈ᴹ M' →
-                 Σ (Raw ⟦ τ ⟧ᵗ) (λ r → (n F.↦ r ∈ᴹ M) × (r ↓≈⟨ ℓ ⟩ᴿ v))
-lookup-≈ᴹ C.Here (_∷_ {{p = p}} r≈ _) with ≡-MkTy p
-... | refl rewrite !-MkTy p (mkTy _) = _ Σ., F.Here Σ., r≈
-lookup-≈ᴹ (C.There n∈M) (_ ∷ M≈) = map id (map F.There id) (lookup-≈ᴹ n∈M M≈)
-
-write-≈ᴹ : ∀ {n ℓ τ} {v : C.Value τ} {r : F.Raw ⟦ τ ⟧ᵗ} {M₁ : F.Memory ℓ} {M₂ M₂' : C.Memory ℓ} →
-             r ↓≈⟨ ℓ ⟩ᴿ v →
-             M₂' C.≔ M₂ [ n ↦ v ]ᴹ →
-             M₁ ↓≈ᴹ M₂ →
-             ∃ (λ M₁' → M₁' F.≔ M₁ [ n ↦ r ]ᴹ × M₁' ↓≈ᴹ M₂')
-write-≈ᴹ r≈ C.Here (_∷_ {{p}} _ M≈) with ≡-MkTy p
-... | refl = _ Σ., F.Here Σ., (r≈ ∷ M≈)
-write-≈ᴹ r≈ (C.There M≔) (r≈' ∷ M≈) = map _ (map F.There (_∷_ r≈')) (write-≈ᴹ r≈ M≔ M≈)
+refl-≈ᴵ : ∀ {Γ τ} → (c : C.EConf Γ (LIO τ)) → ⟦ c ⟧ᴵ ↓≈ᴵ c
+refl-≈ᴵ ⟨ Σ , μ , pc , e ⟩ = ⌞ refl-≈ˢ Σ ⌟ᴵ

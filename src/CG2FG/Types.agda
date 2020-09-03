@@ -12,7 +12,7 @@ open import FG.Types as F
 ⟦ 𝓛 ⟧ᵗ = 𝓛
 ⟦ LIO τ ⟧ᵗ = Id unit ➔ ⟦ τ ⟧ᵗ
 ⟦ Labeled τ ⟧ᵗ = Id (𝓛 × ⟦ τ ⟧ᵗ)
-⟦ Ref τ ⟧ᵗ = Ref ⟦ τ ⟧ᵗ
+⟦ Ref s τ ⟧ᵗ = Ref s ⟦ τ ⟧ᵗ
 
 -- Derived context translation
 open import Generic.Context.Convert {C.Ty} {F.Ty} ⟦_⟧ᵗ  renaming (

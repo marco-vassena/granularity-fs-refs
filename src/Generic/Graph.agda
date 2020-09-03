@@ -2,6 +2,7 @@ module Generic.Graph where
 
 -- A generic graph of the function interface
 
+-- Is this ever used?
 open import Relation.Binary.PropositionalEquality
 
 -- We cannot express simple graphs using an index graph becuase index

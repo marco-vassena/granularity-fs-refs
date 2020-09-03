@@ -7,6 +7,7 @@ module CG2FG.Syntax {{𝑳 : Lattice}} where
 open import CG as CG hiding (_↑¹ ; _↑² ; here ; there ; drop ; cons ; refl-⊆)
 open import FG as FG
 open import CG2FG.Types public
+open import Data.Product renaming (_,_ to _^_)
 
 mutual
 
@@ -23,7 +24,8 @@ mutual
   ⟦ inr v ⟧ᴿ pc = inr (⟦ v ⟧ⱽ pc)
   ⟦ ⟨ v , v₁ ⟩ ⟧ᴿ pc = ⟨ ⟦ v ⟧ⱽ pc , ⟦ v₁ ⟧ⱽ pc ⟩
   ⟦ Labeled ℓ v ⟧ᴿ pc = Id (⟨ (⌞ ℓ ⌟ ^ ℓ) , ⟦ v ⟧ⱽ ℓ ⟩ ^ pc)  -- This is enforcing the label on the label here!
-  ⟦ Ref ℓ n ⟧ᴿ pc = Ref ℓ n
+  ⟦ Refᴵ ℓ n ⟧ᴿ pc = Refᴵ ℓ n
+  ⟦ Refˢ n ⟧ᴿ pc = Refˢ n
   ⟦ ⌞ ℓ ⌟ ⟧ᴿ pc = ⌞ ℓ ⌟
 
   -- Environments.
@@ -48,6 +50,9 @@ mutual
   ⟦ ⌞ ℓ ⌟ ⟧ᴱ = ⌞ ℓ ⌟
   ⟦ e₁ ⊑-? e₂ ⟧ᴱ = ⟦ e₁ ⟧ᴱ ⊑-? ⟦ e₂ ⟧ᴱ
 
+  -- TODO: probably here we need different terms form FS refs operations
+  -- Or at least split on the reference type
+
   -- Thunks.
   ⟦_⟧ᵀ : ∀ {τ Γ} → CG.Thunk Γ (LIO τ) → FG.Expr ⟦ Γ ⟧ᶜ ⟦ τ ⟧ᵗ
   ⟦ return e ⟧ᵀ = ⟦ e ⟧ᴱ
@@ -62,6 +67,12 @@ mutual
   ⟦ e ≔ e₁ ⟧ᵀ = ⟦ e ⟧ᴱ ≔ snd (unId ⟦ e₁ ⟧ᴱ)
   ⟦ labelOfRef e ⟧ᵀ = labelOfRef ⟦ e ⟧ᴱ
 
+⟦_⟧ᴸ : ∀ {τ} → LValue τ → FG.Value ⟦ Labeled τ ⟧ᵗ
+⟦ v ^ ℓ ⟧ᴸ = ⟦ Labeled ℓ v ⟧ⱽ ℓ
+
+-- ⟦_⟧ᴸ′ : ∀ {τ} → LValue τ → FG.Value ⟦ τ ⟧ᵗ
+-- ⟦ v ^ ℓ ⟧ᴸ′ pc = ⟦ v ⟧ᴿ ℓ ^ pc
+
 --------------------------------------------------------------------------------
 
 -- Derived store and memory translation.
@@ -71,6 +82,11 @@ open import Generic.Store.Convert {CG.Ty} {FG.Ty} {CG.Value} {FG.Raw} ⟦_⟧ᵗ
   ; ⟪_⟫ᴹ to ⟦_⟧ᴹ
   ) public
 
+open import Generic.Heap.Convert {CG.Ty} {FG.Ty} {CG.LValue} {FG.Value} (λ τ → ⟦ Labeled τ ⟧ᵗ) ⟦_⟧ᴸ
+  renaming (
+    ⟪_⟫ᴴ to ⟦_⟧ᴴ
+  ) public
+
 -- Convert and force program execution.
 ⟦_⟧ᴵ : ∀ {Γ τ} → EConf Γ (LIO τ) → IConf ⟦ Γ ⟧ᶜ ⟦ τ ⟧ᵗ
-⟦ ⟨ Σ , pc , e ⟩ ⟧ᴵ = ⟨ ⟦ Σ ⟧ˢ , ⟦ e ⟧ᴱ ∘ (Id （）) ⟩
+⟦ ⟨ Σ , μ , pc , e ⟩ ⟧ᴵ = ⟨ ⟦ Σ ⟧ˢ , ⟦ μ ⟧ᴴ ,  ⟦ e ⟧ᴱ ∘ (Id （）) ⟩

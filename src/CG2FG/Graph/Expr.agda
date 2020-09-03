@@ -111,23 +111,23 @@ mutual
 
       Taint : ∀ {e e'} → Cg2Fgᴱ c 𝓛 e e' → Cg2Fgᵀ c Unit (taint e) (taint e' （）)
 
-      New : ∀ {τ τ' e e'} {p : MkTy τ τ'} →
+      New : ∀ {τ τ' s e e'} {p : MkTy τ τ'} →
               Cg2Fgᴱ c (Labeled p) e e' →
-              Cg2Fgᵀ c (Ref p)
+              Cg2Fgᵀ c (Ref {s = s} p)
                 (new e)
                 (new (Λ (taint ( (fst (var FG.here))) (snd (var FG.here))) ∘  (unId e')))
 
-      Read : ∀ {τ τ' e e'} {p : MkTy τ τ'} →
-               Cg2Fgᴱ c (Ref p) e e' →
+      Read : ∀ {τ τ' s e e'} {p : MkTy τ τ'} →
+               Cg2Fgᴱ c (Ref {s = s} p) e e' →
                Cg2Fgᵀ c p (! e) (! e')
 
-      Write : ∀ {τ τ' e₁ e₂ e₁' e₂'} {p : MkTy τ τ'} →
-               Cg2Fgᴱ c (Ref p) e₁ e₁' →
+      Write : ∀ {τ τ' s e₁ e₂ e₁' e₂'} {p : MkTy τ τ'} →
+               Cg2Fgᴱ c (Ref {s = s} p) e₁ e₁' →
                Cg2Fgᴱ c (Labeled p) e₂ e₂' →
                Cg2Fgᵀ c Unit (e₁ ≔ e₂) (e₁' ≔ snd (unId e₂') )
 
-      LabelOfRef : ∀ {τ τ' e e'} {p : MkTy τ τ'} →
-                   Cg2Fgᴱ c (Ref p) e e' →
+      LabelOfRef : ∀ {τ τ' s e e'} {p : MkTy τ τ'} →
+                   Cg2Fgᴱ c (Ref {s = s} p) e e' →
                    Cg2Fgᵀ c 𝓛 (labelOfRef e) (labelOfRef e')
 
 mutual
