@@ -170,7 +170,8 @@ mutual
               (eq : pc' ≡ pc ⊔ ℓ) →
               Step θ ⟨ Σ , μ , pc , ! e ⟩  ⟨ Σ , μ , pc' , v ⟩
 
-    Write-FS : ∀ {Σ μ μ' pc ℓ ℓ' ℓ'' n τ} {M' : Memory ℓ} {e₁ : Expr _ (Ref S τ)} {e₂ : Expr _ (Labeled τ)} {v₂ v₂' : Value τ} →
+    Write-FS : ∀ {Σ μ μ' pc ℓ ℓ' ℓ'' n τ} {M' : Memory ℓ} {e₁ : Expr _ (Ref S τ)}
+                 {e₂ : Expr _ (Labeled τ)} {v₂ v₂' : Value τ} →
              e₁ ⇓ᴾ⟨ θ ⟩ Refˢ n →
              e₂ ⇓ᴾ⟨ θ ⟩ Labeled ℓ' v₂ →
              (n∈μ : n ↦ v₂' ^ ℓ ∈ᴴ μ) →

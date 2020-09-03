@@ -95,8 +95,8 @@ _↓≈⟨_⟩ᵉ_ {{c}} θ' pc θ = CEqᵉ pc c θ θ'
 _↓≈⟨_⟩ⱽ_ : ∀ {τ τ'} {{c : MkTy τ τ'}} → F.Value τ' → Label → C.Value τ → Set
 _↓≈⟨_⟩ⱽ_ {{c}} v' pc v = CEqⱽ pc c v v'
 
-_↓≈⟨_⟩ᴸ_ : ∀ {τ τ'} {{c : MkTy (Labeled τ) τ'}} → F.Value τ' → Label → C.LValue τ → Set
-_↓≈⟨_⟩ᴸ_ {{c}} v' pc (v ^ ℓ) = CEqⱽ pc c (Labeled ℓ v) v'
+-- _↓≈⟨_⟩ᴸ_ : ∀ {τ τ'} {{c : MkTy (Labeled τ) τ'}} → F.Value τ' → Label → C.LValue τ → Set
+-- _↓≈⟨_⟩ᴸ_ {{c}} v' pc (v ^ ℓ) = CEq pc c (Labeled ℓ v) v'
 
 _↓≈ᴱ_ : ∀ {τ τ' Γ Γ'} {{p : MkTy τ τ'}} {{c : MkCtx Γ Γ'}} → F.Expr Γ' (Id unit ➔ τ') → C.Expr Γ (LIO τ) → Set
 _↓≈ᴱ_ {{p}} {{c}} e e' = Cg2Fgᴱ c (LIO p) e' e
@@ -110,9 +110,12 @@ trueᴿ = Inl (refl-⊑ ↓ （）)
 falseᴿ : ∀ {pc} → (F.false pc) ↓≈⟨ pc ⟩ᴿ C.false
 falseᴿ = Inr (refl-⊑ ↓ （）)
 
+-- TODO: rename Refᴵ′
 Ref′ : ∀ {n₁ n₂ τ τ' pc} {{p : MkTy τ τ'}} ℓ → n₁ ≡ n₂ → Refᴵ {τ = τ'} ℓ n₁ ↓≈⟨ pc ⟩ᴿ Refᴵ {τ = τ} ℓ n₂
 Ref′ {n} {.n} ℓ refl = Refᴵ ℓ n
 
+Refˢ′ : ∀ {n₁ n₂ τ τ' pc} {{p : MkTy τ τ'}} → n₁ ≡ n₂ → Refˢ {τ = τ'} n₁ ↓≈⟨ pc ⟩ᴿ Refˢ {τ = τ} n₂
+Refˢ′ refl = Refˢ _
 --------------------------------------------------------------------------------
 
 -- Properties
@@ -146,12 +149,21 @@ import Generic.ICrossEq Label 𝑻 as R
            ; _↓≈⟨_,_⟩_ = λ v₁ ℓ τ≈ v₂ → CEqᴿ ℓ τ≈ v₂ v₁
            ; refl-↓≈⟨_⟩ = refl-≈⟨_⟩ᴿ_ }
 
-import Generic.ICrossEq ⊤ 𝑻ᴸ as L
+import Generic.ICrossEq ⊤ 𝑻 as L
+
+data CEqᴸ {τ τ'} (p : MkTy τ τ') (v : C.LValue τ) : F.Value τ' → Set where
+  ⌞_⌟ᴸ : ∀ {r} → CEqᴿ (proj₂ v) p (proj₁ v) r → CEqᴸ p v (r ^ proj₂ v)
+
+_↓≈ᴸ_ :  ∀ {τ τ'} {{c : MkTy τ τ'}} → F.Value τ' → C.LValue τ → Set
+_↓≈ᴸ_  {{c}} v lv = CEqᴸ c lv v
+
+refl-≈ᴸ : ∀ {τ} → (v : C.LValue τ) → ⟦ v ⟧ᴸ ↓≈ᴸ v
+refl-≈ᴸ (v ^ ℓ) = ⌞ refl-≈⟨ ℓ ⟩ᴿ v  ⌟ᴸ
 
 𝑽ᴸ : L.ICEq C.LValue F.Value
 𝑽ᴸ = record { ⟦_⟧ = λ lv _ → ⟦ lv ⟧ᴸ
-            ; _↓≈⟨_,_⟩_ = λ { v₁ _ τ≈ (v₂ ^ ℓ) → CEqⱽ ℓ τ≈ (Labeled ℓ v₂) v₁ }
-            ; refl-↓≈⟨_⟩ = λ { _ (v ^ ℓ) → refl-≈⟨ ℓ ⟩ⱽ (Labeled ℓ v) } }
+            ; _↓≈⟨_,_⟩_ = λ v₁ pc p v₂ → CEqᴸ p v₂ v₁
+            ; refl-↓≈⟨_⟩ = λ pc v → refl-≈ᴸ v }
 
 mutual
 
@@ -191,7 +203,7 @@ slice-↓≈ (C.drop p) (x ∷ y) = slice-↓≈ p y
 --------------------------------------------------------------------------------
 -- Derive cross equivalence for program state (store and heap)
 
-open import Generic.PState.CrossEq 𝑻 𝑻ᴸ 𝑽 𝑽ᴸ public
+open import Generic.PState.CrossEq 𝑻 𝑻 𝑽 𝑽ᴸ public
 
 --------------------------------------------------------------------------------
 
