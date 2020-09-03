@@ -7,8 +7,8 @@ module Generic.PState.Base
   (Value₁ : Ty₁ → Set) (Value₂ : Ty₂ → Set)
   where
 
-open import Generic.Store Ty₁ Value₁
-open import Generic.Heap Ty₂ Value₂
+open import Generic.Store Ty₁ Value₁ public
+open import Generic.Heap Ty₂ Value₂ public
 
 -- Program State
 record PState : Set where

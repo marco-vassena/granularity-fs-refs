@@ -7,4 +7,4 @@ module Generic.PState
   (Value₁ : Ty₁ → Set) (Value₂ : Ty₂ → Set)
   where
 
-open import Generic.PState.Base Ty₁ Ty₂ Value₁ Value₂ public
+open import Generic.PState.Base Value₁ Value₂ public

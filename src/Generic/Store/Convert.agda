@@ -12,8 +12,8 @@ module Generic.Store.Convert
 
 open import Generic.Store.Base as B using ([] ; _∷_)
 
-module S = B Ty₁ Value₁ renaming (∥_∥ᴹ to ∥_∥ ; snocᴹ to _∷ᴿ_)
-module T = B Ty₂ Value₂ renaming (∥_∥ᴹ to ∥_∥ ; snocᴹ to _∷ᴿ_)
+private module S = B Ty₁ Value₁ renaming (∥_∥ᴹ to ∥_∥ ; snocᴹ to _∷ᴿ_)
+private module T = B Ty₂ Value₂ renaming (∥_∥ᴹ to ∥_∥ ; snocᴹ to _∷ᴿ_)
 
 open import Generic.Container.Convert Label {Ty₁} {Ty₂} {Value₁} {Value₂} ⟪_⟫ᵗ ⟪_⟫ⱽ as M
   renaming ( ⟪_⟫ᶜ to ⟪_⟫ᴹ

@@ -14,12 +14,9 @@ module Generic.PState.LowEq
 
 open import Data.Nat
 open import Data.Product
-open import Generic.Store Ty₁ Value₁
-open import Generic.Heap Ty₂ Value₂
 open import Generic.Store.LowEq {Ty₁} {Value₁} _≈⟨_⟩₁_ A public
 open import Generic.Heap.LowEq {Ty₂} {Value₂} _≈⟨_⟩₂_ A public
-
-open import Generic.PState.Base Value₁ Value₂ public
+open import Generic.PState.Base Value₁ Value₂
 
 open PState
 

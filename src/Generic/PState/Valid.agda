@@ -19,7 +19,6 @@ open import Generic.Valid
 open import Generic.PState.Base Value₁ Value₂
 open import Data.Product
 open import Generic.Store.Valid 𝑽₁ public
-open import Generic.Heap.Base Ty₂ Value₂
 open import Generic.Heap.Valid 𝑽₂ public
 
 open PState
