@@ -22,7 +22,8 @@ mutual
   inj-Id : ∀ {τ₁ τ₂ τ₃} → MkTy′ (Id τ₁) τ₃ → MkTy′ τ₂ τ₃ → (Id τ₁) ≡ τ₂
   inj-Id (Id ()) 𝓛
   inj-Id (Id ()) Unit
-  inj-Id (Id ()) (Ref y)
+  inj-Id (Id ()) (Refᴵ y)
+  inj-Id (Id ()) (Refˢ y)
   inj-Id (Id ()) (Sum x₁ x₂)
   inj-Id (Id ()) (Prod x₁ x₂)
   inj-Id (Id ()) (Fun x₁ x₂)
@@ -31,7 +32,8 @@ mutual
   inj-MkTy′ :  ∀ {τ τ₁ τ₂} → MkTy′ τ₁ τ → MkTy′ τ₂ τ → τ₁ ≡ τ₂
   inj-MkTy′ 𝓛 𝓛 = refl
   inj-MkTy′ Unit Unit = refl
-  inj-MkTy′ (Ref x) (Ref x₁) = cong Ref (inj-MkTy′ x x₁)
+  inj-MkTy′ (Refᴵ x) (Refᴵ x₁) = cong (Ref I) (inj-MkTy′ x x₁)
+  inj-MkTy′ (Refˢ x) (Refˢ x₁) = cong (Ref S) (inj-MkTy′ x x₁)
   inj-MkTy′ (Sum x x₁) (Sum x₂ x₃) = cong₂ _+_ (inj-MkTy x x₂) (inj-MkTy x₁ x₃)
   inj-MkTy′ (Prod x x₁) (Prod x₂ x₃) = cong₂ FG._×_ (inj-MkTy x x₂) (inj-MkTy x₁ x₃)
   inj-MkTy′ (Fun x x₁) (Fun x₂ x₃) = cong₂ FG._➔_ (inj-MkTy x x₂) (inj-MkTy x₁ x₃)
