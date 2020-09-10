@@ -10,7 +10,8 @@ mutual
   data MkTy′ : FG.Ty → CG.Ty → Set where
     𝓛 : MkTy′ 𝓛 𝓛
     Unit : MkTy′ unit unit
-    Ref : ∀ {τ τ'} → MkTy′ τ τ' → MkTy′ (Ref τ) (Ref τ')
+    Refᴵ : ∀ {τ τ'} → MkTy′ τ τ' → MkTy′ (Ref I τ) (Ref I τ')
+    Refˢ : ∀ {τ τ'} → MkTy′ τ τ' → MkTy′ (Ref S τ) (Ref S τ')
     Sum : ∀ {τ₁ τ₂ τ₁' τ₂'} → MkTy τ₁ τ₁' → MkTy τ₂ τ₂' → MkTy′ (τ₁ FG.+ τ₂) (τ₁' CG.+ τ₂')
     Prod : ∀ {τ₁ τ₂ τ₁' τ₂'} → MkTy τ₁ τ₁' → MkTy τ₂ τ₂' → MkTy′ (τ₁ FG.× τ₂) (τ₁' CG.× τ₂')
     Fun : ∀ {τ₁ τ₂ τ₁' τ₂'} → MkTy τ₁ τ₁' → MkTy τ₂ τ₂' → MkTy′ (τ₁ FG.➔ τ₂) (τ₁' CG.➔ (LIO τ₂'))
@@ -29,7 +30,8 @@ mutual
   mkTy′ (τ + τ₁) = Sum (mkTy τ) (mkTy τ₁)
   mkTy′ (τ ➔ τ₁) = Fun (mkTy τ) (mkTy τ₁)
   mkTy′ 𝓛 = 𝓛
-  mkTy′ (Ref τ) = Ref (mkTy′ τ)
+  mkTy′ (Ref I τ) = Refᴵ (mkTy′ τ)
+  mkTy′ (Ref S τ) = Refˢ (mkTy′ τ)
   mkTy′ (Id τ) = Id (mkTy τ)
 
   mkTy : ∀ τ → MkTy τ ⟪ τ ⟫ᵗ
@@ -42,7 +44,8 @@ mutual
   ≡-MkTy′ : ∀ {τ τ'} → MkTy′ τ τ' → τ' ≡ ⟪ τ ⟫ᵗ′
   ≡-MkTy′ 𝓛 = refl
   ≡-MkTy′ Unit = refl
-  ≡-MkTy′ (Ref x) = cong Ref (≡-MkTy′ x)
+  ≡-MkTy′ (Refᴵ x) = cong (Ref I) (≡-MkTy′ x)
+  ≡-MkTy′ (Refˢ x) = cong (Ref S) (≡-MkTy′ x)
   ≡-MkTy′ (Sum x x₁) = cong₂ _+_ (≡-MkTy x) (≡-MkTy x₁)
   ≡-MkTy′ (Prod x x₁) = cong₂ CG._×_ (≡-MkTy x) (≡-MkTy x₁)
   ≡-MkTy′ (Fun x x₁) = cong₂ _➔_ (≡-MkTy x) (cong LIO (≡-MkTy x₁))
@@ -67,7 +70,9 @@ mutual
   !-MkTy′ : ∀ {τ τ'} (x y : MkTy′ τ τ') → x ≡ y
   !-MkTy′ 𝓛 𝓛 = refl
   !-MkTy′ Unit Unit = refl
-  !-MkTy′ (Ref x) (Ref y)
+  !-MkTy′ (Refᴵ x) (Refᴵ y)
+    rewrite !-MkTy′ x y = refl
+  !-MkTy′ (Refˢ x) (Refˢ y)
     rewrite !-MkTy′ x y = refl
   !-MkTy′ (Sum x₁ x₂) (Sum y₁ y₂)
     rewrite !-MkTy x₁ y₁ | !-MkTy x₂ y₂ = refl

@@ -31,13 +31,15 @@ lookup-≡ (there τ∈Γ) (v ∷ θ) rewrite lookup-≡ τ∈Γ θ = refl
 --------------------------------------------------------------------------------
 
 -- Lemmas about store generic translation.
-import Generic.Store.Convert
-open Generic.Store.Convert.Lemmas {FG.Ty} {CG.Ty} {FG.Raw} {CG.Value} ⟪_⟫ᵗ′ (λ r _ → ⟪ r ⟫ᴿ)
+-- import Generic.Store.Convert
+-- open Generic.Store.Convert.Lemmas {FG.Ty} {CG.Ty} {FG.Raw} {CG.Value} ⟪_⟫ᵗ′ (λ r _ → ⟪ r ⟫ᴿ)
 
 mutual
 
+  -- TODO: why not trasnformation of the whole configuration?
+
     -- Correctness theorem with forcing semantics
-  fg2cgᶠ : ∀ {Σ Σ' Γ τ pc} {e : FG.Expr Γ τ} {v : FG.Value τ} {θ : FG.Env Γ} →
+  fg2cgᶠ : ∀ {Σ Σ' μ μ' Γ τ pc} {e : FG.Expr Γ τ} {v : FG.Value τ} {θ : FG.Env Γ} →
              ⟨ Σ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , v ⟩ →
              ⟨ ⟪ Σ ⟫ˢ , pc , ⟪ e ⟫ᴱ ⟩ ⇓ᶠ⟨ ⟪ θ ⟫ᵉ ⟩  ⟨ ⟪ Σ' ⟫ˢ , pc , ⟪ v ⟫ⱽ ⟩
   fg2cgᶠ x = ⌞ fg2cg x ⌟ᶠ

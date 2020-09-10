@@ -155,9 +155,9 @@ mutual
                   ⌞ bind (wken e₂' (CG.drop (CG.drop (CG.drop CG.refl-⊆))))
                   ⌞ unlabel (var CG.here ) ⌟ᵀ ⌟ᵀ ⌟ᵀ ⌟ᵀ ⌟ᵀ)
 
-    LabelOfRef : ∀ {τ τ'} {e : FG.Expr Γ (Ref τ)} {e' : CG.Expr Γ' (LIO (Labeled (Ref τ')))}
+    LabelOfRef : ∀ {τ τ'} {e : FG.Expr Γ (Ref I τ)} {e' : CG.Expr Γ' (LIO (Labeled (Ref I τ')))}
                    {p : MkTy′ τ τ'} →
-                   Fg2Cgᴱ c (Ref p) e e' →
+                   Fg2Cgᴱ c (Refᴵ p) e e' →
                    Fg2Cgᵀ c 𝓛 (labelOfRef e) (
                      toLabeled
                        ⌞ bind e'
@@ -167,24 +167,24 @@ mutual
     New : ∀ {τ τ'} {e : FG.Expr Γ τ} {e' : CG.Expr Γ' (LIO (Labeled τ'))}
             {p : MkTy′ τ τ'} →
             Fg2Cgᴱ c p e e' →
-            Fg2Cgᵀ c (Ref p) (new e) (
+            Fg2Cgᵀ c (Refᴵ p) (new e) (
               toLabeled
                 ⌞ bind e'
                 ⌞ new (var CG.here) ⌟ᵀ ⌟ᵀ)
 
-    Read : ∀ {τ τ'} {e : FG.Expr Γ (Ref τ)} {e' : CG.Expr Γ' (LIO (Labeled (Ref τ')))}
+    Read : ∀ {τ τ'} {e : FG.Expr Γ (Ref I τ)} {e' : CG.Expr Γ' (LIO (Labeled (Ref I τ')))}
              {p : MkTy′ τ τ'} →
-             Fg2Cgᴱ c (Ref p) e e' →
+             Fg2Cgᴱ c (Refᴵ p) e e' →
              Fg2Cgᵀ c p (! e) (
                toLabeled
                  ⌞ bind e'
                  ⌞ bind ⌞ unlabel (var CG.here) ⌟ᵀ
                  ⌞ ! (var CG.here) ⌟ᵀ ⌟ᵀ ⌟ᵀ)
 
-    Write : ∀ {τ τ'} {e₁ : FG.Expr Γ (Ref τ)} {e₁' : CG.Expr Γ' (LIO (Labeled (Ref τ')))}
+    Write : ∀ {τ τ'} {e₁ : FG.Expr Γ (Ref I τ)} {e₁' : CG.Expr Γ' (LIO (Labeled (Ref I τ')))}
               {e₂ : FG.Expr Γ τ} {e₂' : CG.Expr Γ' (LIO (Labeled τ'))}
               {p : MkTy′ τ τ'} →
-              Fg2Cgᴱ c (Ref p) e₁ e₁' →
+              Fg2Cgᴱ c (Refᴵ p) e₁ e₁' →
               Fg2Cgᴱ c p e₂ e₂' →
               Fg2Cgᵀ c Unit (e₁ ≔ e₂) (
                 bind ⌞ toLabeled
@@ -211,29 +211,30 @@ mutual
   mkFg2Cgᴱ : ∀ {Γ τ} (e : FG.Expr Γ τ) → Fg2Cgᴱ (mkCtx _) (mkTy′ _) e ⟪ e ⟫ᴱ
   mkFg2Cgᴱ e = ⌞ mkFg2Cgᵀ e ⌟ᵀ
 
-  mkFg2Cgᵀ : ∀ {Γ τ} (e : FG.Expr Γ τ) → Fg2Cgᵀ (mkCtx _) (mkTy′ _) e ⟪ e ⟫ᵀ
-  mkFg2Cgᵀ （） = Unit
-  mkFg2Cgᵀ (var τ∈Γ) = Var (mkFg2Cg-∈ τ∈Γ)
-  mkFg2Cgᵀ (Λ e) = Fun (mkFg2Cgᴱ e)
-  mkFg2Cgᵀ (e ∘ e₁) = App (mkFg2Cgᴱ e) (mkFg2Cgᴱ e₁)
-  mkFg2Cgᵀ (wken e x) = Wken (mkFg2Cgᴱ e) (mkFg2Cg-⊆ x)
-  mkFg2Cgᵀ ⟨ e , e₁ ⟩ = Pair (mkFg2Cgᴱ e) (mkFg2Cgᴱ e₁)
-  mkFg2Cgᵀ (fst e) = Fst (mkFg2Cgᴱ e)
-  mkFg2Cgᵀ (snd e) = Snd (mkFg2Cgᴱ e)
-  mkFg2Cgᵀ (inl e) = Inl (mkFg2Cgᴱ e)
-  mkFg2Cgᵀ (inr e) = Inr (mkFg2Cgᴱ e)
-  mkFg2Cgᵀ (case e e₁ e₂) = Case (mkFg2Cgᴱ e) (mkFg2Cgᴱ e₁) (mkFg2Cgᴱ e₂)
-  mkFg2Cgᵀ ⌞ ℓ ⌟ = Lbl ℓ
-  mkFg2Cgᵀ (e₁ ⊑-? e₂) = Test (mkFg2Cgᴱ e₁) (mkFg2Cgᴱ e₂)
-  mkFg2Cgᵀ getLabel = GetLabel
-  mkFg2Cgᵀ (labelOf e) = LabelOf (mkFg2Cgᴱ e)
-  mkFg2Cgᵀ (taint e e₁) = Taint (mkFg2Cgᴱ e) (mkFg2Cgᴱ e₁)
-  mkFg2Cgᵀ (labelOfRef e) = LabelOfRef (mkFg2Cgᴱ e)
-  mkFg2Cgᵀ (new e) = New (mkFg2Cgᴱ e)
-  mkFg2Cgᵀ (! e) = Read (mkFg2Cgᴱ e)
-  mkFg2Cgᵀ (e ≔ e₁) = Write (mkFg2Cgᴱ e) (mkFg2Cgᴱ e₁)
-  mkFg2Cgᵀ (Id e) = Id (mkFg2Cgᴱ e)
-  mkFg2Cgᵀ (unId e) = UnId (mkFg2Cgᴱ e)
+  -- Missing translation for ref-s.
+  postulate mkFg2Cgᵀ : ∀ {Γ τ} (e : FG.Expr Γ τ) → Fg2Cgᵀ (mkCtx _) (mkTy′ _) e ⟪ e ⟫ᵀ
+  -- mkFg2Cgᵀ （） = Unit
+  -- mkFg2Cgᵀ (var τ∈Γ) = Var (mkFg2Cg-∈ τ∈Γ)
+  -- mkFg2Cgᵀ (Λ e) = Fun (mkFg2Cgᴱ e)
+  -- mkFg2Cgᵀ (e ∘ e₁) = App (mkFg2Cgᴱ e) (mkFg2Cgᴱ e₁)
+  -- mkFg2Cgᵀ (wken e x) = Wken (mkFg2Cgᴱ e) (mkFg2Cg-⊆ x)
+  -- mkFg2Cgᵀ ⟨ e , e₁ ⟩ = Pair (mkFg2Cgᴱ e) (mkFg2Cgᴱ e₁)
+  -- mkFg2Cgᵀ (fst e) = Fst (mkFg2Cgᴱ e)
+  -- mkFg2Cgᵀ (snd e) = Snd (mkFg2Cgᴱ e)
+  -- mkFg2Cgᵀ (inl e) = Inl (mkFg2Cgᴱ e)
+  -- mkFg2Cgᵀ (inr e) = Inr (mkFg2Cgᴱ e)
+  -- mkFg2Cgᵀ (case e e₁ e₂) = Case (mkFg2Cgᴱ e) (mkFg2Cgᴱ e₁) (mkFg2Cgᴱ e₂)
+  -- mkFg2Cgᵀ ⌞ ℓ ⌟ = Lbl ℓ
+  -- mkFg2Cgᵀ (e₁ ⊑-? e₂) = Test (mkFg2Cgᴱ e₁) (mkFg2Cgᴱ e₂)
+  -- mkFg2Cgᵀ getLabel = GetLabel
+  -- mkFg2Cgᵀ (labelOf e) = LabelOf (mkFg2Cgᴱ e)
+  -- mkFg2Cgᵀ (taint e e₁) = Taint (mkFg2Cgᴱ e) (mkFg2Cgᴱ e₁)
+  -- mkFg2Cgᵀ (labelOfRef e) = LabelOfRef (mkFg2Cgᴱ e)
+  -- mkFg2Cgᵀ (new e) = New (mkFg2Cgᴱ e)
+  -- mkFg2Cgᵀ (! e) = Read (mkFg2Cgᴱ e)
+  -- mkFg2Cgᵀ (e ≔ e₁) = Write (mkFg2Cgᴱ e) (mkFg2Cgᴱ e₁)
+  -- mkFg2Cgᵀ (Id e) = Id (mkFg2Cgᴱ e)
+  -- mkFg2Cgᵀ (unId e) = UnId (mkFg2Cgᴱ e)
 
   ≡-Fg2Cgᴱ : ∀ {Γ τ e₂ c p} {e₁ : FG.Expr Γ τ} → Fg2Cgᴱ c p e₁ e₂ → e₂ ≡ ⟪ e₁ ⟫ᴱ
   ≡-Fg2Cgᴱ ⌞ x ⌟ᵀ rewrite ≡-Fg2Cgᵀ x = refl

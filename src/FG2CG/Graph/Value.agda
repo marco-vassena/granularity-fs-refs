@@ -35,7 +35,8 @@ mutual
             Fg2Cgᵉ c θ θ' →
             Fg2Cgᴱ (p₁ ∷ c) p₂ e₁ e₂ →
             Fg2Cgᴿ (Fun p₁ (Labeled p₂)) ⟨ e₁ , θ ⟩ᶜ ⟨ e₂  , θ' ⟩ᶜ
-    Ref : ∀ {τ τ' ℓ n} {p : MkTy′ τ τ'} → Fg2Cgᴿ (Ref p) (Ref ℓ n) (Ref ℓ n)
+    Refᴵ : ∀ {τ τ' ℓ n} {p : MkTy′ τ τ'} → Fg2Cgᴿ (Refᴵ p) (Refᴵ ℓ n) (Refᴵ ℓ n)
+    Refˢ : ∀ {τ τ' n} {p : MkTy′ τ τ'} → Fg2Cgᴿ (Refˢ p) (Refˢ n) (Refˢ n)
     Id : ∀ {τ τ'} {v : FG.Value τ} {v' : CG.Value (Labeled τ')} {p : MkTy′ τ τ'} →
            Fg2Cgⱽ p v v' →
            Fg2Cgᴿ (Id (Labeled p)) (Id v) v'
@@ -64,7 +65,8 @@ mutual
   mkFg2Cgᴿ (inl x) = Inl (mkFg2Cgⱽ x)
   mkFg2Cgᴿ (inr x) = Inr (mkFg2Cgⱽ x)
   mkFg2Cgᴿ ⟨ v , v₁ ⟩ = Pair (mkFg2Cgⱽ v) (mkFg2Cgⱽ v₁)
-  mkFg2Cgᴿ (Ref ℓ n) = Ref
+  mkFg2Cgᴿ (Refᴵ ℓ n) = Refᴵ
+  mkFg2Cgᴿ (Refˢ n) = Refˢ
   mkFg2Cgᴿ ⌞ ℓ ⌟ = Lbl ℓ
   mkFg2Cgᴿ (Id v) = Id (mkFg2Cgⱽ v)
 
@@ -84,7 +86,8 @@ mutual
   ≡-Fg2Cgᴿ (Pair x x₁) = cong₂ ⟨_,_⟩ (≡-Fg2Cgⱽ x) (≡-Fg2Cgⱽ x₁)
   ≡-Fg2Cgᴿ (Fun {c = c} x₁ x₂) with ≡-MkCtx c
   ... | eq₁ rewrite eq₁ | ≡-Fg2Cgᴱ x₂ = cong₂ ⟨_,_⟩ᶜ refl (≡-Fg2Cgᵉ x₁)
-  ≡-Fg2Cgᴿ Ref = refl
+  ≡-Fg2Cgᴿ Refᴵ = refl
+  ≡-Fg2Cgᴿ Refˢ = refl
   ≡-Fg2Cgᴿ (Id v) rewrite ≡-Fg2Cgⱽ v = refl
 
   ≡-Fg2Cgᵉ : ∀ {Γ θ' c} {θ : FG.Env Γ} → Fg2Cgᵉ c θ θ' → θ' ≡ ⟪ θ ⟫ᵉ

@@ -126,7 +126,8 @@ mutual
   ⟪ inl v ⟫ᴿ = inl ⟪ v ⟫ⱽ
   ⟪ inr v ⟫ᴿ = inr ⟪ v ⟫ⱽ
   ⟪ ⟨ v₁ , v₂ ⟩ ⟫ᴿ = ⟨ ⟪ v₁ ⟫ⱽ , ⟪ v₂ ⟫ⱽ ⟩
-  ⟪ Ref ℓ n ⟫ᴿ = Ref ℓ n
+  ⟪ Refᴵ ℓ n ⟫ᴿ = Refᴵ ℓ n
+  ⟪ Refˢ n ⟫ᴿ = Refˢ n
   ⟪ ⌞ ℓ ⌟ ⟫ᴿ = ⌞ ℓ ⌟
   ⟪ Id v ⟫ᴿ = ⟪ v ⟫ⱽ
 
@@ -141,21 +142,26 @@ import Data.Product as P
 ⟪_⟫ᴿ′ : ∀ {τ} → (FG.Raw τ P.× Label) → CG.Value ⟪ τ ⟫ᵗ′
 ⟪_⟫ᴿ′ = P.uncurry $ flip $ const ⟪_⟫ᴿ
 
+⟪_⟫ᴸ : ∀ {τ} → FG.Value τ → CG.LValue ⟪ τ ⟫ᵗ′
+⟪ r ^ ℓ ⟫ᴸ = ⟪ r ⟫ᴿ P., ℓ
+
 --------------------------------------------------------------------------------
 -- Store conversion (pointwise and derived generically)
 
 -- Notice that we pass around the implicit parameters because
 -- otherwise we get unification problems.
-open import Generic.Store.Convert {FG.Ty} {CG.Ty} {FG.Raw} {CG.Value} ⟪_⟫ᵗ′ (flip $ const ⟪_⟫ᴿ)
-  using (
-    ⟪_⟫ˢ
-  ; ⟪_⟫ᴹ) public
+open import Generic.Store.Convert {FG.Ty} {CG.Ty} {FG.Raw} {CG.Value} ⟪_⟫ᵗ′ (flip $ const ⟪_⟫ᴿ) public
+
+open import Generic.Heap.Convert {FG.Ty} {CG.Ty} {FG.Value} {CG.LValue} ⟪_⟫ᵗ′ ⟪_⟫ᴸ public
 
 --------------------------------------------------------------------------------
 -- Conversion of initial and final  configurations.
 
 ⟪_⟫ᴵ : ∀ {Γ τ} → FG.IConf Γ τ → Label → CG.EConf ⟪ Γ ⟫ᶜ (LIO ⟪ τ ⟫ᵗ)
-⟪ ⟨ Σ , e ⟩ ⟫ᴵ pc = ⟨ ⟪ Σ ⟫ˢ , pc , ⟪ e ⟫ᴱ ⟩
+⟪ ⟨ Σ , μ , e ⟩ ⟫ᴵ pc = ⟨ ⟪ Σ ⟫ˢ , ⟪ μ ⟫ᴴ , pc , ⟪ e ⟫ᴱ ⟩
+
+⟪_⟫ᴵ′ : ∀ {Γ τ} → FG.IConf Γ τ → Label → CG.TConf ⟪ Γ ⟫ᶜ (LIO ⟪ τ ⟫ᵗ)
+⟪ ⟨ Σ , μ , e ⟩ ⟫ᴵ′ pc = ⟨ ⟪ Σ ⟫ˢ , ⟪ μ ⟫ᴴ , pc , ⟪ e ⟫ᵀ ⟩
 
 ⟪_⟫ : ∀ {τ} → FG.FConf τ → Label → CG.FConf ⟪ τ ⟫ᵗ
-⟪ ⟨ Σ , v ⟩ ⟫ pc = ⟨ ⟪ Σ ⟫ˢ , pc , ⟪ v ⟫ⱽ ⟩
+⟪ ⟨ Σ , μ , v ⟩ ⟫ pc = ⟨ ⟪ Σ ⟫ˢ , ⟪ μ ⟫ᴴ , pc , ⟪ v ⟫ⱽ ⟩
