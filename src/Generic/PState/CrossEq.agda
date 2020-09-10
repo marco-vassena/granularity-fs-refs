@@ -36,15 +36,10 @@ open CEq 𝑻₂ renaming (⟦_⟧ to ⟦_⟧₂ᵗ)
 open G.ICEq 𝑽₁ renaming (⟦_⟧ to ⟦_⟧₁ⱽ)
 open G.ICEq 𝑽₂ renaming (⟦_⟧ to ⟦_⟧₂ⱽ)
 
-open import Generic.Store.Convert {Ty₁} {Ty₂} {Valueˢ₁} {Valueˢ₂} ⟦_⟧₁ᵗ ⟦_⟧₁ⱽ
-  renaming (⟪_⟫ˢ to ⟦_⟧ˢ)
-
-open import Generic.Heap.Convert {Ty₁} {Ty₂} {Valueᴴ₁} {Valueᴴ₂} ⟦_⟧₂ᵗ (λ v → ⟦ v ⟧₂ⱽ tt)
-  renaming (⟪_⟫ᴴ to ⟦_⟧ᴴ)
-
-⟦_⟧ᴾ : S.PState → T.PState
-⟦ S.⟨ Σ , μ ⟩ ⟧ᴾ = T.⟨ ⟦ Σ ⟧ˢ , ⟦ μ ⟧ᴴ ⟩
-  where
+open import Generic.PState.Convert {Ty₁} {Ty₂} ⟦_⟧₁ᵗ ⟦_⟧₂ᵗ {Valueˢ₁} {Valueˢ₂} {Valueᴴ₁} {Valueᴴ₂} ⟦_⟧₁ⱽ ⟦_⟧₂ⱽ
+  renaming ( ⟪_⟫ᴾ to ⟦_⟧ᴾ
+           ; ⟪_⟫ˢ to ⟦_⟧ˢ
+           ; ⟪_⟫ᴴ to ⟦_⟧ᴴ ) public
 
 refl-↓≈ᴾ : ∀ (p : S.PState) → ⟦ p ⟧ᴾ ↓≈ᴾ p
 refl-↓≈ᴾ S.⟨ Σ , μ ⟩ = ⟨ refl-↓≈ˢ Σ , refl-↓≈ᴴ μ ⟩
