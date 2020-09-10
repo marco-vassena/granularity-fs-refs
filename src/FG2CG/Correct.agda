@@ -165,14 +165,14 @@ mutual
       ⌞ LabelOfRef (Var here) (sym-⊔ _ _ ) ⌟ᶠ))
     where pc⊑ℓ' = FG.step-⊑ x
 
-  fg2cg {pc = pc} (New  {ℓ = ℓ} {Σ' = Σ'} {r = r} x) =
+  fg2cg {pc = pc} (New {ℓ = ℓ} {Σ' = Σ'} {μ' = μ'} {r = r} x) =
     ToLabeled
       (Bindᶠ (fg2cgᶠ x)
       ⌞ ⇓-with′ (New (Var here) (FG.step-⊑ x)) eq ⌟ᶠ)
 
    where memory-≡ = ∷ᴿ-≡ r (Σ' ℓ)
          value-≡ = cong₂ Refᴵ refl (∥ Σ' ∥-≡ ℓ)
-         eq = cong₂ (λ Σ v → ⟨ Σ , _ , pc , v ⟩) (CG.store-≡ (update-≡ˢ memory-≡)) value-≡
+         eq = cong₂ (λ Σ v → ⟨ Σ , ⟪ μ' ⟫ᴴ , pc , v ⟩) (CG.store-≡ (update-≡ˢ memory-≡)) value-≡
 
   fg2cg (Read x x₁ refl) =
     ToLabeled
@@ -191,6 +191,7 @@ mutual
 
     where eq = cong (λ Σ → ⟨ Σ , ⟪ μ₃ ⟫ᴴ , pc ⊔ ℓ₁ , （） ⟩) (CG.store-≡ (update-≡ˢ refl))
           ⊑₁ = join-⊑' (trans-⊑ (step-⊑ x₁) ℓ₂⊑ℓ) p
+
   fg2cg (Id x) = ToLabeled (fg2cgᶠ x)
 
   fg2cg (UnId x eq) =
@@ -199,10 +200,34 @@ mutual
       (Bindᶠ ⌞ Unlabel (Var here) (sym (ub (step-⊑ x))) ⌟ᶠ
       ⌞ Unlabel (Var here) eq ⌟ᶠ))
 
-  fg2cg (LabelOfRef-FS x x₁ eq) = {!!}
+  fg2cg (LabelOfRef-FS x ∈₁ refl) =
+    ToLabeled
+      (Bindᶠ (fg2cgᶠ x)
+      (Bindᶠ ⌞ Unlabel (Var here) (sym (ub pc⊑ℓ')) ⌟ᶠ
+      ⌞ LabelOfRef-FS (Var here) ⟪ ∈₁ ⟫∈ᴴ refl ⌟ᶠ))
+    where pc⊑ℓ' = FG.step-⊑ x
 
-  fg2cg (New-FS x) = {!!}
+  fg2cg {pc = pc} (New-FS {Σ' = Σ'} {μ' = μ'} {v = v} x) =
+    ToLabeled
+      (Bindᶠ (fg2cgᶠ x)
+      ⌞ ⇓-with′ (New-FS (Var here) (step-⊑ x)) eq ⌟ᶠ)
+   where value-≡ = cong Refˢ ∥ μ' ∥-≡ᴴ
+         eq = cong₂ (λ μ v → ⟨ ⟪ Σ' ⟫ˢ , μ , pc , v ⟩) (snocᴴ-≡ v μ') value-≡
 
-  fg2cg (Read-FS x x₁ eq) = {!!}
+  fg2cg (Read-FS x x₁ refl) =
+    ToLabeled
+      (Bindᶠ (fg2cgᶠ x)
+      (Bindᶠ ⌞ Unlabel (Var here) (sym (ub (step-⊑ x))) ⌟ᶠ
+      ⌞ Read-FS (Var here) ⟪ x₁ ⟫∈ᴴ refl ⌟ᶠ))
 
-  fg2cg (Write-FS x x₁ x₂ x₃ eq x₄) = {!!}
+  fg2cg {pc = pc} (Write-FS {Σ₃ = Σ₃} {ℓ = ℓ} {ℓ₂ = ℓ₂} x x₁ ∈₁ ⊑₁ refl w) =
+    Bind
+      (ToLabeledᶠ (
+        (Bindᶠ (fg2cgᶠ x)
+        (Bindᶠ (↑¹-⇓ᶠ (fg2cgᶠ x₁))
+        (Bindᶠ ⌞ Unlabel (Var (there here)) refl ⌟ᶠ
+        ⌞ ⇓-with′ (Write-FS (Var here) (Var (there here)) ⟪ ∈₁ ⟫∈ᴴ ⊑₂ eq' (write-≡ᴴ w)) eq ⌟ᶠ)))))
+    (ToLabeledᶠ ⌞ Return Unit ⌟ᶠ)
+    where eq = cong (λ μ → ⟨ ⟪ Σ₃ ⟫ˢ , μ , pc ⊔ ℓ , （） ⟩) refl
+          ⊑₂ = trans-⊑ (join-⊑' (step-⊑ x) refl-⊑) ⊑₁
+          eq' = cong (_⊔ ℓ₂) (sym (ub (step-⊑ x)))
