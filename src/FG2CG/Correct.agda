@@ -39,15 +39,15 @@ mutual
   -- TODO: why not trasnformation of the whole configuration?
 
     -- Correctness theorem with forcing semantics
-  fg2cgᶠ : ∀ {Σ Σ' μ μ' Γ τ pc} {e : FG.Expr Γ τ} {v : FG.Value τ} {θ : FG.Env Γ} →
-             ⟨ Σ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , v ⟩ →
-             ⟨ ⟪ Σ ⟫ˢ , pc , ⟪ e ⟫ᴱ ⟩ ⇓ᶠ⟨ ⟪ θ ⟫ᵉ ⟩  ⟨ ⟪ Σ' ⟫ˢ , pc , ⟪ v ⟫ⱽ ⟩
+  fg2cgᶠ : ∀ {pc Γ τ} {c : FG.IConf Γ τ} {c' : FG.FConf τ}  {θ : FG.Env Γ} →
+             c ⇓⟨ θ , pc ⟩ c' →
+             (⟪ c ⟫ᴵ pc) ⇓ᶠ⟨ ⟪ θ ⟫ᵉ ⟩  (⟪ c' ⟫ᶠ pc)
   fg2cgᶠ x = ⌞ fg2cg x ⌟ᶠ
 
   -- Correctness theorem: semantics preservation
-  fg2cg : ∀ {Σ Σ' Γ τ pc} {e : FG.Expr Γ τ} {v : FG.Value τ} {θ : FG.Env Γ} →
-               ⟨ Σ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , v ⟩ →
-               ⟨ ⟪ Σ ⟫ˢ , pc , ⟪ e ⟫ᵀ ⟩ ⇓⟨ ⟪ θ ⟫ᵉ ⟩  ⟨ ⟪ Σ' ⟫ˢ , pc , ⟪ v ⟫ⱽ ⟩
+  fg2cg :  ∀ {pc Γ τ} {c : FG.IConf Γ τ} {c' : FG.FConf τ}  {θ : FG.Env Γ} →
+             c ⇓⟨ θ , pc ⟩ c' →
+             (⟪ c ⟫ᴵ′ pc) ⇓⟨ ⟪ θ ⟫ᵉ ⟩ (⟪ c' ⟫ᶠ pc)
 
   fg2cg {θ = θ} (Var τ∈Γ eq) rewrite eq = ToLabeled ⌞ Unlabel (Var ⟪ τ∈Γ ⟫∈) refl ⌟ᶠ
 
@@ -122,7 +122,7 @@ mutual
         (Bindᶠ ⌞ Unlabel (Var here) refl ⌟ᶠ
         ⌞ Unlabel (Snd (Var here)) refl ⌟ᶠ ))
 
-  fg2cg {Σ} {Σ'} {Γ} {_} {pc} {e} {v = r' ^ _} {θ}  (LabelOf x) =
+  fg2cg (LabelOf x) =
     ToLabeled
       (Bindᶠ (fg2cgᶠ x)
       ⌞ LabelOf (Var here) (sym (ub (step-⊑ x))) ⌟ᶠ )
@@ -135,7 +135,7 @@ mutual
       (Bindᶠ (↑¹-⇓ᶠ (fg2cgᶠ s₂))
       ⌞ Return (Pair (Var (there here)) (Var here)) ⌟ᶠ ))
 
-  fg2cg {.Σ} {Σ''} {θ = θ} (Wken {Σ} {Σ'} p x)
+  fg2cg (Wken {Σ} {Σ'} p x)
     = Bind ⌞ Return (Wken  ⟪ p ⟫⊆  SThunk) ⌟ᶠ (Force (Var here) (fg2cg x))
 
   fg2cg {pc = pc} {θ = θ} (Taint {ℓ = ℓ} {pc' = pc'} {pc'' = pc''} refl x₁ x₂ b) =
@@ -171,8 +171,8 @@ mutual
       ⌞ ⇓-with′ (New (Var here) (FG.step-⊑ x)) eq ⌟ᶠ)
 
    where memory-≡ = ∷ᴿ-≡ r (Σ' ℓ)
-         value-≡ = cong₂ Ref refl (∥ Σ' ∥-≡ ℓ)
-         eq = cong₂ (λ Σ v → ⟨ Σ , pc , v ⟩) (CG.store-≡ (update-≡ˢ memory-≡)) value-≡
+         value-≡ = cong₂ Refᴵ refl (∥ Σ' ∥-≡ ℓ)
+         eq = cong₂ (λ Σ v → ⟨ Σ , _ , pc , v ⟩) (CG.store-≡ (update-≡ˢ memory-≡)) value-≡
 
   fg2cg (Read x x₁ refl) =
     ToLabeled
@@ -180,17 +180,17 @@ mutual
       (Bindᶠ ⌞ Unlabel (Var here) (sym (ub (step-⊑ x))) ⌟ᶠ
       ⌞ Read (Var here) ⟪ x₁ ⟫∈ᴹ (sym-⊔ _ _) ⌟ᶠ))
 
-  fg2cg {pc = pc} (Write x p x₁ ℓ₂⊑ℓ x₂) =
+  fg2cg {pc = pc} (Write {μ₃ = μ₃} {ℓ₁ = ℓ₁} x p x₁ ℓ₂⊑ℓ x₂) =
     Bind
       (ToLabeledᶠ (
         (Bindᶠ (fg2cgᶠ x)
         (Bindᶠ (↑¹-⇓ᶠ (fg2cgᶠ x₁))
-        (Bindᶠ ⌞ Unlabel (Var (there here)) (sym (ub' p)) ⌟ᶠ
-        ⌞ ⇓-with′ (Write (Var here) (Var (there here)) (trans-⊑ (step-⊑ x₁) ℓ₂⊑ℓ) ℓ₂⊑ℓ (write-≡ᴹ x₂)) eq ⌟ᶠ)))))
+        (Bindᶠ ⌞ Unlabel (Var (there here)) refl ⌟ᶠ
+        ⌞ ⇓-with′ (Write (Var here) (Var (there here)) ⊑₁ ℓ₂⊑ℓ (write-≡ᴹ x₂)) eq ⌟ᶠ)))))
     (ToLabeledᶠ ⌞ Return Unit ⌟ᶠ)
 
-    where eq = cong (λ Σ → ⟨ Σ , pc , （） ⟩) (CG.store-≡ (update-≡ˢ refl))
-
+    where eq = cong (λ Σ → ⟨ Σ , ⟪ μ₃ ⟫ᴴ , pc ⊔ ℓ₁ , （） ⟩) (CG.store-≡ (update-≡ˢ refl))
+          ⊑₁ = join-⊑' (trans-⊑ (step-⊑ x₁) ℓ₂⊑ℓ) p
   fg2cg (Id x) = ToLabeled (fg2cgᶠ x)
 
   fg2cg (UnId x eq) =
@@ -198,3 +198,11 @@ mutual
       (Bindᶠ (fg2cgᶠ x)
       (Bindᶠ ⌞ Unlabel (Var here) (sym (ub (step-⊑ x))) ⌟ᶠ
       ⌞ Unlabel (Var here) eq ⌟ᶠ))
+
+  fg2cg (LabelOfRef-FS x x₁ eq) = {!!}
+
+  fg2cg (New-FS x) = {!!}
+
+  fg2cg (Read-FS x x₁ eq) = {!!}
+
+  fg2cg (Write-FS x x₁ x₂ x₃ eq x₄) = {!!}

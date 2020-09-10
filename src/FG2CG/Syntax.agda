@@ -163,5 +163,5 @@ open import Generic.Heap.Convert {FG.Ty} {CG.Ty} {FG.Value} {CG.LValue} ⟪_⟫�
 ⟪_⟫ᴵ′ : ∀ {Γ τ} → FG.IConf Γ τ → Label → CG.TConf ⟪ Γ ⟫ᶜ (LIO ⟪ τ ⟫ᵗ)
 ⟪ ⟨ Σ , μ , e ⟩ ⟫ᴵ′ pc = ⟨ ⟪ Σ ⟫ˢ , ⟪ μ ⟫ᴴ , pc , ⟪ e ⟫ᵀ ⟩
 
-⟪_⟫ : ∀ {τ} → FG.FConf τ → Label → CG.FConf ⟪ τ ⟫ᵗ
-⟪ ⟨ Σ , μ , v ⟩ ⟫ pc = ⟨ ⟪ Σ ⟫ˢ , ⟪ μ ⟫ᴴ , pc , ⟪ v ⟫ⱽ ⟩
+⟪_⟫ᶠ : ∀ {τ} → FG.FConf τ → Label → CG.FConf ⟪ τ ⟫ᵗ
+⟪ ⟨ Σ , μ , v ⟩ ⟫ᶠ pc = ⟨ ⟪ Σ ⟫ˢ , ⟪ μ ⟫ᴴ , pc , ⟪ v ⟫ⱽ ⟩

@@ -128,12 +128,13 @@ mutual
            (eq : ℓ'' ≡ (ℓ ⊔ ℓ')) →
            Step θ pc ⟨ Σ , μ , ! e ⟩  ⟨ Σ' , μ' ,  r ^ ℓ'' ⟩
 
-    Write : ∀ {Σ₁ Σ₂ Σ₃ μ₁ μ₂ μ₃ ℓ ℓ₂ ℓ' n τ} {M' : Memory ℓ} {e₁ : Expr _ (Ref I τ)}
+    Write : ∀ {Σ₁ Σ₂ Σ₃ μ₁ μ₂ μ₃ ℓ ℓ₂ ℓ₁ n τ} {M' : Memory ℓ} {e₁ : Expr _ (Ref I τ)}
               {e₂ : Expr _ τ} {r₂ : Raw τ} →
-             ⟨ Σ₁ , μ₁ , e₁ ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ₂ , μ₂ , (Refᴵ ℓ n) ^ ℓ' ⟩ →
+             ⟨ Σ₁ , μ₁ , e₁ ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ₂ , μ₂ , (Refᴵ ℓ n) ^ ℓ₁ ⟩ →
              -- TODO: It was l' ⊑ pc, wouldn't this imply pc ≡ ℓ' (from pc ⊑ ℓ'). Probably a
              -- typo, but check actual paper and formalization online.
-              ℓ' ⊑ ℓ →
+             -- The paper is correct, there was a typo in the rule.
+              ℓ₁ ⊑ ℓ →
              ⟨ Σ₂ , μ₂ , e₂ ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ₃ , μ₃ , r₂ ^ ℓ₂ ⟩ →
              (ℓ₂⊑ℓ : ℓ₂ ⊑ ℓ) →
                M' ≔ (Σ₃ ℓ) [ n ↦ r₂ ]ᴹ →
@@ -155,9 +156,10 @@ mutual
           ⟨ Σ , μ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , μ' , v ⟩ →
           Step θ pc ⟨ Σ , μ , new {s = S} e ⟩  ⟨  Σ' , snocᴴ μ' v , Refˢ ∥ μ' ∥ᴴ ^ pc ⟩
 
-    -- This is better than asking ℓ' ⊑ ℓ and returning the value at pc
-    -- ⊔ ℓ. The combination pc ⊑ ℓ' (step-⊑) and ℓ' ⊑ ℓ implies pc ⊑
-    -- ℓ, thus the rule would not allow to read lower references.
+    -- Tainting the result with ℓ ⊔ ℓ' is better than asking ℓ' ⊑ ℓ
+    -- and returning the value at pc ⊔ ℓ. The combination pc ⊑ ℓ'
+    -- (step-⊑) and ℓ' ⊑ ℓ implies pc ⊑ ℓ, thus the rule would not
+    -- allow to read lower references.
     Read-FS : ∀ {Σ Σ' μ μ' ℓ ℓ' ℓ'' n τ r} {e : Expr _ (Ref S τ)}  →
            ⟨ Σ , μ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , μ' , (Refˢ n) ^ ℓ ⟩ →
            n ↦ r ^ ℓ' ∈ᴴ μ' →
