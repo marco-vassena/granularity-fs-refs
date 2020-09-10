@@ -1,6 +1,6 @@
 open import Lattice
 
-module Generic.Container.Convert
+module Generic.Container.Convert.Graph
   {{𝑳 : Lattice}}
   (Label : Set)
   {Ty₁ Ty₂ : Set}
@@ -9,4 +9,4 @@ module Generic.Container.Convert
   (⟪_⟫ᵗ : Ty₁ → Ty₂)
   (⟪_⟫ⱽ : ∀ {τ} → Value₁ τ → Label → Value₂ ⟪ τ ⟫ᵗ) where
 
-open import Generic.Container.Convert.Base Label {Ty₁} {Ty₂} {Value₁} {Value₂} ⟪_⟫ᵗ ⟪_⟫ⱽ public
+open import Generic.Container.Base Label as B using ([] ; _∷_)

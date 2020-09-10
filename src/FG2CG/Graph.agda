@@ -13,4 +13,5 @@ open import FG2CG.Graph.Value public
 
 open import FG2CG.Graph.Expr public
 
-open import FG2CG.Graph.Memory public
+-- TODO move here generic graph repr for pstate ?
+-- open import FG2CG.Graph.Memory public

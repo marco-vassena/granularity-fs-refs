@@ -93,3 +93,23 @@ mutual
   ≡-Fg2Cgᵉ : ∀ {Γ θ' c} {θ : FG.Env Γ} → Fg2Cgᵉ c θ θ' → θ' ≡ ⟪ θ ⟫ᵉ
   ≡-Fg2Cgᵉ [] = refl
   ≡-Fg2Cgᵉ (x₁ ∷ x₂) = cong₂ _∷_ (≡-Fg2Cgⱽ x₁) (≡-Fg2Cgᵉ x₂)
+
+
+open import Generic.IGraph Graph-⟪·⟫ᵗ′
+
+Graph-⟪·⟫ⱽ : IGraph ⟪_⟫ⱽ
+Graph-⟪·⟫ⱽ = record { R = Fg2Cgⱽ ; ⌜_⌝ = mkFg2Cgⱽ ; ⌞_⌟ = ≡-Fg2Cgⱽ }
+
+open import Data.Product
+
+data Fg2Cgᴸ {τ τ'} (p : MkTy′ τ τ') :  FG.Value τ → CG.LValue τ' → Set where
+  LV : ∀ {ℓ r v} → Fg2Cgᴿ p r v → Fg2Cgᴸ p (r ^ ℓ) (v , ℓ)
+
+mkFg2Cgᴸ : ∀ {τ} (v : FG.Value τ) → Fg2Cgᴸ (mkTy′ τ) v ⟪ v ⟫ᴸ
+mkFg2Cgᴸ (r ^ ℓ) = LV (mkFg2Cgᴿ r)
+
+≡-Fg2Cgᴸ : ∀ {τ p v'} {v : FG.Value τ} → Fg2Cgᴸ p v v' → v' ≡ ⟪ v ⟫ᴸ
+≡-Fg2Cgᴸ (LV x) rewrite ≡-Fg2Cgᴿ x = refl
+
+Graph-⟪·⟫ᴸ : IGraph ⟪_⟫ᴸ
+Graph-⟪·⟫ᴸ = record { R = Fg2Cgᴸ ; ⌜_⌝ = mkFg2Cgᴸ ; ⌞_⌟ = ≡-Fg2Cgᴸ }

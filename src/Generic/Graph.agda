@@ -4,6 +4,7 @@ module Generic.Graph where
 
 -- Is this ever used?
 open import Relation.Binary.PropositionalEquality
+open import Data.Product
 
 -- We cannot express simple graphs using an index graph becuase index
 -- graphs are parametrized by simple graphs. We do not need more

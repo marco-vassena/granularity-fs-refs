@@ -14,4 +14,4 @@ open import Generic.Container.Convert ⊤ {Ty₁} {Ty₂} {Value₁} {Value₂} 
            ; ∥_∥-≡ to ∥_∥-≡ᴴ
            ; ⟪_⟫∈ to ⟪_⟫∈ᴴ
            ; write-≡ to write-≡ᴴ
-           ; ∷ᴿ-≡ to snocᴴ-≡) public
+           ; ∷ᴿ-≡ to snocᴴ-≡ ) public

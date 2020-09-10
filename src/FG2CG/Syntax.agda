@@ -150,9 +150,11 @@ import Data.Product as P
 
 -- Notice that we pass around the implicit parameters because
 -- otherwise we get unification problems.
-open import Generic.Store.Convert {FG.Ty} {CG.Ty} {FG.Raw} {CG.Value} ⟪_⟫ᵗ′ (flip $ const ⟪_⟫ᴿ) public
+-- open import Generic.Store.Convert {FG.Ty} {CG.Ty} {FG.Raw} {CG.Value} ⟪_⟫ᵗ′ (flip $ const ⟪_⟫ᴿ) public
 
-open import Generic.Heap.Convert {FG.Ty} {CG.Ty} {FG.Value} {CG.LValue} ⟪_⟫ᵗ′ ⟪_⟫ᴸ public
+-- open import Generic.Heap.Convert {FG.Ty} {CG.Ty} {FG.Value} {CG.LValue} ⟪_⟫ᵗ′ ⟪_⟫ᴸ public
+
+open import Generic.PState.Convert {FG.Ty} {CG.Ty} ⟪_⟫ᵗ′ ⟪_⟫ᵗ′ {FG.Raw} {CG.Value} {FG.Value} {CG.LValue} (flip $ const ⟪_⟫ᴿ) (flip $ const ⟪_⟫ᴸ) public
 
 --------------------------------------------------------------------------------
 -- Conversion of initial and final  configurations.
