@@ -100,6 +100,10 @@ open import Generic.IGraph Graph-⟪·⟫ᵗ′
 Graph-⟪·⟫ⱽ : IGraph ⟪_⟫ⱽ
 Graph-⟪·⟫ⱽ = record { R = Fg2Cgⱽ ; ⌜_⌝ = mkFg2Cgⱽ ; ⌞_⌟ = ≡-Fg2Cgⱽ }
 
+Graph-⟪·⟫ᴿ : IGraph ⟪_⟫ᴿ
+Graph-⟪·⟫ᴿ = record { R = Fg2Cgᴿ ; ⌜_⌝ = mkFg2Cgᴿ ; ⌞_⌟ = ≡-Fg2Cgᴿ }
+
+
 open import Data.Product
 
 data Fg2Cgᴸ {τ τ'} (p : MkTy′ τ τ') :  FG.Value τ → CG.LValue τ' → Set where

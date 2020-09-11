@@ -73,8 +73,9 @@ sym-# {f = f} {g} p a | just x | just x₁ | f#g = ⊥-elim (⊥-is-nothing-just
 sym-# {f = f} {g} p a | just x | nothing | f#g = λ ()
 sym-# {f = f} {g} p a | nothing | ga | f#g = λ _ → nothing
 
-data Graph {A : Set} {B : Set} (f : A ⇀ B) (a : A) : B → Set where
-  just : ∀ {b a'} → a ≡ a' → f a' ≡ just b → Graph f a b
+-- TODO: remove
+-- data Graph {A : Set} {B : Set} (f : A ⇀ B) (a : A) : B → Set where
+--   just : ∀ {b a'} → a ≡ a' → f a' ≡ just b → Graph f a b
 
 -- Proof that a maps to b in the partial map.
 _∈_ : ∀ {A B} → A × B → A ⇀ B → Set

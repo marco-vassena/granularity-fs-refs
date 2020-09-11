@@ -11,6 +11,9 @@ open import CG.Syntax public
 -- Big-step semantics
 open import CG.Semantics public
 
+-- References are valid
+open import CG.Valid public
+
 -- Bijections
 open import Generic.Bijection
 

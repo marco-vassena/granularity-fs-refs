@@ -125,7 +125,6 @@ Valid-Inputs ⟨ Σ , μ , _ ⟩ θ = Validᴾ ⟨ Σ , μ ⟩ × Validᴱ ∥ �
 Valid-Outputs : ∀ {τ} → FConf τ → Set
 Valid-Outputs ⟨ Σ , μ , v ⟩ = Validᴾ ⟨ Σ , μ ⟩ × Validⱽ ∥ μ ∥ᴴ v
 
-
 slice-validᴱ : ∀ {Γ Γ' μ} (θ : Env Γ) → (p : Γ' ⊆ᶜ Γ) → Validᴱ ∥ μ ∥ᴴ θ → Validᴱ ∥ μ ∥ᴴ (slice θ p)
 slice-validᴱ [] base isV = tt
 slice-validᴱ (_ ∷ θ) (cons p) (isV₁ ∧ isV₂) = isV₁ ∧ slice-validᴱ θ p isV₂

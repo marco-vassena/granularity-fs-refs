@@ -10,6 +10,10 @@ open import CG as CG
 open import FG.LowEq A as F
 open import CG.LowEq A as C
 open import FG2CG.Syntax
+open import FG2CG.Graph.Types
+open import FG2CG.Graph.Value
+open import Generic.Heap.Graph Graph-⟪·⟫ᵗ′ Graph-⟪·⟫ᴸ
+open import Generic.Memory.Graph Graph-⟪·⟫ᵗ′ Graph-⟪·⟫ᴿ
 open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality
 open import Data.Unit
@@ -71,9 +75,6 @@ lift-≈ᴴ {μ₁} {μ₂} {β} μ₁≈μ₂ = record { dom-⊆ = lift-dom-⊆
   where open import Generic.Heap.Lemmas CG.Ty CG.LValue as HC
         open import Generic.Heap.Lemmas FG.Ty FG.Value as HF
         open import Generic.Value.HLowEq {CG.Ty} {CG.LValue} C._≈⟨_⟩ᴸ_ as CH
-        open import FG2CG.Graph.Types
-        open import FG2CG.Graph.Value
-        open import Generic.Heap.Graph Graph-⟪·⟫ᵗ′ Graph-⟪·⟫ᴸ
         open F._≈⟨_⟩ᴴ_ μ₁≈μ₂
         open import Data.Product
 
@@ -86,7 +87,7 @@ lift-≈ᴴ {μ₁} {μ₂} {β} μ₁≈μ₂ = record { dom-⊆ = lift-dom-⊆
         ... | ≤₁ rewrite sym (∥ μ₂ ∥-≡ᴴ) = HC.<-∈ ≤₁
 
         lift-lift-≅ : C.Lift-≅ ⟪ μ₁ ⟫ᴴ ⟪ μ₂ ⟫ᴴ β
-        lift-lift-≅ {τ₁ = τ₁} {τ₂ = τ₂} {v₁ = v₁} ∈ᴮ ∈₁ ∈₂ with unlift-⟪ ∈₁ ⟫∈′′ | unlift-⟪ ∈₂ ⟫∈′′
+        lift-lift-≅ {τ₁ = τ₁} {τ₂ = τ₂} {v₁ = v₁} ∈ᴮ ∈₁ ∈₂ with unlift-⟪ ∈₁ ⟫∈ᴴ | unlift-⟪ ∈₂ ⟫∈ᴴ
         ... | τ₁′ , v₁′ , ∈₁′ , refl , refl | τ₂′ , v₂′ , ∈₂′ , refl , refl with lift-≅ ∈ᴮ ∈₁′ ∈₂′
         ... | F.⌞ v≈ ⌟ = CH.⌞ lift-≈ⱽ v≈  ⌟
 
@@ -97,3 +98,52 @@ lift-≈ᴾ F.⟨ Σ₁≈Σ₂ , μ₁≈μ₂ ⟩ = C.⟨ lift-≈ˢ Σ₁≈�
 lift-≈ᴵ : ∀ {τ Γ β} {c₁ c₂ : FG.IConf Γ τ} → (pc : Label) →
          c₁ F.≈⟨ β ⟩ᴵ c₂  → ⟪ c₁ ⟫ᴵ pc C.≈⟨ β ⟩ᴵ ⟪ c₂ ⟫ᴵ pc
 lift-≈ᴵ pc ⟨ ≈ᴾ , refl ⟩ = ⟨  lift-≈ᴾ ≈ᴾ , refl , refl ⟩
+
+--------------------------------------------------------------------------------
+-- Lift valid proofs
+
+open import Data.Product
+
+mutual
+
+  lift-Validᴱ : ∀ {n Γ} (θ : FG.Env Γ) → FG.Validᴱ n θ → CG.Validᴱ n ⟪ θ ⟫ᵉ
+  lift-Validᴱ [] isVᴱ = tt
+  lift-Validᴱ (v ∷ θ) (isVⱽ , isVᴱ) = (lift-Validⱽ v isVⱽ) , (lift-Validᴱ θ isVᴱ)
+
+  lift-Validⱽ : ∀ {n τ} (v : FG.Value τ) → FG.Validⱽ n v → CG.Validⱽ n ⟪ v ⟫ⱽ
+  lift-Validⱽ (r ^ ℓ) isVᴿ = lift-Validᴿ r isVᴿ
+
+  lift-Validᴿ : ∀ {n τ} (r : FG.Raw τ) → FG.Validᴿ n r → CG.Validⱽ n ⟪ r ⟫ᴿ
+  lift-Validᴿ （） isVᴿ = tt
+  lift-Validᴿ ⟨ x , θ ⟩ᶜ isVᴱ = lift-Validᴱ θ isVᴱ
+  lift-Validᴿ (inl v) isVⱽ = lift-Validⱽ v isVⱽ
+  lift-Validᴿ (inr v) isVⱽ = lift-Validⱽ v isVⱽ
+  lift-Validᴿ ⟨ v₁ , v₂ ⟩ (isV₁ⱽ , isV₂ⱽ) = lift-Validⱽ v₁ isV₁ⱽ , lift-Validⱽ v₂ isV₂ⱽ
+  lift-Validᴿ (Refᴵ v v₁) isVⱽ = tt
+  lift-Validᴿ (Refˢ v) isVⱽ = isVⱽ
+  lift-Validᴿ ⌞ _ ⌟ isVⱽ = tt
+  lift-Validᴿ (Id v) isVⱽ = lift-Validⱽ v isVⱽ
+
+import Generic.Memory FG.Ty FG.Value as MF
+import Generic.Memory CG.Ty CG.Value as MC
+
+lift-Validᴹ : ∀ {n ℓ} {M : FG.Memory ℓ} → FG.Validᴹ n M → CG.Validᴹ n ⟪ M ⟫ᴹ
+lift-Validᴹ {n} isVᴹ ∈₁ with unlift-⟪ ∈₁ ⟫∈ᴹ
+... | τ , r , ⟪∈₁⟫ , refl , refl =  lift-Validᴿ r (isVᴹ ⟪∈₁⟫)
+
+lift-Validˢ : ∀ {Σ n} → FG.Validˢ n Σ → CG.Validˢ n ⟪ Σ ⟫ˢ
+lift-Validˢ isVˢ ℓ = lift-Validᴹ (isVˢ ℓ)
+
+lift-Validᴴ : ∀ {μ} → FG.Validᴴ μ → CG.Validᴴ ⟪ μ ⟫ᴴ
+lift-Validᴴ {μ} isVᴴ ∈₁ with unlift-⟪ ∈₁ ⟫∈ᴴ
+... | τ , v , ⟪∈₁⟫ , refl , refl
+    rewrite sym (∥ μ ∥-≡ᴴ) = lift-Validⱽ v (isVᴴ ⟪∈₁⟫)
+
+lift-Validᴾ : ∀ {p} → FG.Validᴾ p → CG.Validᴾ ⟪ p ⟫ᴾ
+lift-Validᴾ {p} FG.⟨ isVˢ , isVᴴ ⟩ with lift-Validᴴ isVᴴ
+... | isVᴴ′ rewrite sym (∥ FG.PState.heap p ∥-≡ᴴ) = CG.⟨ lift-Validˢ isVˢ , isVᴴ′ ⟩
+
+lift-Valid-Inputs : ∀ {τ Γ} pc (c : FG.IConf Γ τ) (θ : FG.Env Γ) →
+                      FG.Valid-Inputs c θ → CG.Valid-Inputs (⟪ c ⟫ᴵ pc) ⟪ θ ⟫ᵉ
+lift-Valid-Inputs _ c θ (isVᴾ , isVᴱ)
+  rewrite ∥ FG.Conf.heap c ∥-≡ᴴ = lift-Validᴾ isVᴾ , lift-Validᴱ θ isVᴱ
