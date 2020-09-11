@@ -106,7 +106,7 @@ mutual
               (eq : pc'' ≡ pc ⊔ ℓ) →
               Step θ pc ⟨ Σ , μ , e₁ ⟩ ⟨ Σ' , μ' , ⌞ ℓ ⌟ ^ pc' ⟩ →
               Step θ pc''  ⟨ Σ' , μ' , e₂ ⟩ ⟨ Σ'' , μ'' , v ⟩ →
-              (pc'⊑pc'' : pc' ⊑ pc'') →
+              (pc'⊑pc'' : pc' ⊑ pc'') → -- Is this needed?
               Step θ pc ⟨ Σ , μ , taint e₁ e₂ ⟩ ⟨ Σ'' , μ'' , v ⟩
 
     LabelOfRef : ∀ {Σ Σ' μ μ' ℓ ℓ' ℓ'' n τ} {e : Expr Γ (Ref I τ)} →

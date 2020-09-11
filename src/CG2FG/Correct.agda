@@ -226,17 +226,18 @@ mutual
   ... | Refˢ .n ∧ Refˢ n ∧ x₁' | Id (⟨ (⌞ ℓ₁ ⌟ ^ .ℓ₁) , r ^ ℓ' ⟩ ^ _ ) ∧ Labeled ⊑pc (ℓ'⊑ℓ₁ ↓ ≈r) ∧ x₂'
     with lookup-↓≈ᴴ n∈μ ≈μ
   ... | r′ ∧ n∈μ′ ∧ ⌞ r≈′ ⌟ᴸ =
-    let μ ∧ w' ∧ ≈μ′ = write-↓≈ᴴ ⌞ ≈ᴿ-⊑ ≈r (join-⊑₂ _ _) ⌟ᴸ w ≈μ
+    let μ ∧ w' ∧ ≈μ′ = write-↓≈ᴴ ⌞ ≈ᴿ-⊑ ≈r (join-⊑₂ ℓ₁ pc) ⌟ᴸ w ≈μ
         c = ⟨ _ , _ , （） ^ pc ⟩
         ≈c = ⟨ ⟨ ≈Σ , ≈μ′  ⟩ , （） ⟩
         pc⊔pc = sym (idem-⊔ pc)
-        ⊑′ = write-fs-extra (Write-FS {pc = pc} x₁ x₂ n∈μ ⊑₁ refl w) x₂
-        eq = sym (trans (cong (_⊔ pc) (sym-⊔ pc ℓ₁ )) (trans (trans (sym (assoc-⊔ _ _ _)) (cong (ℓ₁ ⊔_) (idem-⊔ pc))) (ub' ⊑′)))
+--        ⊑′ = write-fs-extra (Write-FS {pc = pc} x₁ x₂ n∈μ ⊑₁ refl w) x₂
+        -- eq = sym (trans (cong (_⊔ pc) (sym-⊔ pc ℓ₁ )) (trans (trans (sym (assoc-⊔ _ _ _)) (cong (ℓ₁ ⊔_) (idem-⊔ pc))) (ub' ⊑′)))
         ⇓c = Write-FS x₁'
                (App Fun (UnId x₂' (sym (ub' ⊑pc))) pc⊔pc
                  (Taint refl
                    (Fst (Var here pc⊔pc) refl)
-                   (Snd (Var here eq) (sym (ub' ℓ'⊑ℓ₁))) refl-⊑)) n∈μ′ ⊑₁ refl w'
+                   (Snd (Var here refl) {!x₂'!}) {!refl-⊑!})) n∈μ′ ⊑₁ refl w'
+        -- (sym (ub' ℓ'⊑ℓ₁))
 
 --        eq₁ : (pc ⊔ (pc ⊔ pc)  ⊔ ≡ pc ⊔ ℓ₁
 

@@ -151,8 +151,8 @@ import Generic.ICrossEq Label 𝑻 as R
 
 import Generic.ICrossEq ⊤ 𝑻 as L
 
-data CEqᴸ {τ τ'} (p : MkTy τ τ') (v : C.LValue τ) : F.Value τ' → Set where
-  ⌞_⌟ᴸ : ∀ {r} → CEqᴿ (proj₂ v) p (proj₁ v) r → CEqᴸ p v (r ^ proj₂ v)
+data CEqᴸ {τ τ'} (p : MkTy τ τ') : C.LValue τ → F.Value τ' → Set where
+  ⌞_⌟ᴸ : ∀ {r v ℓ} → CEqᴿ ℓ p v r → CEqᴸ p (v ^ ℓ) (r ^ ℓ)
 
 _↓≈ᴸ_ :  ∀ {τ τ'} {{c : MkTy τ τ'}} → F.Value τ' → C.LValue τ → Set
 _↓≈ᴸ_  {{c}} v lv = CEqᴸ c lv v
