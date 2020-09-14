@@ -10,7 +10,7 @@ open import FG as FG
 open import CG.LowEq A as C
 open import FG.LowEq A as F
 open import CG2FG.Syntax
-open import CG2FG.CrossEq using (𝑽ᴸ ; ⌞_⌟ᴸ)
+open import CG2FG.CrossEq using (𝑽ᴸ ; ⌞_⌟ᴸ ; unlift-∈ᴹ′ ; refl-↓≈ᴹ)
 open import CG2FG.Graph
 open import Generic.Heap.CrossEq {{𝑳}} {CG.Ty} {FG.Ty} 𝑻 {CG.LValue} {FG.Value} 𝑽ᴸ
 open import CG2FG.Recovery.Injective
@@ -98,3 +98,54 @@ lift-≈ᴾ C.⟨ ≈ˢ , ≈ᴴ ⟩ = F.⟨ lift-≈ˢ ≈ˢ , lift-≈ᴴ ≈�
 -- Initial configurations.
 lift-≈ᴵ : ∀ {τ Γ β} {c₁ c₂ : EConf Γ (LIO τ)} → c₁ C.≈⟨ β ⟩ᴵ c₂ → ⟦ c₁ ⟧ᴵ F.≈⟨ β ⟩ᴵ ⟦ c₂ ⟧ᴵ
 lift-≈ᴵ ⟨ P₁≈P₂ , refl , refl ⟩ = ⟨ lift-≈ᴾ P₁≈P₂  , refl ⟩
+
+
+--------------------------------------------------------------------------------
+-- Lift valid proofs
+
+open import Data.Product
+
+mutual
+
+  lift-Validᴱ : ∀ {n Γ pc} (θ : CG.Env Γ) → CG.Validᴱ n θ → FG.Validᴱ n (⟦ θ ⟧ᵉ pc)
+  lift-Validᴱ [] isVᴱ = tt
+  lift-Validᴱ (v ∷ θ) (isVⱽ , isVᴱ) = (lift-Validⱽ v isVⱽ) , (lift-Validᴱ θ isVᴱ)
+
+  lift-Validⱽ : ∀ {n τ pc} (v : CG.Value τ) → CG.Validⱽ n v → FG.Validⱽ n (⟦ v ⟧ⱽ pc)
+  lift-Validⱽ v isV = lift-Validᴿ v isV
+
+  lift-Validᴿ : ∀ {n τ pc} (v : CG.Value τ) → CG.Validⱽ n v → FG.Validᴿ n (⟦ v ⟧ᴿ pc)
+  lift-Validᴿ （） isVᴿ = tt
+  lift-Validᴿ ⟨ x , θ ⟩ᶜ isVᴱ = lift-Validᴱ θ isVᴱ
+  lift-Validᴿ (inl v) isVⱽ = lift-Validⱽ v isVⱽ
+  lift-Validᴿ (inr v) isVⱽ = lift-Validⱽ v isVⱽ
+  lift-Validᴿ ⟨ v₁ , v₂ ⟩ (isV₁ⱽ , isV₂ⱽ) = lift-Validⱽ v₁ isV₁ⱽ , lift-Validⱽ v₂ isV₂ⱽ
+  lift-Validᴿ (Refᴵ v v₁) isVⱽ = tt
+  lift-Validᴿ (Refˢ v) isVⱽ = isVⱽ
+  lift-Validᴿ ⌞ _ ⌟ isVⱽ = tt
+  lift-Validᴿ ⟨ t , θ ⟩ᵀ isVᴱ = lift-Validᴱ θ isVᴱ
+  lift-Validᴿ (Labeled ℓ v) isVⱽ = tt , (lift-Validⱽ v isVⱽ)
+
+import Generic.Memory CG.Ty CG.Value as MF
+import Generic.Memory FG.Ty FG.Value as MC
+
+lift-Validᴹ : ∀ {n ℓ} {M : CG.Memory ℓ} → CG.Validᴹ n M → FG.Validᴹ n ⟦ M ⟧ᴹ
+lift-Validᴹ {n} {ℓ} {M} isVᴹ ∈₁ with unlift-∈ᴹ′ ∈₁ (refl-↓≈ᴹ M)
+... | τ , (r , refl) , ⟦∈₁⟧ , refl = lift-Validᴿ r (isVᴹ ⟦∈₁⟧)
+
+lift-Validˢ : ∀ {Σ n} → CG.Validˢ n Σ → FG.Validˢ n ⟦ Σ ⟧ˢ
+lift-Validˢ isVˢ ℓ = lift-Validᴹ (isVˢ ℓ)
+
+lift-Validᴴ : ∀ {μ} → CG.Validᴴ μ → FG.Validᴴ ⟦ μ ⟧ᴴ
+lift-Validᴴ {μ} isVᴴ ∈₁ with unlift-∈ᴴ′ ∈₁ (refl-↓≈ᴴ μ)
+... | τ , (lv , refl) , ⟦∈₁⟧ , refl
+  rewrite sym (∥ μ ∥-≡ᴴ) = lift-Validⱽ (proj₁ lv) (isVᴴ ⟦∈₁⟧)
+
+lift-Validᴾ : ∀ {p} → CG.Validᴾ p → FG.Validᴾ ⟦ p ⟧ᴾ
+lift-Validᴾ {p} CG.⟨ isVˢ , isVᴴ ⟩ with lift-Validᴴ isVᴴ
+... | isVᴴ′ rewrite sym (∥ CG.PState.heap p ∥-≡ᴴ) = FG.⟨ lift-Validˢ isVˢ , isVᴴ′ ⟩
+
+lift-Valid-Inputs : ∀ {τ Γ} (c : CG.EConf Γ (LIO τ)) (θ : CG.Env Γ) →
+                      CG.Valid-Inputs c θ → FG.Valid-Inputs ⟦ c ⟧ᴵ (⟦ θ ⟧ᵉ (CG.Conf.pc c))
+lift-Valid-Inputs c θ (isVᴾ , isVᴱ)
+  rewrite ∥ CG.Conf.heap c ∥-≡ᴴ = lift-Validᴾ isVᴾ , lift-Validᴱ θ isVᴱ
