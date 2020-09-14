@@ -35,8 +35,8 @@ mutual
             Fg2Cgᵉ c θ θ' →
             Fg2Cgᴱ (p₁ ∷ c) p₂ e₁ e₂ →
             Fg2Cgᴿ (Fun p₁ (Labeled p₂)) ⟨ e₁ , θ ⟩ᶜ ⟨ e₂  , θ' ⟩ᶜ
-    Refᴵ : ∀ {τ τ' ℓ n} {p : MkTy′ τ τ'} → Fg2Cgᴿ (Refᴵ p) (Refᴵ ℓ n) (Refᴵ ℓ n)
-    Refˢ : ∀ {τ τ' n} {p : MkTy′ τ τ'} → Fg2Cgᴿ (Refˢ p) (Refˢ n) (Refˢ n)
+    Refᴵ : ∀ {τ τ' ℓ n} {p : MkTy′ τ τ'} → Fg2Cgᴿ (Ref {s = I} p) (Refᴵ ℓ n) (Refᴵ ℓ n)
+    Refˢ : ∀ {τ τ' n} {p : MkTy′ τ τ'} → Fg2Cgᴿ (Ref {s = S} p) (Refˢ n) (Refˢ n)
     Id : ∀ {τ τ'} {v : FG.Value τ} {v' : CG.Value (Labeled τ')} {p : MkTy′ τ τ'} →
            Fg2Cgⱽ p v v' →
            Fg2Cgᴿ (Id (Labeled p)) (Id v) v'

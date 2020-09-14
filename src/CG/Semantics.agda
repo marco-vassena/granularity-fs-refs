@@ -314,8 +314,3 @@ mutual
               (pc c₁) ⊑ (pc c₂)
 
   stepᶠ-⊑ (Force x x₁) = step-⊑ x₁
-
-postulate write-fs-extra :  ∀ {Γ Σ μ μ' pc ℓ ℓ' τ}{θ : Env Γ} {M' : Memory ℓ}
-               {e₁ : Expr _ (Ref S τ)} {e₂ : Expr _ (Labeled τ)} {v₂ v₂' : Value τ}
-               → Step θ ⟨ Σ , μ , pc , e₁ ≔ e₂ ⟩ ⟨ Σ , μ' , pc , （） ⟩
-               → e₂ ⇓ᴾ⟨ θ ⟩ Labeled ℓ' v₂ → pc ⊑ ℓ'
