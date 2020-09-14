@@ -29,7 +29,9 @@ open import Generic.Container.CrossEq 𝑻 Label 𝑽
            ; ∥_∥-↓≈ to ∥_∥-↓≈ᴹ
            ; lookup-↓≈ to lookup-↓≈ᴹ
            ; write-↓≈ to write-↓≈ᴹ
-           ; refl-↓≈ to refl-↓≈ᴹ) public
+           ; refl-↓≈ to refl-↓≈ᴹ
+           ; nil to nilᴹ
+           ; cons to consᴹ ) public
 
 -- Stores
 _↓≈ˢ_ : T.Store → S.Store → Set

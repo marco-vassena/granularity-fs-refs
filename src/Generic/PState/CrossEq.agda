@@ -20,6 +20,7 @@ open import Generic.PState Ty₂ Ty₂ Valueˢ₂ Valueᴴ₂ as T
 
 -- Rexport cross equivalence for store and heap
 open import Generic.Store.CrossEq 𝑻₁ 𝑽₁ public
+
 open import Generic.Heap.CrossEq 𝑻₂ 𝑽₂ public
 
 open S.PState

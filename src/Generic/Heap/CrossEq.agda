@@ -32,4 +32,7 @@ open import Generic.Container.CrossEq 𝑻 ⊤ 𝑽
            ; ∥_∥-↓≈ to ∥_∥-↓≈ᴴ
            ; lookup-↓≈ to lookup-↓≈ᴴ
            ; write-↓≈ to write-↓≈ᴴ
-           ; refl-↓≈ to refl-↓≈ᴴ) public
+           ; refl-↓≈ to refl-↓≈ᴴ
+           ; nil to nilᴴ
+           ; cons to consᴴ
+           ) public
