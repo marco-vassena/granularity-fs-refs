@@ -64,6 +64,13 @@ lookup-↓≈ S.Here (cons τ≈ v≈ _) with ⌞ τ≈  ⌟
 lookup-↓≈ (S.There ∈₁) (cons _ _ C≈) with lookup-↓≈ ∈₁ C≈
 ... | _ ∧ ∈₂ ∧ v≈ = _ ∧ T.There ∈₂ ∧ v≈
 
+postulate unlift-⟦_⟧∈ :  ∀ {τ₂ n ℓ} {v₂ : Value₂ τ₂} {C₁ : S.Container ℓ} {C₂ : T.Container ℓ} →
+                 n T.↦ v₂ ∈ C₂ →
+                 C₂ ↓≈ C₁ →
+                 ∃ (λ τ₁ → Σ ((τ₂ ↓≈ᵗ τ₁) × (Value₁ τ₁))
+                   (λ { (↓τ ∧ v₁)  → (n S.↦ v₁ ∈ C₁) × ( v₂ ↓≈⟨ ℓ , ↓τ ⟩ⱽ v₁ ) } ))
+-- unlift-⟦ ∈₁ ⟧∈ ↓≈ = {!!}
+
 write-↓≈ : ∀ {n ℓ τ} {v₁ : Value₁ τ} {v₂ : Value₂ ⟦ τ ⟧ᵗ} {C₁ : T.Container ℓ} {C₂ C₂' : S.Container ℓ} →
              v₂ ↓≈⟨ ℓ , refl-↓≈ᵗ _ ⟩ⱽ v₁ →
              C₂' S.≔ C₂ [ n ↦ v₁ ] →

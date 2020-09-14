@@ -64,6 +64,6 @@ unlift-⟪_⟫∈ : ∀ {ℓ τ₂ n} {v₂ : Value₂ τ₂} {C₁ : S.Containe
                     (λ v₁ → (n S.↦ v₁ ∈ C₁) × Σ (τ₂ ≡ ⟪ τ₁ ⟫ᵗ) (λ { refl → (v₂ ≡ ⟪ v₁ ⟫ⱽ) })))
 unlift-⟪_⟫∈ ∈₂ with unlift-⟪ ∈₂ ⟫∈′ (mkGraphᶜ _ )
 ... | τ , p , v , ∈₁ , g with  ⌞ p ⌟ᵗ
-... | refl = τ , (v , (∈₁ , (refl , ⌞ g ⌟)))
+... | refl = τ , v , ∈₁ , refl , ⌞ g ⌟
 --                 Σ (τ₂ ≡ ⟪ τ₁ ⟫  (λ v₁ → v₂ ≡ ⟪ v₁ ⟫ⱽ × n S.↦ v₂ ∈ ⟪ C₁ ⟫ᶜ)
 -- unlift-⟪_⟫∈′′ = {!!}

@@ -83,16 +83,25 @@ mutual
 --------------------------------------------------------------------------------
 
 -- Derived store and memory translation.
-open import Generic.Store.Convert {CG.Ty} {FG.Ty} {CG.Value} {FG.Raw} ⟦_⟧ᵗ ⟦_⟧ᴿ
-  renaming (
-    ⟪_⟫ˢ to ⟦_⟧ˢ
-  ; ⟪_⟫ᴹ to ⟦_⟧ᴹ
-  ) public
+-- open import Generic.Store.Convert {CG.Ty} {FG.Ty} {CG.Value} {FG.Raw} ⟦_⟧ᵗ ⟦_⟧ᴿ
+--   renaming (
+--   ) public
 
-open import Generic.Heap.Convert {CG.Ty} {FG.Ty} {CG.LValue} {FG.Value} ⟦_⟧ᵗ ⟦_⟧ᴸ
-  renaming (
-    ⟪_⟫ᴴ to ⟦_⟧ᴴ
-  ) public
+-- open import Generic.Heap.Convert {CG.Ty} {FG.Ty} {CG.LValue} {FG.Value} ⟦_⟧ᵗ ⟦_⟧ᴸ
+--   renaming (
+--   ) public
+
+open import Function using (flip ; const ; _$_)
+
+open import Generic.PState.Convert
+  {CG.Ty} {FG.Ty} ⟦_⟧ᵗ ⟦_⟧ᵗ
+  {CG.Value} {FG.Raw} {CG.LValue} {FG.Value} ⟦_⟧ᴿ (flip $ const ⟦_⟧ᴸ)
+  renaming ( ⟪_⟫ᴾ to ⟦_⟧ᴾ
+           ; ⟪_⟫ˢ to ⟦_⟧ˢ
+           ; ⟪_⟫ᴹ to ⟦_⟧ᴹ
+           ; ⟪_⟫ᴴ to ⟦_⟧ᴴ
+           ) public
+
 
 -- Convert and force program execution.
 ⟦_⟧ᴵ : ∀ {Γ τ} → EConf Γ (LIO τ) → IConf ⟦ Γ ⟧ᶜ ⟦ τ ⟧ᵗ

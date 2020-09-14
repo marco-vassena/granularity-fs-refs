@@ -31,7 +31,8 @@ open import Generic.Container.CrossEq 𝑻 Label 𝑽
            ; write-↓≈ to write-↓≈ᴹ
            ; refl-↓≈ to refl-↓≈ᴹ
            ; nil to nilᴹ
-           ; cons to consᴹ ) public
+           ; cons to consᴹ
+           ; unlift-⟦_⟧∈ to unlift-⟦_⟧∈ᴹ ) public
 
 -- Stores
 _↓≈ˢ_ : T.Store → S.Store → Set

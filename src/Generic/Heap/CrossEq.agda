@@ -35,4 +35,5 @@ open import Generic.Container.CrossEq 𝑻 ⊤ 𝑽
            ; refl-↓≈ to refl-↓≈ᴴ
            ; nil to nilᴴ
            ; cons to consᴴ
+           ; unlift-⟦_⟧∈ to unlift-⟦_⟧∈ᴴ
            ) public
