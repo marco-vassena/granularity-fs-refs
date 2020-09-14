@@ -20,6 +20,8 @@ open import Function using (flip)
 open import Relation.Binary.PropositionalEquality
 open import Data.Product renaming (_,_ to _∧_)
 
+open SecurityLattice 𝑳 hiding (_∧_) renaming (_∨_ to _⊔ᴸ_)
+
 -- Correctnesss for pure steps (the store does not change in FG).
 cg2fgᴾ : ∀ {Γ τ} {θ : CG.Env Γ} {θ' : FG.Env ⟦ Γ ⟧ᶜ} {e : CG.Expr Γ τ} {v : CG.Value τ} →
            (p : FG.PState) (pc : Label) →
@@ -226,23 +228,32 @@ mutual
   ... | Refˢ .n ∧ Refˢ n ∧ x₁' | Id (⟨ (⌞ ℓ₁ ⌟ ^ .ℓ₁) , r ^ ℓ' ⟩ ^ _ ) ∧ Labeled ⊑pc (ℓ'⊑ℓ₁ ↓ ≈r) ∧ x₂'
     with lookup-↓≈ᴴ n∈μ ≈μ
   ... | r′ ∧ n∈μ′ ∧ ⌞ r≈′ ⌟ᴸ =
-    let μ ∧ w' ∧ ≈μ′ = write-↓≈ᴴ ⌞ ≈ᴿ-⊑ ≈r (join-⊑₂ ℓ₁ pc) ⌟ᴸ w ≈μ
+    let μ ∧ w' ∧ ≈μ′ = write-↓≈ᴴ ⌞ ≈ᴿ-⊑ ≈r (join-⊑₂ ℓ₁ pc) ⌟ᴸ w ≈μ --
         c = ⟨ _ , _ , （） ^ pc ⟩
         ≈c = ⟨ ⟨ ≈Σ , ≈μ′  ⟩ , （） ⟩
         pc⊔pc = sym (idem-⊔ pc)
---        ⊑′ = write-fs-extra (Write-FS {pc = pc} x₁ x₂ n∈μ ⊑₁ refl w) x₂
-        -- eq = sym (trans (cong (_⊔ pc) (sym-⊔ pc ℓ₁ )) (trans (trans (sym (assoc-⊔ _ _ _)) (cong (ℓ₁ ⊔_) (idem-⊔ pc))) (ub' ⊑′)))
         ⇓c = Write-FS x₁'
                (App Fun (UnId x₂' (sym (ub' ⊑pc))) pc⊔pc
                  (Taint refl
                    (Fst (Var here pc⊔pc) refl)
-                   (Snd (Var here refl) {!x₂'!}) {!refl-⊑!})) n∈μ′ ⊑₁ refl w'
-        -- (sym (ub' ℓ'⊑ℓ₁))
-
---        eq₁ : (pc ⊔ (pc ⊔ pc)  ⊔ ≡ pc ⊔ ℓ₁
-
--- Write-FS x₁' (Snd (UnId x₂' (sym (ub' ⊑pc))) refl) n∈μ′ ⊑₁ {!join-⊑₂ _ _!} w'
+                   (Snd (Var here refl) eq') refl-⊑)) n∈μ′ ⊑₁ (sym eq) w'
     in c ∧ ≈c ∧ ⇓c
+    where open ≡-Reasoning
+          eq' : pc ⊔ ℓ₁ ⊔ ℓ' ≡ ((pc ⊔ ℓ₁) ⊔ pc) ⊔ ℓ'
+          eq' = begin
+                  pc ⊔ ℓ₁ ⊔ ℓ' ≡⟨ assoc-⊔ pc ℓ₁ ℓ'  ⟩
+                  (pc ⊔ ℓ₁) ⊔ ℓ' ≡⟨ cong (_⊔ ℓ') (sym-⊔ pc ℓ₁)  ⟩
+                  (ℓ₁ ⊔ pc) ⊔ ℓ'  ≡⟨ cong (_⊔ ℓ') (sym (ub (join-⊑₂ pc ℓ₁)))  ⟩
+                  (pc ⊔ ℓ₁ ⊔ pc) ⊔ ℓ' ≡⟨ cong (_⊔ ℓ') (assoc-⊔ pc ℓ₁ pc) ⟩
+                  ((pc ⊔ ℓ₁) ⊔ pc) ⊔ ℓ' ∎
+
+          eq : pc ⊔ pc ⊔ ℓ₁ ⊔ ℓ' ≡ pc ⊔ ℓ₁
+          eq = begin
+                 pc ⊔ pc ⊔ ℓ₁ ⊔ ℓ' ≡⟨ assoc-⊔ pc pc (ℓ₁ ⊔ ℓ') ⟩
+                 (pc ⊔ pc) ⊔ ℓ₁ ⊔ ℓ' ≡⟨ cong (_⊔ _) (idem-⊔ pc) ⟩
+                 pc ⊔ ℓ₁ ⊔ ℓ' ≡⟨ cong (pc ⊔_) (ub' ℓ'⊑ℓ₁) ⟩
+                 pc ⊔ ℓ₁
+                 ∎
 
   cg2fg ≈θ ⌞ ≈ᴾ ⌟ᵀ (LabelOfRef-FS {pc = pc} x n∈μ refl) with cg2fgᴾ _ pc ≈θ x
   ... | Refˢ .n ∧ Refˢ n ∧ x'  with lookup-↓≈ᴴ n∈μ (heap-↓≈ᴴ ≈ᴾ)
