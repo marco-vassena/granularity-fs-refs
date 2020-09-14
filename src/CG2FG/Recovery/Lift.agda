@@ -65,7 +65,9 @@ lift-≈⟨ no ¬p ⟩ᴹ M₁≈M₂ = tt
 lift-≈ˢ : ∀ {Σ₁ Σ₂ β} → Σ₁ C.≈⟨ β ⟩ˢ Σ₂ → ⟦ Σ₁ ⟧ˢ F.≈⟨ β ⟩ˢ ⟦ Σ₂ ⟧ˢ
 lift-≈ˢ Σ₁≈Σ₂ = λ ℓ → lift-≈⟨ ℓ ⊑? A ⟩ᴹ (Σ₁≈Σ₂ ℓ)
 
-
+lift-≈ᴸ : ∀ {τ β} {lv₁ lv₂ : LValue τ} → lv₁ C.≈⟨ β ⟩ᴸ lv₂ → ⟦ lv₁ ⟧ᴸ F.≈⟨ β ⟩ⱽ ⟦ lv₂ ⟧ᴸ
+lift-≈ᴸ (Labeledᴸ ⊑₁ r≈) = Valueᴸ ⊑₁ (lift-≈ᴿ ⊑₁ r≈)
+lift-≈ᴸ (Labeledᴴ ⋤₁ ⋤₂) = Valueᴴ ⋤₁ ⋤₂
 
 lift-≈ᴴ : ∀ {μ₁ μ₂ β} → μ₁ C.≈⟨ β ⟩ᴴ μ₂ → ⟦ μ₁ ⟧ᴴ F.≈⟨ β ⟩ᴴ ⟦ μ₂ ⟧ᴴ
 lift-≈ᴴ {μ₁} {μ₂} {β} ≈ᴴ = record { dom-⊆ = lift-dom-⊆ ; rng-⊆ = lift-rng-⊆ ; lift-≅ = lift-lift-≅ }
@@ -75,15 +77,6 @@ lift-≈ᴴ {μ₁} {μ₂} {β} ≈ᴴ = record { dom-⊆ = lift-dom-⊆ ; rng-
         open import Generic.Value.HLowEq {CG.Ty} {CG.LValue} C._≈⟨_⟩ᴸ_ as CH
         open import Generic.Value.HLowEq {FG.Ty} {FG.Value} F._≈⟨_⟩ⱽ_ as FH
         open import Data.Product
---        open import Generic.Heap.Convert ? ? renaming (⟪_⟫∈ᴴ to ⟦_⟧∈ᴴ)
-
-        --------------------------------------------------------------------------------
---        open import
-        -- Needed?
-        -- open import CG2FG.Graph
-        -- open import CG2FG.Graph.Types
-        -- open import Generic.Heap.Graph Graph-⟦·⟧ᵗ {!Graph-⟦·⟧ⱽ!} -- Graph-⟪·⟫ᵗ′ ? -- Graph-⟪·⟫ᴸ
---        open import Generic.Memory.Graph {!!}  {!!} -- Graph-⟪·⟫ᴿ
 
         lift-dom-⊆ : β F.⊆ᴰ ⟦ μ₁ ⟧ᴴ
         lift-dom-⊆ ∈₁ with HC.∈-< (dom-⊆ ∈₁)
@@ -94,22 +87,10 @@ lift-≈ᴴ {μ₁} {μ₂} {β} ≈ᴴ = record { dom-⊆ = lift-dom-⊆ ; rng-
         ... | ≤₁ rewrite sym (∥ μ₂ ∥-≡ᴴ) = HF.<-∈ ≤₁
 
         lift-lift-≅ : F.Lift-≅ ⟦ μ₁ ⟧ᴴ ⟦ μ₂ ⟧ᴴ β
-        lift-lift-≅ ∈ᴮ ∈₁ ∈₂ with unlift-⟦ ∈₁ ⟧∈ᴴ (refl-↓≈ᴴ μ₁) | unlift-⟦ ∈₂ ⟧∈ᴴ (refl-↓≈ᴴ μ₂)
-        ... | τ₁ , (τ₁↓ , v₁) , ∈₁′ , v₁↓ | τ₂ , (τ₂↓ , v₂) , ∈₂′ , v₂↓ with lift-≅ ∈ᴮ ∈₁′ ∈₂′
-        ... | ≅v with CH.≅ⱽ-type-≡ ≅v
-        lift-lift-≅ ∈ᴮ ∈₁ ∈₂ | τ₁ , (τ₁↓ , v₁) , ∈₁′ , v₁↓ | .τ₁ , (τ₂↓ , v₂) , ∈₂′ , v₂↓ | CH.⌞ ≈v ⌟ | refl
-          with trans (≡-MkTy τ₁↓) (sym (≡-MkTy τ₂↓))
-        lift-lift-≅ ∈ᴮ ∈₁ ∈₂ | τ₁ , (τ₁↓ , v₁) , ∈₁′ , ⌞ r₁↓ ⌟ᴸ | .τ₁ , (τ₂↓ , v₂) , ∈₂′ , ⌞ r₂↓ ⌟ᴸ
-          | ⌞ Labeledᴸ ⊑A r≈ ⌟ | refl | refl = FH.⌞ {!unlift-≈ᴿ ⊑A (lift-≈ᴿ ⊑A r≈) r₁↓ r₂↓  !} ⌟
-        lift-lift-≅ ∈ᴮ ∈₁ ∈₂ | τ₁ , (τ₁↓ , v₁) , ∈₁′ , ⌞ r₁↓ ⌟ᴸ | .τ₁ , (τ₂↓ , v₂) , ∈₂′ , ⌞ r₂↓ ⌟ᴸ
-          | ⌞ Labeledᴴ ⋤₁ ⋤₂ ⌟ | refl | refl = FH.⌞ {!≈ᴴ!} ⌟
+        lift-lift-≅ ∈ᴮ ∈₁ ∈₂ with unlift-∈ᴴ′ ∈₁ (refl-↓≈ᴴ μ₁) | unlift-∈ᴴ′ ∈₂ (refl-↓≈ᴴ μ₂)
+        ... | τ₁ , (v₁ , refl) , ∈₁′ , refl | τ₂ , (v₂ , refl) , ∈₂′ , refl with lift-≅ ∈ᴮ ∈₁′ ∈₂′
+        ... | CH.⌞ ≈lv ⌟ = FH.⌞ lift-≈ᴸ ≈lv ⌟
 
--- with inj-⟦_⟧ᵗ {τ = τ₁} {τ' = τ₂} eq
---         ... | eq' = {!!}
-
- -- unlift-⟪ ∈₁ ⟫∈ᴴ | unlift-⟪ ∈₂ ⟫∈ᴴ
- --        ... | τ₁′ , v₁′ , ∈₁′ , refl , refl | τ₂′ , v₂′ , ∈₂′ , refl , refl
- --        ... | C.⌞ v≈ ⌟ = FH.⌞ lift-≈ⱽ v≈  ⌟
 
 lift-≈ᴾ : ∀ {P₁ P₂ β} → P₁ C.≈⟨ β ⟩ᴾ P₂ → ⟦ P₁ ⟧ᴾ F.≈⟨ β ⟩ᴾ ⟦ P₂ ⟧ᴾ
 lift-≈ᴾ C.⟨ ≈ˢ , ≈ᴴ ⟩ = F.⟨ lift-≈ˢ ≈ˢ , lift-≈ᴴ ≈ᴴ ⟩

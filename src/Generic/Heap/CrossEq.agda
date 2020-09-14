@@ -36,4 +36,5 @@ open import Generic.Container.CrossEq 𝑻 ⊤ 𝑽
            ; nil to nilᴴ
            ; cons to consᴴ
            ; unlift-⟦_⟧∈ to unlift-⟦_⟧∈ᴴ
+           ; unlift-∈′ to unlift-∈ᴴ′  -- TODO: FIX NAMES
            ) public
