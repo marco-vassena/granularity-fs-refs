@@ -47,17 +47,6 @@ unlift-⟪ T.Here ⟫∈′ (cons _ v _) = _ , _ , _ , S.Here , v
 unlift-⟪ T.There ∈₂ ⟫∈′ (cons _ _ G) with unlift-⟪ ∈₂ ⟫∈′ G
 ... | _ , _ , _ , ∈₁ , v = _ , _ , _ , S.There ∈₁ , v
 
--- This should be added as an assumption somewhere, but I am not sure where now.
--- Maybe graph?
--- private postulate inj-⟪_⟫ᵗ : ∀ {τ₁ τ₂} → ⟪ τ₁ ⟫ᵗ ≡ ⟪ τ₂ ⟫ᵗ → τ₁ ≡ τ₂
--- private postulate inj-⟪_⟫ⱽ : ∀ {τ} {v₁ v₂ : Value₁ τ}  → ⟪ v₁ ⟫ⱽ ≡ ⟪ v₂ ⟫ⱽ → v₁ ≡ v₂
-
--- Seems not needed
--- unlift-⟪_⟫∈ : ∀ {ℓ τ n} {v : Value₁ τ} {M : S.Container ℓ} → n T.↦ ⟪ v ⟫ⱽ ∈ ⟪ M ⟫ᶜ → n S.↦ v ∈ M
--- unlift-⟪_⟫∈ {_} {τ'} ∈₂ with unlift-⟪ ∈₂ ⟫∈′ (mkGraphᶜ _ )
--- ... | τ , p , v , ∈₁ , g with inj-⟪ ⌞ p ⌟ᵗ ⟫ᵗ
--- ... | refl rewrite inj-⟪ ⌞ g ⌟ ⟫ⱽ = ∈₁
-
 unlift-⟪_⟫∈ : ∀ {ℓ τ₂ n} {v₂ : Value₂ τ₂} {C₁ : S.Container ℓ} →
                 n T.↦ v₂ ∈ ⟪ C₁ ⟫ᶜ →
                ∃ (λ τ₁ → Σ (Value₁ τ₁)
@@ -65,5 +54,3 @@ unlift-⟪_⟫∈ : ∀ {ℓ τ₂ n} {v₂ : Value₂ τ₂} {C₁ : S.Containe
 unlift-⟪_⟫∈ ∈₂ with unlift-⟪ ∈₂ ⟫∈′ (mkGraphᶜ _ )
 ... | τ , p , v , ∈₁ , g with  ⌞ p ⌟ᵗ
 ... | refl = τ , v , ∈₁ , refl , ⌞ g ⌟
---                 Σ (τ₂ ≡ ⟪ τ₁ ⟫  (λ v₁ → v₂ ≡ ⟪ v₁ ⟫ⱽ × n S.↦ v₂ ∈ ⟪ C₁ ⟫ᶜ)
--- unlift-⟪_⟫∈′′ = {!!}
