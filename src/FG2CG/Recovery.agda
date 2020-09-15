@@ -23,6 +23,7 @@ open import Data.Product renaming (_,_ to _∧_)
 -- 3) Apply CG TINI to CG translated program and obtain CG L-equivalence.
 -- 4) Back-translate L-equivalence of final configurations from CG to FG (unlifting).
 
+-- TODO: use TINI shorthand ?
 tini-via-cg :  ∀ {τ Γ pc θ₁ θ₂ β} {c₁ c₂ : FG.IConf Γ τ} {c₁' c₂' : FG.FConf τ} →
                  {{valid₁ : FG.Valid-Inputs c₁ θ₁}} {{valid₂ : FG.Valid-Inputs c₂ θ₂}} →
                  c₁ ⇓⟨ θ₁ , pc ⟩ c₁' →

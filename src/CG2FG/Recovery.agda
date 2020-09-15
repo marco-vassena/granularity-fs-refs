@@ -25,6 +25,7 @@ open import CG2FG.Recovery.Unlift A public
 -- 3) Apply FG TINI to CG translated program and obtain FG L-equivalence.
 -- 4) Back-translate L-equivalence of final configurations from FG to CG (unlifting).
 
+-- TODO: use TINI shorthand?
 tini-via-fg : ∀ {τ Γ θ₁ θ₂ β} {c₁ c₂ : EConf Γ (LIO τ)} {c₁' c₂' : FConf τ} →
                 {{valid₁ : Valid-Inputs c₁ θ₁}} {{valid₂ : Valid-Inputs c₂ θ₂}} →
                  c₁ ⇓ᶠ⟨ θ₁ ⟩ c₁' →
