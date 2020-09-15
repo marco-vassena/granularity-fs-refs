@@ -64,22 +64,14 @@ lookup-↓≈ S.Here (cons τ≈ v≈ _) with ⌞ τ≈  ⌟
 lookup-↓≈ (S.There ∈₁) (cons _ _ C≈) with lookup-↓≈ ∈₁ C≈
 ... | _ ∧ ∈₂ ∧ v≈ = _ ∧ T.There ∈₂ ∧ v≈
 
-postulate unlift-⟦_⟧∈ :  ∀ {τ₂ n ℓ} {v₂ : Value₂ τ₂} {C₁ : S.Container ℓ} {C₂ : T.Container ℓ} →
-                 n T.↦ v₂ ∈ C₂ →
-                 C₂ ↓≈ C₁ →
-                 ∃ (λ τ₁ → Σ ((τ₂ ↓≈ᵗ τ₁) × (Value₁ τ₁))
-                   (λ { (↓τ ∧ v₁)  → (n S.↦ v₁ ∈ C₁) × ( v₂ ↓≈⟨ ℓ , ↓τ ⟩ⱽ v₁ ) } ))
--- unlift-⟦ ∈₁ ⟧∈ ↓≈ = {!!}
-
-
-unlift-∈′  : ∀ {n ℓ τ₂} {v₂ : Value₂ τ₂} {C' : S.Container ℓ} →
+unlift-⟦_⟧∈  : ∀ {n ℓ τ₂} {v₂ : Value₂ τ₂} {C' : S.Container ℓ} →
                n T.↦ v₂ ∈ ⟦ C' ⟧ᶜ →
                ⟦ C' ⟧ᶜ ↓≈ C' →
                ∃ (λ τ₁ → Σ ( (Value₁ τ₁) × (τ₂ ≡ ⟦ τ₁ ⟧ᵗ) )
                  (λ { (v₁ ∧ refl)  → (n S.↦ v₁ ∈ C') × v₂ ≡ ⟦ v₁ ⟧ⱽ ℓ } ))
-unlift-∈′ () nil
-unlift-∈′ T.Here (cons {v₁ = v₁} τ≈ x x₁) = _ ∧ (v₁ ∧ refl) ∧ S.Here ∧ refl
-unlift-∈′ (T.There ∈₁) (cons τ≈ x C≈) with unlift-∈′ ∈₁ C≈
+unlift-⟦_⟧∈ () nil
+unlift-⟦_⟧∈ T.Here (cons {v₁ = v₁} τ≈ x x₁) = _ ∧ (v₁ ∧ refl) ∧ S.Here ∧ refl
+unlift-⟦_⟧∈ (T.There ∈₁) (cons τ≈ x C≈) with unlift-⟦ ∈₁ ⟧∈ C≈
 ... | τ ∧ (v₁ ∧ refl) ∧ ∈₁′ ∧ refl =  τ ∧ (v₁ ∧ refl) ∧ (S.There ∈₁′) ∧ refl
 
 write-↓≈ : ∀ {n ℓ τ} {v₁ : Value₁ τ} {v₂ : Value₂ ⟦ τ ⟧ᵗ} {C₁ : T.Container ℓ} {C₂ C₂' : S.Container ℓ} →

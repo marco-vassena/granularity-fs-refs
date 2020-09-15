@@ -10,7 +10,7 @@ open import FG as FG
 open import CG.LowEq A as C
 open import FG.LowEq A as F
 open import CG2FG.Syntax
-open import CG2FG.CrossEq using (𝑽ᴸ ; ⌞_⌟ᴸ ; unlift-∈ᴹ′ ; refl-↓≈ᴹ)
+open import CG2FG.CrossEq using (𝑽ᴸ ; ⌞_⌟ᴸ ; unlift-⟦_⟧∈ᴹ ; refl-↓≈ᴹ)
 open import CG2FG.Graph
 open import Generic.Heap.CrossEq {{𝑳}} {CG.Ty} {FG.Ty} 𝑻 {CG.LValue} {FG.Value} 𝑽ᴸ
 open import CG2FG.Recovery.Injective
@@ -87,7 +87,7 @@ lift-≈ᴴ {μ₁} {μ₂} {β} ≈ᴴ = record { dom-⊆ = lift-dom-⊆ ; rng-
         ... | ≤₁ rewrite sym (∥ μ₂ ∥-≡ᴴ) = HF.<-∈ ≤₁
 
         lift-lift-≅ : F.Lift-≅ ⟦ μ₁ ⟧ᴴ ⟦ μ₂ ⟧ᴴ β
-        lift-lift-≅ ∈ᴮ ∈₁ ∈₂ with unlift-∈ᴴ′ ∈₁ (refl-↓≈ᴴ μ₁) | unlift-∈ᴴ′ ∈₂ (refl-↓≈ᴴ μ₂)
+        lift-lift-≅ ∈ᴮ ∈₁ ∈₂ with unlift-⟦ ∈₁ ⟧∈ᴴ (refl-↓≈ᴴ μ₁) | unlift-⟦ ∈₂ ⟧∈ᴴ (refl-↓≈ᴴ μ₂)
         ... | τ₁ , (v₁ , refl) , ∈₁′ , refl | τ₂ , (v₂ , refl) , ∈₂′ , refl with lift-≅ ∈ᴮ ∈₁′ ∈₂′
         ... | CH.⌞ ≈lv ⌟ = FH.⌞ lift-≈ᴸ ≈lv ⌟
 
@@ -130,14 +130,14 @@ import Generic.Memory CG.Ty CG.Value as MF
 import Generic.Memory FG.Ty FG.Value as MC
 
 lift-Validᴹ : ∀ {n ℓ} {M : CG.Memory ℓ} → CG.Validᴹ n M → FG.Validᴹ n ⟦ M ⟧ᴹ
-lift-Validᴹ {n} {ℓ} {M} isVᴹ ∈₁ with unlift-∈ᴹ′ ∈₁ (refl-↓≈ᴹ M)
+lift-Validᴹ {n} {ℓ} {M} isVᴹ ∈₁ with unlift-⟦ ∈₁ ⟧∈ᴹ (refl-↓≈ᴹ M)
 ... | τ , (r , refl) , ⟦∈₁⟧ , refl = lift-Validᴿ r (isVᴹ ⟦∈₁⟧)
 
 lift-Validˢ : ∀ {Σ n} → CG.Validˢ n Σ → FG.Validˢ n ⟦ Σ ⟧ˢ
 lift-Validˢ isVˢ ℓ = lift-Validᴹ (isVˢ ℓ)
 
 lift-Validᴴ : ∀ {μ} → CG.Validᴴ μ → FG.Validᴴ ⟦ μ ⟧ᴴ
-lift-Validᴴ {μ} isVᴴ ∈₁ with unlift-∈ᴴ′ ∈₁ (refl-↓≈ᴴ μ)
+lift-Validᴴ {μ} isVᴴ ∈₁ with unlift-⟦ ∈₁ ⟧∈ᴴ (refl-↓≈ᴴ μ)
 ... | τ , (lv , refl) , ⟦∈₁⟧ , refl
   rewrite sym (∥ μ ∥-≡ᴴ) = lift-Validⱽ (proj₁ lv) (isVᴴ ⟦∈₁⟧)
 
