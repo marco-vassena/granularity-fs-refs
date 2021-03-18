@@ -191,9 +191,7 @@ mutual
   c₁ ⇓⟨ θ , pc ⟩ c₂ = Step θ pc c₁ c₂
 
 --------------------------------------------------------------------------------
-open Value
 open import Data.Product using ( proj₁ ; proj₂ )
-open import Relation.Binary.PropositionalEquality
 
 -- The result of the value is at least as senstive as the program
 -- counter.

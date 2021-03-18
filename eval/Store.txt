@@ -1,0 +1,4 @@
+Generic/Store.agda
+Generic/Store/Base.agda
+Generic/Store/LowEq.agda
+Generic/Store/Valid.agda
