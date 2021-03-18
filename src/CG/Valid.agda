@@ -2,7 +2,7 @@ open import Lattice
 
 module CG.Valid {{𝑳 : Lattice}} where
 
-open import CG.Types hiding (_×_) renaming ( _⊆_ to  _⊆ᶜ_) --  (Ty ; _⊆_ ; I ; S)
+open import CG.Types hiding (_×_) renaming ( _⊆_ to  _⊆ᶜ_)
 open import CG.Syntax
 open import Data.Product as P renaming (_,_ to _∧_)
 open import Data.Nat renaming (_⊔_ to _⊔ᴺ_) hiding (_^_)
@@ -13,7 +13,9 @@ open import Generic.Heap.Lemmas Ty LValue
 
 mutual
 
-   -- TODO: move to CG.Valid
+  -- Compute the domain of values and environment. This is the minimum
+  -- size that the heap must have for all the heap addresses in these
+  -- terms to be valid.
   ∥_∥ⱽ : ∀ {τ} → Value τ → ℕ
   ∥ （） ∥ⱽ = 0
   ∥ ⟨ e , θ ⟩ᶜ ∥ⱽ = ∥ θ ∥ᴱ
@@ -22,7 +24,7 @@ mutual
   ∥ inr v ∥ⱽ = ∥ v ∥ⱽ
   ∥ ⟨ v₁ , v₂ ⟩ ∥ⱽ = ∥ v₁ ∥ⱽ ⊔ᴺ ∥ v₂ ∥ⱽ
   ∥ Labeled ℓ v ∥ⱽ = ∥ v ∥ⱽ
-  ∥ Refᴵ ℓ n ∥ⱽ = 0 -- 0 because we only care about the domain of the refs in the heap (ℕ.suc n)a
+  ∥ Refᴵ ℓ n ∥ⱽ = 0 -- Memory references do not contribute to the minimum size of the heap.
   ∥ Refˢ n ∥ⱽ = suc n
   ∥ ⌞ ℓ ⌟ ∥ⱽ = 0
 
@@ -47,14 +49,8 @@ mutual
   Validⱽ n (inl v) = Validⱽ n v
   Validⱽ n (inr v) = Validⱽ n v
   Validⱽ n ⟨ v₁ , v₂ ⟩ = Validⱽ n v₁ × Validⱽ n v₂
-  -- TODO: there could be some (equivalent) alternatives.  E.g.,
-  -- define a special (unlabelde) cell type for flow-insensitive
-  -- references and ask that it has the right type.
-  -- TODO: if we have a separate store do we need validity at all?
-  -- Maybe just for the store?
-  Validⱽ n (Refᴵ {τ = τ} ℓ m) = ⊤ -- This is ok because it is the store Σ
-  -- TODO: should I have any requirement on the label of the cell for flow-sensitve refs?
-  Validⱽ {τ} n (Refˢ m) = m < n -- This does not seem to be needed. Answer: It will be needed when we prove the invariant!
+  Validⱽ n (Refᴵ {τ = τ} ℓ m) = ⊤ -- Memory references need not to be valid.
+  Validⱽ {τ} n (Refˢ m) = m < n -- Heap address m is valid for a heap of size n only if m < n
   Validⱽ n ⌞ ℓ ⌟ = ⊤
 
 Validᴸ : ∀ {τ} → ℕ → LValue τ → Set
@@ -189,7 +185,7 @@ mutual
                c ⇓⟨ θ ⟩ c' →
                let ⟨ Σ' , μ' , _  , v ⟩ = c' in
                Valid-Inputs c θ →
-               Valid-Outputs c' -- × Validᴱ ∥ μ' ∥ᴴ θ
+               Valid-Outputs c'
   validᴼ-⇓ (Return x) (isVᴾ ∧ isVᴱ) = (isVᴾ ∧ validⱽ-⇓ᴾ x isVᴱ) -- ∧ isVᴱ
   validᴼ-⇓ (Bind x₁ x₂) isV =
     let (isVᴾ ∧ isVⱽ ) = validᴼ-⇓ᶠ x₁ isV

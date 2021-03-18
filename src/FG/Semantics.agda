@@ -191,30 +191,6 @@ mutual
   c₁ ⇓⟨ θ , pc ⟩ c₂ = Step θ pc c₁ c₂
 
 --------------------------------------------------------------------------------
--- Shorthands
-
-Wken′ : ∀ {Γ Γ' Σ Σ' μ μ' pc τ v θ} {e : Expr Γ τ} (θ' : Env Γ')
-        → ⟨ Σ , μ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , μ' , v ⟩
-        → ⟨ Σ , μ , wken e (drop-⊆₂ Γ Γ')  ⟩ ⇓⟨ θ' ++ᴱ θ , pc ⟩ ⟨ Σ' , μ' , v ⟩
-Wken′  {Γ' = Γ'} θ'' x = Wken (drop-⊆₂ _ Γ') x
-
--- Execution under weakening
-
-↑¹-⇓  :  ∀ {Γ Σ Σ' μ μ' pc τ τ' v θ} {e : Expr Γ τ} {v₁ : Value τ'}
-        → ⟨ Σ , μ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , μ' , v ⟩
-        → ⟨ Σ , μ , e ↑¹ ⟩ ⇓⟨ v₁ ∷  θ , pc ⟩ ⟨ Σ' , μ' , v ⟩
-↑¹-⇓ {v₁ = v₁}  = Wken′ (v₁ ∷ [])
-
-↑²-⇓  :  ∀ {Γ Σ Σ' μ μ' pc τ τ₁ τ₂ v θ} {e : Expr Γ τ} {v₁ : Value τ₁} {v₂ : Value τ₂}
-        → ⟨ Σ , μ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , μ' , v ⟩
-        → ⟨ Σ , μ , e ↑² ⟩ ⇓⟨ v₁ ∷ v₂ ∷ θ , pc ⟩ ⟨ Σ' , μ' , v ⟩
-↑²-⇓ {v₁ = v₁} {v₂ = v₂} = Wken′ (v₁ ∷ v₂ ∷ [])
-
-⇓-with : ∀ {τ Γ c₂ c₂' θ pc} {c₁ : IConf Γ τ} → c₁ ⇓⟨ θ , pc ⟩ c₂ → c₂ ≡ c₂' → c₁ ⇓⟨ θ , pc ⟩ c₂'
-⇓-with x refl = x
-
---------------------------------------------------------------------------------
-
 open Value
 open import Data.Product using ( proj₁ ; proj₂ )
 open import Relation.Binary.PropositionalEquality

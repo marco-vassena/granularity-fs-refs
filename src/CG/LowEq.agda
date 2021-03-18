@@ -85,16 +85,9 @@ Refᴸ′ ℓ⊑A refl = Ref-Iᴸ ℓ⊑A _
 
 --------------------------------------------------------------------------------
 
--- Heap labeled value
+-- Heap labeled values
 _≈⟨_⟩ᴸ_ : ∀ {τ} → LValue τ → Bij → LValue τ → Set
 ⟨ v₁ , ℓ₁ ⟩ ≈⟨ β ⟩ᴸ ⟨ v₂ , ℓ₂ ⟩ = Labeled ℓ₁ v₁ ≈⟨ β ⟩ⱽ Labeled ℓ₂ v₂
-
--- label-of-≈ⱽ : ∀ {τ β} {v₁ v₂ : LValue τ} → v₁ ≈⟨ β ⟩ᴸ v₂ →
---                 let ⟨ r₁ , ℓ₁ ⟩ = v₁
---                     ⟨ r₂ , ℓ₂ ⟩ = v₂ in (⌞ ℓ₁ ⌟ ^ ℓ₁) ≈⟨ β ⟩ⱽ (⌞ ℓ₂ ⌟ ^ ℓ₂)
--- label-of-≈ⱽ (Labeledᴸ x x₁) = Labeledᴸ x (Lbl _)
--- label-of-≈ⱽ (Labeledᴴ x x₁) = Labeledᴴ x x₁
-
 
 --------------------------------------------------------------------------------
 -- Lemmas on L-equivalent environments.
@@ -114,17 +107,14 @@ slice-≈ᴱ [] base = []
 slice-≈ᴱ (v₁≈v₂ ∷ θ₁≈θ₂) (cons p) = v₁≈v₂ ∷ slice-≈ᴱ θ₁≈θ₂ p
 slice-≈ᴱ (v₁≈v₂ ∷ θ₁≈θ₂) (drop p) = slice-≈ᴱ θ₁≈θ₂ p
 
-
 --------------------------------------------------------------------------------
 
 -- Derive low-equivalence for stores and memories.
--- open import Generic.Store.LowEq {Ty} {Value} _≈⟨_⟩ⱽ_  A as S public
--- open import Generic.Heap.LowEq {Ty} {LValue} _≈⟨_⟩ᴸ_  A as H public
 open import Generic.PState.LowEq {Ty} {Ty} {Value} {LValue} _≈⟨_⟩ⱽ_ _≈⟨_⟩ᴸ_ A public
 
 open Conf
 
--- Generic
+-- Generic relation between configurations
 record _≈⟨_⟩ᴬ_ {F : Ctx → Ty → Set} {Γ} {τ} (c₁ : Conf F Γ τ ) (β : Bij) (c₂ : Conf F Γ τ) : Set where
   constructor ⟨_,_,_⟩
   field
@@ -183,12 +173,16 @@ read-≈ᶜ pc⊑A ≈ᴾ (Labeledᴸ ℓ⊑A ≈ⱽ) = pcᴸ ≈ᴾ (join-⊑' 
 read-≈ᶜ pc⊑A ≈ᴾ (Labeledᴴ ⋤₁ ⋤₂) = pcᴴ ≈ᴾ (join-⋤₂ ⋤₁) (join-⋤₂ ⋤₂)
 
 --------------------------------------------------------------------------------
--- Properties: L-equivalence is an equivalence relation.
+-- Properties: L-equivalence for values and environment is an
+-- equivalence relation, where reflexivity is defined over the domain
+-- of terms.  Notice that this is not the case for heaps because the
+-- domain and the range of the bijection must be included in the
+-- address space of the heap itself, therefore reflexivity holds only
+-- for valid heaps free of dangling references.
 
 private module V = IProps Ty Value
 private module L = IProps Ty LValue
 private module E = IProps Ctx Env
-
 
 mutual
 
@@ -309,42 +303,3 @@ open import Generic.ValidEquivalence Ty
 𝑳′ = record { ∥_∥ = ∥_∥ᴸ ; isValid = isValidᴸ ; isEquiv = isEquivᴸ }
 
 open ≈ᴾ-Props 𝑽 𝑳′ public
-
--- ≈ⱽ-isEquivalence : ∀ {τ} → IsEquivalence (_≈ⱽ_ {τ})
--- ≈ⱽ-isEquivalence = record { refl = refl-≈ⱽ ; sym = sym-≈ⱽ ; trans = trans-≈ⱽ }
-
--- ≈ᴱ-isEquivalence : ∀ {Γ} → IsEquivalence (_≈ᴱ_ {Γ})
--- ≈ᴱ-isEquivalence = record { refl = refl-≈ᴱ ; sym = sym-≈ᴱ ; trans = trans-≈ᴱ }
-
--- open S.Props ≈ⱽ-isEquivalence public
-
--- ≈ᴬ-isEquivalence : ∀ {A : Set} → IsEquivalence (_≈ᴬ_ {A})
--- ≈ᴬ-isEquivalence =
---   record { refl = ⟨ refl-≈ˢ , refl , refl ⟩
---          ; sym = λ { ⟨ Σ₁≈Σ₂ , pc₁≡pc₂ , e₁≡e₂ ⟩ → ⟨ sym-≈ˢ Σ₁≈Σ₂ , sym pc₁≡pc₂ , sym e₁≡e₂ ⟩ }
---          ; trans = λ {⟨ Σ₁≈Σ₂ , pc₁≡pc₂ , e₁≡e₂ ⟩ ⟨ Σ₂≈Σ₃ , pc₂≡pc₃ , e₂≡e₃ ⟩ →
---                      ⟨ trans-≈ˢ Σ₁≈Σ₂ Σ₂≈Σ₃ , trans pc₁≡pc₂ pc₂≡pc₃ , trans e₁≡e₂ e₂≡e₃ ⟩ }
---          }
-
--- refl-≈ᶜ : ∀ {τ} {c : FConf τ} → c ≈ᶜ c
--- refl-≈ᶜ {c = ⟨ Σ , pc , v ⟩} with pc ⊑? A
--- ... | yes pc⊑A = pcᴸ refl-≈ˢ  pc⊑A refl-≈ⱽ
--- ... | no pc⋤A = pcᴴ refl-≈ˢ pc⋤A pc⋤A
-
--- sym-≈ᶜ : ∀ {τ} {c₁ c₂ : FConf τ} → c₁ ≈ᶜ c₂ → c₂ ≈ᶜ c₁
--- sym-≈ᶜ (pcᴸ Σ≈ pc⊑A v≈) = pcᴸ (sym-≈ˢ Σ≈) pc⊑A (sym-≈ⱽ v≈)
--- sym-≈ᶜ (pcᴴ Σ≈ pc₁⋤A pc₂⋤A) = pcᴴ (sym-≈ˢ Σ≈) pc₂⋤A pc₁⋤A
-
--- trans-≈ᶜ : ∀ {τ} {c₁ c₂ c₃ : FConf τ} → c₁ ≈ᶜ c₂ → c₂ ≈ᶜ c₃ → c₁ ≈ᶜ c₃
--- trans-≈ᶜ (pcᴸ Σ≈ pc⊑A v≈) (pcᴸ Σ≈₁ pc⊑A₁ v≈₁) = pcᴸ (trans-≈ˢ Σ≈ Σ≈₁) pc⊑A (trans-≈ⱽ v≈ v≈₁)
--- trans-≈ᶜ (pcᴸ Σ≈ pc⊑A v≈) (pcᴴ Σ≈₁ pc₁⋤A pc₂⋤A) = ⊥-elim (pc₁⋤A pc⊑A)
--- trans-≈ᶜ (pcᴴ Σ≈ pc₁⋤A pc₂⋤A) (pcᴸ Σ≈₁ pc⊑A v≈) = ⊥-elim (pc₂⋤A pc⊑A)
--- trans-≈ᶜ (pcᴴ Σ≈ pc₁⋤A pc₂⋤A) (pcᴴ Σ≈₁ pc₁⋤A₁ pc₂⋤A₁) = pcᴴ (trans-≈ˢ Σ≈ Σ≈₁) pc₁⋤A pc₂⋤A₁
-
--- -- Projects low-equivalence for stores
--- ≈ᶜ-≈ˢ : ∀ {τ} {c₁ c₂ : FConf τ} → c₁ ≈ᶜ c₂ → store c₁ ≈ˢ store c₂
--- ≈ᶜ-≈ˢ (pcᴸ x x₁ x₂) = x
--- ≈ᶜ-≈ˢ (pcᴴ x x₁ x₂) = x
-
--- ≈ᶜ-isEquivalence : ∀ {τ} → IsEquivalence (_≈ᶜ_ {τ})
--- ≈ᶜ-isEquivalence = record { refl = refl-≈ᶜ ; sym = sym-≈ᶜ ; trans = trans-≈ᶜ }

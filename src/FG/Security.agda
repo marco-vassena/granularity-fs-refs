@@ -9,22 +9,23 @@ open import Lattice hiding (_≟_)
 
 module FG.Security {{𝑳 : Lattice}} (A : Label) where
 
-open import FG.Types hiding (_×_) renaming (_⊆_ to _⊆ᶜ_) hiding (refl-⊆)
-open import FG.Syntax hiding (_∘_ )
-open import FG.Semantics
-open import FG.LowEq A public
 open import Data.Empty
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
-open import Generic.Bijection as B hiding (_∈_)
 open import Data.Product renaming (_,_ to _∧_) hiding (,_)
-open import FG.Valid
 open import Data.Nat hiding (_^_)
 
--- TODO: rename validᴱ-⊆ᴴ
+-- FG Definitions
+open import FG.Types hiding (_×_) renaming (_⊆_ to _⊆ᶜ_) hiding (refl-⊆)
+open import FG.Syntax hiding (_∘_ )
+open import FG.Semantics
+open import Generic.Bijection as B hiding (_∈_)
+open import FG.LowEq A public
 
+-- Valid assumptions
+open import FG.Valid
 open import Generic.Valid
-open IsValid isValidᴱ -- needed?
+open IsValid isValidᴱ
 open Validᴾ
 
 step-≈ᴾ : ∀ {τ Γ θ pc} {c : IConf Γ τ} {c' : FConf τ} →
@@ -424,7 +425,7 @@ mutual
        where M≈ = getᴸ Σ≈ ℓ'⊑A
              v≈ = Valueᴸ (join-⊑' ℓ'⊑A ℓ⊑A) (read-≈ᴹ M≈ n∈M₁ n∈M₂)
 
-  -- Read secret reference
+  -- Read secret reference.
   ... | β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , Valueᴸ ℓ⊑A (Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A) ⟩ = β' ∧ β⊆β' ∧ ⟨ ≈ᴾ′ , v≈ ⟩
     where v≈ = Valueᴴ (join-⋤₁ ℓ₁⋤A) (join-⋤₁ ℓ₂⋤A)
 
@@ -545,10 +546,6 @@ mutual
              c₂ ⇓⟨ θ₂ , pc₂ ⟩ c₂' →
              pc₁ ⋤ A → pc₂ ⋤ A →
              ∃ (λ β' → β ⊆ β' × c₁' ≈⟨ β' ⟩ᶜ c₂')
-  -- Question: Do we actually need to prove β ⊆ β' ? Not clear from Banjaree proof if this is ever used.
-  -- The only reason I can think of is that the theorem might be trivial if we choose β' = ∅
-  -- because we do not need to take care of the references. Check this with Deepak.
-  -- Answer: We need that to weaken the bijection in L-equiv relations
   tiniᴴ {β = β} {{isV₁ᴾ ∧ isV₁ᴱ}} {{isV₂ᴾ  ∧ isV₂ᴱ}}
          ≈ᴾ x₁ x₂ pc₁⋤A pc₂⋤A =
     let ≈₁ᴾ = step-≈ᴾ {{ isV₁ᴾ }} {{ isV₁ᴱ }} x₁ pc₁⋤A

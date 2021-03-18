@@ -157,19 +157,6 @@ if_then_else_ : ∀ {Γ τ} → Expr Γ Bool → Expr Γ τ → Expr Γ τ → E
 if_then_else_ c t e = case c (wken t (drop refl-⊆)) (wken e (drop refl-⊆))
 
 --------------------------------------------------------------------------------
--- TODO: maybe not needed
-
--- Implementation of the HasLabel generic interface for Labeled values
-
-open import Generic.LValue
-
-𝑯 : HasLabel Ty Value
-𝑯 = record { F = Labeled ;
-             value = λ { (Labeled ℓ v) → v } ;
-             label = λ { (Labeled ℓ v) → ℓ } }
-  where open import Function
-
---------------------------------------------------------------------------------
 -- Configurations
 
 -- Pair of value and label (isomorphic to labeled value)
@@ -177,9 +164,7 @@ LValue : Ty → Set
 LValue τ = Value τ P.× Label
   where import Data.Product as P
 
--- Generic store.
--- open import Generic.Store Ty Value public
--- open import Generic.Heap Ty LValue public
+-- Generic store and flow-sensitive heap
 open import Generic.PState Ty Ty Value LValue public
 
 -- Generic configuration container.
@@ -202,17 +187,6 @@ TConf Γ τ = Conf Thunk Γ τ
 FConf : Ty → Set
 FConf τ = Conf (const Value) [] τ
   where open import Function
-
--- Projections
-
-expr : ∀ {Γ τ} → EConf Γ τ → Expr Γ τ
-expr = Conf.term
-
-thunk :  ∀ {Γ τ} → TConf Γ τ → Thunk Γ τ
-thunk = Conf.term
-
-val : ∀ {τ} → FConf τ → Value τ
-val = Conf.term
 
 --------------------------------------------------------------------------------
 -- Weakening once and twice.

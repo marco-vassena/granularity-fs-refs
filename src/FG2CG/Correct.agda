@@ -5,10 +5,67 @@ open import Lattice
 
 module FG2CG.Correct {{𝑳 : Lattice}} where
 
+open import Relation.Binary.PropositionalEquality
 open import CG as CG hiding (step-⊑)
+
+--------------------------------------------------------------------------------
+-- Shorthands and helper lemmas about CG semantics
+
+-- Force a thunk
+⌞_⌟ᶠ : ∀ {τ Γ Σ Σ' μ μ' pc pc' v} {t : Thunk Γ (LIO τ)} {θ : Env Γ}
+        → ⟨ Σ , μ , pc , t ⟩ ⇓⟨ θ ⟩ ⟨ Σ' , μ' , pc' , v ⟩
+        → ⟨ Σ , μ , pc , ⌞ t ⌟ᵀ ⟩ ⇓ᶠ⟨ θ ⟩ ⟨ Σ' , μ' , pc' , v ⟩
+⌞_⌟ᶠ = Force SThunk
+
+-- Force bind.
+Bindᶠ : ∀ {Γ τ₁ τ₂ Σ Σ' Σ'' μ μ' μ'' pc pc' pc'' v v₁ θ} {e₁ : Expr Γ (LIO τ₁)} {e₂ : Expr _ (LIO τ₂)}
+           → ⟨ Σ , μ , pc , e₁ ⟩ ⇓ᶠ⟨ θ ⟩ ⟨ Σ' , μ' , pc' , v₁ ⟩
+           → ⟨ Σ' , μ' , pc' , e₂ ⟩ ⇓ᶠ⟨ v₁ ∷ θ ⟩ ⟨ Σ'' , μ'' , pc'' , v ⟩
+           → ⟨ Σ , μ , pc , ⌞ bind e₁ e₂ ⌟ᵀ ⟩ ⇓ᶠ⟨ θ ⟩ ⟨ Σ'' , μ'' , pc'' , v ⟩
+Bindᶠ x₁ x₂ = ⌞ Bind x₁ x₂ ⌟ᶠ
+
+-- To labeled in forcing semantics
+ToLabeledᶠ  : ∀ {Γ Σ Σ' μ μ' pc pc' τ v θ} {t : Thunk Γ (LIO τ)}
+              → ⟨ Σ , μ , pc , ⌞ t ⌟ᵀ ⟩ ⇓ᶠ⟨ θ ⟩ ⟨ Σ' , μ' , pc' , v ⟩
+              → ⟨ Σ , μ , pc , ⌞ toLabeled ⌞ t ⌟ᵀ ⌟ᵀ ⟩ ⇓ᶠ⟨ θ ⟩ ⟨ Σ' , μ' , pc , Labeled pc' v ⟩
+ToLabeledᶠ x = ⌞ ToLabeled x ⌟ᶠ
+
+-- Force Wken
+Wkenᶠ : ∀ {Γ Γ' Σ Σ' μ μ' pc pc' τ v θ} {e : Expr Γ (LIO τ)} (θ' : Env Γ')
+        → ⟨ Σ , μ , pc , e ⟩ ⇓ᶠ⟨ θ ⟩ ⟨ Σ' , μ' , pc' , v ⟩
+        → ⟨ Σ , μ , pc , wken e (drop-⊆₂ Γ Γ')  ⟩ ⇓ᶠ⟨ θ' ++ᴱ θ ⟩ ⟨ Σ' , μ' , pc' , v ⟩
+Wkenᶠ {Γ' = Γ'} θ'' (Force x x₁) = Force (Wken (drop-⊆₂ _ Γ') x) x₁
+
+-- Pure execution under weakening
+⇓¹ : ∀ {Γ τ τ₁ v θ} {v₁ : Value τ₁} {e : Expr Γ τ}
+     → e ⇓ᴾ⟨ θ ⟩ v
+     → e ↑¹ ⇓ᴾ⟨ v₁ ∷ θ ⟩ v
+⇓¹ x = Wken (drop refl-⊆) x
+
+If₁ : ∀ {τ Γ θ v} {e₁ : Expr Γ Bool} {e₂ e₃ : Expr Γ τ} →
+        e₁ ⇓ᴾ⟨ θ ⟩ (inl （）) →
+        e₂ ⇓ᴾ⟨ θ ⟩ v →
+        if e₁ then e₂ else e₃ ⇓ᴾ⟨ θ ⟩ v
+If₁ x₁ x₂ = Case₁ x₁ (⇓¹ x₂)
+
+If₂ : ∀ {τ Γ θ v} {e₁ : Expr Γ Bool} {e₂ e₃ : Expr Γ τ} →
+        e₁ ⇓ᴾ⟨ θ ⟩ (inr （）) →
+        e₃ ⇓ᴾ⟨ θ ⟩ v →
+        if e₁ then e₂ else e₃ ⇓ᴾ⟨ θ ⟩ v
+If₂ x₁ x₂ = Case₂ x₁ (⇓¹ x₂)
+
+↑¹-⇓ᶠ  :  ∀ {Γ Σ Σ' μ μ' pc pc' τ τ' v θ} {e : Expr Γ (LIO τ)} {v₁ : Value τ'}
+        → ⟨ Σ , μ , pc , e ⟩ ⇓ᶠ⟨ θ ⟩ ⟨ Σ' , μ' , pc' , v ⟩
+        → ⟨ Σ , μ , pc , e ↑¹ ⟩ ⇓ᶠ⟨ v₁ ∷  θ ⟩ ⟨ Σ' , μ' , pc' , v ⟩
+↑¹-⇓ᶠ {v₁ = v₁}  = Wkenᶠ (v₁ ∷ [])
+
+⇓-with : ∀ {τ Γ Σ μ pc c₁ c₂ θ} {t : Thunk Γ (LIO τ)} →
+            ⟨ Σ , μ , pc , t ⟩ ⇓⟨ θ ⟩ c₁ →
+            c₁ ≡ c₂ → ⟨ Σ , μ , pc , t ⟩ ⇓⟨ θ ⟩ c₂
+⇓-with x refl = x
+
 open import FG as FG hiding (_↑¹ ; _↑² ; here ; there ; drop ; cons ; refl-⊆ )
 open import FG2CG.Syntax
-open import Relation.Binary.PropositionalEquality
 
 --------------------------------------------------------------------------------
 -- Helping lemmas for contexts.
@@ -168,7 +225,7 @@ mutual
   fg2cg {pc = pc} (New {ℓ = ℓ} {Σ' = Σ'} {μ' = μ'} {r = r} x) =
     ToLabeled
       (Bindᶠ (fg2cgᶠ x)
-      ⌞ ⇓-with′ (New (Var here) (FG.step-⊑ x)) eq ⌟ᶠ)
+      ⌞ ⇓-with (New (Var here) (FG.step-⊑ x)) eq ⌟ᶠ)
 
    where memory-≡ = ∷ᴿ-≡ r (Σ' ℓ)
          value-≡ = cong₂ Refᴵ refl (∥ Σ' ∥-≡ ℓ)
@@ -186,7 +243,7 @@ mutual
         (Bindᶠ (fg2cgᶠ x)
         (Bindᶠ (↑¹-⇓ᶠ (fg2cgᶠ x₁))
         (Bindᶠ ⌞ Unlabel (Var (there here)) refl ⌟ᶠ
-        ⌞ ⇓-with′ (Write (Var here) (Var (there here)) ⊑₁ ℓ₂⊑ℓ (write-≡ᴹ x₂)) eq ⌟ᶠ)))))
+        ⌞ ⇓-with (Write (Var here) (Var (there here)) ⊑₁ ℓ₂⊑ℓ (write-≡ᴹ x₂)) eq ⌟ᶠ)))))
     (ToLabeledᶠ ⌞ Return Unit ⌟ᶠ)
 
     where eq = cong (λ Σ → ⟨ Σ , ⟪ μ₃ ⟫ᴴ , pc ⊔ ℓ₁ , （） ⟩) (CG.store-≡ (update-≡ˢ refl))
@@ -210,7 +267,7 @@ mutual
   fg2cg {pc = pc} (New-FS {Σ' = Σ'} {μ' = μ'} {v = v} x) =
     ToLabeled
       (Bindᶠ (fg2cgᶠ x)
-      ⌞ ⇓-with′ (New-FS (Var here) (step-⊑ x)) eq ⌟ᶠ)
+      ⌞ ⇓-with (New-FS (Var here) (step-⊑ x)) eq ⌟ᶠ)
    where value-≡ = cong Refˢ ∥ μ' ∥-≡ᴴ
          eq = cong₂ (λ μ v → ⟨ ⟪ Σ' ⟫ˢ , μ , pc , v ⟩) (snocᴴ-≡ v μ') value-≡
 
@@ -226,7 +283,7 @@ mutual
         (Bindᶠ (fg2cgᶠ x)
         (Bindᶠ (↑¹-⇓ᶠ (fg2cgᶠ x₁))
         (Bindᶠ ⌞ Unlabel (Var (there here)) refl ⌟ᶠ
-        ⌞ ⇓-with′ (Write-FS (Var here) (Var (there here)) ⟪ ∈₁ ⟫∈ᴴ ⊑₂ eq' (write-≡ᴴ w)) eq ⌟ᶠ)))))
+        ⌞ ⇓-with (Write-FS (Var here) (Var (there here)) ⟪ ∈₁ ⟫∈ᴴ ⊑₂ eq' (write-≡ᴴ w)) eq ⌟ᶠ)))))
     (ToLabeledᶠ ⌞ Return Unit ⌟ᶠ)
     where eq = cong (λ μ → ⟨ ⟪ Σ₃ ⟫ˢ , μ , pc ⊔ ℓ , （） ⟩) refl
           ⊑₂ = trans-⊑ (join-⊑' (step-⊑ x) refl-⊑) ⊑₁

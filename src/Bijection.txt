@@ -1,0 +1,3 @@
+Generic/Bijection.agda
+Generic/Partial/Bijection.agda
+Generic/Partial/Function.agda

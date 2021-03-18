@@ -20,5 +20,5 @@ infixr 3 _+_
 Bool : Ty
 Bool = unit + unit
 
--- Context (list of types)
+-- Typing context (list of types)
 open import Generic.Context Ty public

@@ -9,15 +9,23 @@ module CG2FG.Correct {{𝑳 : Lattice}} where
 -- any input values that are semantically equivalent to the source
 -- inputs.
 
-open import CG as CG hiding (_↑¹ ; _×_ ; here)
+open import Relation.Binary.PropositionalEquality
 open import FG as FG hiding (_×_)
+
+-- Execution under weakening
+↑¹-⇓  :  ∀ {Γ Σ Σ' μ μ' pc τ τ' v θ} {e : Expr Γ τ} {v₁ : Value τ'}
+        → ⟨ Σ , μ , e ⟩ ⇓⟨ θ , pc ⟩ ⟨ Σ' , μ' , v ⟩
+        → ⟨ Σ , μ , e ↑¹ ⟩ ⇓⟨ v₁ ∷  θ , pc ⟩ ⟨ Σ' , μ' , v ⟩
+↑¹-⇓ {v₁ = v₁} x = Wken (drop refl-⊆) x
+
+open import CG as CG hiding (_↑¹ ; _×_ ; here)
+
 open import CG2FG.Syntax
 open import CG2FG.CrossEq
 open import CG2FG.Graph
 open import Generic.Context.Graph Graph-⟦·⟧ᵗ
 
 open import Function using (flip)
-open import Relation.Binary.PropositionalEquality
 open import Data.Product renaming (_,_ to _∧_)
 
 open SecurityLattice 𝑳 hiding (_∧_) renaming (_∨_ to _⊔ᴸ_)

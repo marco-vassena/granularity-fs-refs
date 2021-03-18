@@ -25,64 +25,15 @@ open import Generic.Bijection renaming (_∘_ to _∘ᴮ_)
 open import Data.Product as P renaming (_,_ to ⟨_,_⟩)
 open import FG.Valid
 
--- TODO: remove
--- mutual
-  -- Moved to Valid
-  -- "Size" of a value
-  -- ∣_∣ⱽ : ∀ {τ} → Value τ → ℕ
-  -- ∣ r ^ ℓ ∣ⱽ = ∣ r ∣ᴿ
-
-  -- ∣_∣ᴿ : ∀ {τ} → Raw τ → ℕ
-  -- ∣ （） ∣ᴿ = 0
-  -- ∣ ⟨ x , θ ⟩ᶜ ∣ᴿ = ∣ θ ∣ᴱ
-  -- ∣ inl x ∣ᴿ = ∣ x ∣ⱽ
-  -- ∣ inr x ∣ᴿ = ∣ x ∣ⱽ
-  -- ∣ ⟨ x , y ⟩ ∣ᴿ = ∣ x ∣ⱽ ⊔ᴺ ∣ y ∣ⱽ
-  -- ∣ Refᴵ x n ∣ᴿ = ℕ.suc n
-  -- ∣ Refˢ n ∣ᴿ = ℕ.suc n
-  -- ∣ ⌞ x ⌟ ∣ᴿ = 0
-  -- ∣ Id x ∣ᴿ = ∣ x ∣ⱽ
-
-  -- ∣_∣ᴱ : ∀ {Γ} → Env Γ → ℕ
-  -- ∣ [] ∣ᴱ = 0
-  -- ∣ v ∷ θ ∣ᴱ = ∣ v ∣ⱽ ⊔ᴺ ∣ θ ∣ᴱ
-
 
 mutual
 
--- Adding a bijection after the fact is a bit inconvenient.  Ideally,
--- we would parametrize values, expressions and all the other
--- categories with a number n to keep track of the minimum size of the
--- domain of the heap. Since this change would involve virtually
--- the whole formalization, I will add extra assumptions only
--- where needed.
---
--- Maybe this is not true. Only values would need this extra parameter
--- and it seems we can universally quantify the bijection in the
--- low-equivalence relation without the need for pervasive changes to
--- the syntax.
-
-  -- This is not a good idea because it is too restrictive.  We need
-  -- at least a bijection that is "large" enough, but it can also be
-  -- larger.
-  -- data Value-≈ⱽ {τ} : (v₁ v₂ : Value τ) → Bij⟨ v₁ , v₂ ⟩ⱽ → Set where
-
-  -- data Raw-≈ᴿ : ∀ {τ} (r₁ r₂ : Raw τ) → Bij⟨ r₁ , r₂ ⟩ᴿ → Set where
-  --   Pair : ∀ {τ₁ τ₂} {v₁ v₁' : Value τ₁} {v₂ v₂' : Value τ₂}
-  --            {β : Bij (∣ v₁ ∣ⱽ ⊔ᴺ ∣ v₂ ∣ⱽ) (∣ v₁' ∣ⱽ ⊔ᴺ ∣ v₂' ∣ⱽ)}  →
-  --            Value-≈ⱽ v₁ v₁ β  →
-  --            Value-≈ⱽ v₂ v₂' β →
-  --            Raw-≈ᴿ ⟨ v₁ , v₂ ⟩ ⟨ v₁' , v₂' ⟩ β
-
+  -- Labeled values
   data _≈⟨_⟩ⱽ_ {τ} : Value τ → Bij → Value τ → Set where
     Valueᴸ : ∀ {r₁ r₂ ℓ β} → (ℓ⊑A : ℓ ⊑ A) (r≈ : r₁ ≈⟨ β ⟩ᴿ r₂) → (r₁ ^ ℓ) ≈⟨ β ⟩ⱽ (r₂ ^ ℓ)
     Valueᴴ : ∀ {r₁ r₂ ℓ₁ ℓ₂ β} → (ℓ₁⋤A : ℓ₁ ⋤ A) (ℓ₂⋤A : ℓ₂ ⋤ A) → (r₁ ^ ℓ₁) ≈⟨ β ⟩ⱽ (r₂ ^ ℓ₂)
 
-  -- _≈⟨_⟩ⱽ_ : ∀ {τ n m} → Value τ → Bij n m → Value τ → Set
-  -- v₁ ≈⟨ β ⟩ⱽ v₂ = Value-≈ β v₁ v₂
-
   -- Raw values
-  -- TODO: n m could be paramters
   data _≈⟨_⟩ᴿ_ : ∀ {τ} → Raw τ → Bij → Raw τ → Set where
 
     Unit : ∀ {β} → （） ≈⟨ β ⟩ᴿ （）
@@ -120,8 +71,6 @@ mutual
     Ref-S : ∀ {τ n m β} → ⟨ n , m ⟩ ∈ᵗ β →
               Refˢ {τ = τ} n ≈⟨ β ⟩ᴿ Refˢ m
 
-    -- TODO: Case when the indexes are not in the bijection ?
-
     Id : ∀ {β} {τ} {v₁ v₂ : Value τ} →
            v₁ ≈⟨ β ⟩ⱽ v₂ →
            Id v₁ ≈⟨ β ⟩ᴿ Id v₂
@@ -134,17 +83,9 @@ mutual
              (≈ᴱ : θ₁ ≈⟨ β ⟩ᴱ θ₂) →
              (v₁ ∷ θ₁) ≈⟨ β ⟩ᴱ (v₂ ∷ θ₂)
 
--- Shorthand
+-- Shorthands
 Ref-Iᴸ′ : ∀ {τ ℓ n₁ n₂} {β : Bij} → ℓ ⊑ A → n₁ ≡ n₂ → Refᴵ {τ = τ} ℓ n₁ ≈⟨ β ⟩ᴿ Refᴵ ℓ n₂
 Ref-Iᴸ′ ℓ⊑A refl = Ref-Iᴸ ℓ⊑A
-
--- Ref-I′ : ∀ {τ n₁ n₂} {β : Bij} {v₁ v₂ : Value τ} → ⟨ n₁ , n₂ ⟩ ∈ᵗ β →
---             let _ ^ ℓ₁ = v₁
---                 _ ^ ℓ₂ = v₂ in
---          v₁ ≈⟨ β ⟩ⱽ v₂ →
---          Refᴵ {τ = τ} ℓ₁ n₁ ≈⟨ β ⟩ᴿ Refᴵ ℓ₂ n₂
--- Ref-I′ ∈₁ (Valueᴸ ℓ⊑A r≈) = Ref-Iᴸ ℓ⊑A ∈₁
--- Ref-I′ ∈₁ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = Ref-Iᴴ ℓ₁⋤A ℓ₂⋤A
 
 Trueᴸ : ∀ {ℓ} {β : Bij} → ℓ ⊑ A → true ℓ ≈⟨ β ⟩ᴿ true ℓ
 Trueᴸ ℓ⊑A = Inl (Valueᴸ ℓ⊑A Unit)
@@ -192,53 +133,8 @@ slice-≈ᴱ (v₁≈v₂ ∷ θ₁≈θ₂) (drop p) = slice-≈ᴱ θ₁≈θ�
 
 --------------------------------------------------------------------------------
 -- TODO: these should either not be needed anymore or moved to HLowEq (e.g., ⌞_⌟ ; ≈ᶜ-⊑)
+-- This seems to be needed in the FG2CG translation.
 open import Generic.Value.HLowEq {Ty} {Value} _≈⟨_⟩ⱽ_ public
-
--- TODO: these hint that cells and values are isomorphic
--- and then we might as well put values in the store
--- ≈ⱽ-≈ᶜ : ∀ {τ β} {v₁ v₂ : Value τ} → v₁ ≈⟨ β ⟩ⱽ v₂ →
---         let r₁ ^ ℓ₁ = v₁
---             r₂ ^ ℓ₂ = v₂ in
---             ⟨ r₁ , ℓ₁ ⟩ S.≈⟨ β ⟩ᶜ ⟨ r₂ , ℓ₂ ⟩
--- ≈ⱽ-≈ᶜ (Valueᴸ ℓ⊑A r≈) = cellᴸ ℓ⊑A r≈
--- ≈ⱽ-≈ᶜ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = cellᴴ ℓ₁⋤A ℓ₂⋤A
-
--- lemma-≈ᶜ : ∀ {τ β} {c₁ c₂ : Cell τ} → c₁ S.≈⟨ β ⟩ᶜ c₂ →
---                 let ⟨ r₁ , ℓ₁ ⟩ = c₁
---                     ⟨ r₂ , ℓ₂ ⟩ = c₂ in
---                 ℓ₁ ⊑ A → ℓ₂ ⊑ A → (r₁ ≈⟨ β ⟩ᴿ r₂) P.× (ℓ₁ ≡ ℓ₂)
--- lemma-≈ᶜ (cellᴸ x ≈ᴿ) ℓ₁⊑A ℓ₂⊑A = ⟨ ≈ᴿ , refl ⟩
--- lemma-≈ᶜ (cellᴴ ℓ₁⋤A _) ℓ₁⊑A ℓ₂⊑A = ⊥-elim (ℓ₁⋤A ℓ₁⊑A)
-
--- ≈ᶜ-≈ᴿ : ∀ {τ β} {c₁ c₂ : Cell τ} → c₁ S.≈⟨ β ⟩ᶜ c₂ →
---                 let ⟨ r₁ , ℓ₁ ⟩ = c₁
---                     ⟨ r₂ , ℓ₂ ⟩ = c₂ in
---                 ℓ₁ ⊑ A → ℓ₂ ⊑ A → r₁ ≈⟨ β ⟩ᴿ r₂
--- ≈ᶜ-≈ᴿ ≈ᶜ ℓ₁⊑A ℓ₂⊑A = proj₁ (lemma-≈ᶜ ≈ᶜ ℓ₁⊑A ℓ₂⊑A)
-
--- ≈ᶜ-≡  :  ∀ {τ β} {c₁ c₂ : Cell τ} → c₁ S.≈⟨ β ⟩ᶜ c₂ →
---                 let ⟨ r₁ , ℓ₁ ⟩ = c₁
---                     ⟨ r₂ , ℓ₂ ⟩ = c₂ in
---                 ℓ₁ ⊑ A → ℓ₂ ⊑ A → ℓ₁ ≡ ℓ₂
--- ≈ᶜ-≡ ≈ᶜ ℓ₁⊑A ℓ₂⊑A = proj₂ (lemma-≈ᶜ ≈ᶜ ℓ₁⊑A ℓ₂⊑A)
-
--- ≈ᶜ-≈ⱽ : ∀ {τ β} {c₁ c₂ : Cell τ} → c₁ S.≈⟨ β ⟩ᶜ c₂ →
---                 let ⟨ r₁ , ℓ₁ ⟩ = c₁
---                     ⟨ r₂ , ℓ₂ ⟩ = c₂ in (r₁ ^ ℓ₁) ≈⟨ β ⟩ⱽ (r₂ ^ ℓ₂)
--- ≈ᶜ-≈ⱽ (cellᴸ x x₁) = Valueᴸ x x₁
--- ≈ᶜ-≈ⱽ (cellᴴ x x₁) = Valueᴴ x x₁
-
--- taint-update-≈ᶜ :  ∀ {τ β} {c₁ c₂ : Cell τ} {v₁ v₂ : Value τ} →
---                      c₁ S.≈⟨ β ⟩ᶜ c₂ →  v₁ ≈⟨ β ⟩ⱽ v₂ →
---                 let ⟨ r₁ , ℓ₁ ⟩ = c₁
---                     ⟨ r₂ , ℓ₂ ⟩ = c₂
---                     r₁' ^ ℓ₁' = v₁
---                     r₂' ^ ℓ₂' = v₂ in
---                     ⟨ r₁' , ℓ₁' ⟩  S.≈⟨ β ⟩ᶜ ⟨ r₂' , ℓ₂' ⟩
--- taint-update-≈ᶜ (cellᴸ ⊑₁ r≈) (Valueᴸ ℓ⊑A r≈₁) = cellᴸ ℓ⊑A r≈₁
--- taint-update-≈ᶜ (cellᴸ ⊑₁ r≈) (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = cellᴴ ℓ₁⋤A ℓ₂⋤A
--- taint-update-≈ᶜ (cellᴴ ⋤₁ ⋤₂) (Valueᴸ ℓ⊑A r≈₁) = cellᴸ ℓ⊑A r≈₁ -- This gives more expressivity
--- taint-update-≈ᶜ (cellᴴ ⋤₁ ⋤₂) (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = cellᴴ ℓ₁⋤A ℓ₂⋤A
 
 label-of-≈ⱽ : ∀ {τ β} {v₁ v₂ : Value τ} → v₁ ≈⟨ β ⟩ⱽ v₂ →
                 let (r₁ ^ ℓ₁) = v₁
@@ -255,8 +151,7 @@ extract-≈ᴿ (Valueᴴ ℓ₁⋤A ℓ₂⋤A) ⊑₁ = ⊥-elim (ℓ₁⋤A �
 -- Lift low-equivalence to configurations
 open Conf
 
--- open import Generic.Bijection as B
-
+-- Derive L-equivalence relation for stores and heaps.
 open import Generic.PState.LowEq {Ty} {Ty} {Raw} {Value} _≈⟨_⟩ᴿ_ _≈⟨_⟩ⱽ_ A public
 
 record _≈⟨_,_⟩ᴬ_ {V : Set} (c₁ : Conf V) (R : V  → V → Set) (β : Bij) (c₂ : Conf V) : Set where
@@ -279,7 +174,12 @@ _≈⟨_⟩ᶜ_ : ∀ {τ} → FConf τ → Bij → FConf τ → Set
 c₁ ≈⟨ β ⟩ᶜ c₂ = c₁ ≈⟨ _≈⟨ β ⟩ⱽ_ , β ⟩ᴬ c₂
 
 --------------------------------------------------------------------------------
--- Properties: L-equivalence is an equivalence relation.
+-- Properties: L-equivalence for raw, labeled values, and environment is an
+-- equivalence relation, where reflexivity is defined over the domain
+-- of terms.  Notice that this is not the case for heaps because the
+-- domain and the range of the bijection must be included in the
+-- address space of the heap itself, therefore reflexivity holds only
+-- for valid heaps free of dangling references.
 
 open import Generic.Bijection
 
@@ -289,9 +189,6 @@ private module E = IProps Ctx Env
 
 mutual
 
-  -- TODO: update description
-  -- Weaken the identity bijection to progressively construct a bijection
-  -- large enough for all the references in a value.
   wken-≈ⱽ : V.Wkenᴮ _≈⟨_⟩ⱽ_
   wken-≈ⱽ β⊆β' (Valueᴸ ℓ⊑A r≈) = Valueᴸ ℓ⊑A (wken-≈ᴿ β⊆β' r≈)
   wken-≈ⱽ β⊆β' (Valueᴴ ℓ₁⋤A ℓ₂⋤A) = Valueᴴ ℓ₁⋤A ℓ₂⋤A
@@ -426,61 +323,5 @@ open G Ty
 
 𝑬 : G.IsValidEquivalence Ctx Env _≈⟨_⟩ᴱ_
 𝑬 = record { ∥_∥ = ∥_∥ᴱ ; isValid = isValidᴱ ; isEquiv = isEquivᴱ }
-
--- TODO: remove
-  -- Make them instance of my own Equivalence bijection-indexed relation
--- instance
-  -- ≈ᴿ-isEquivalence : ∀ {τ} → IsEquivalence (_≈ᴿ_ {τ})
-  -- ≈ᴿ-isEquivalence = {!!} -- record { refl = ? refl-≈ᴿ ; sym = sym-≈ᴿ ; trans = trans-≈ᴿ }
-
---   ≈ⱽ-isEquivalence : ∀ {τ} → IsEquivalence (_≈ⱽ_ {τ})
---   ≈ⱽ-isEquivalence = record { refl = refl-≈ⱽ ; sym = sym-≈ⱽ ; trans = trans-≈ⱽ }
-
---   ≈ᴱ-isEquivalence : ∀ {Γ} → IsEquivalence (_≈ᴱ_ {Γ})
---   ≈ᴱ-isEquivalence = record { refl = refl-≈ᴱ ; sym = sym-≈ᴱ ; trans = trans-≈ᴱ }
-
---   ≡-isEquivalence : ∀ {A : Set} → IsEquivalence (_≡_ {_} {A})
---   ≡-isEquivalence = record { refl = refl ; sym = sym ; trans = trans }
-
-
-
--- It doesn't seem we use this. Let's leave it out for now.
--- refl-≈ᴬ : ∀ {A} {R : Relᴮ A} {{isEquivᴿ : IsEquivalenceᴮ R}} {c} → c ≈⟨ R ⟩ᴬ c
--- refl-≈ᴬ {{isEquivᴿ}} {c = ⟨ _ , μ , _ ⟩} = ⟨ ι , {!!} , {!!} , {!refl-≈ᴬ!} ⟩ -- refl-≈ˢ , refl-≈ᴴ
---   where _≈ᴿ_ : ∀ {τ} → Raw τ → Raw τ → Set
---         _≈ᴿ_ = _≈⟨ ι′ ∥ μ ∥ᴴ ⟩ᴿ_
-
---         open IsEquivalenceᴮ isEquivᴿ
---         open import Generic.Store.LowEq {Ty} {Raw} _≈ᴿ_ A
---         open Props {!!}
-
--- sym-≈ᴬ : ∀ {A} {R : A → A → Set} {{isEquivᴿ : IsEquivalence R}} {c₁ c₂} →
---            c₁ ≈⟨ R ⟩ᴬ c₂ →
---            c₂ ≈⟨ R ⟩ᴬ c₁
--- sym-≈ᴬ {{isEquivᴿ}} ⟨ β , Σ≈ , μ≈ , t≈ ⟩ = ⟨ β ⁻¹ , sym-≈ˢ Σ≈ , sym-≈ᴴ {β = β} μ≈ , IsEquivalence.sym isEquivᴿ t≈  ⟩
-
--- trans-≈ᴬ : ∀ {A} {R : A → A → Set} {{isEquivᴿ : IsEquivalence R}} {c₁ c₂ c₃} →
---              c₁ ≈⟨ R ⟩ᴬ c₂ →
---              c₂ ≈⟨ R ⟩ᴬ c₃ →
---              c₁ ≈⟨ R ⟩ᴬ c₃
--- trans-≈ᴬ {{isEquivᴿ = isEquivᴿ}} ⟨ β₁ , Σ≈₁ , μ≈₁ , t≈₁ ⟩ ⟨ β₂ , Σ≈₂ , μ≈₂ , t≈₂ ⟩
---   = ⟨ β₂ ∘ᴮ β₁ , trans-≈ˢ Σ≈₁ Σ≈₂ , trans-≈ᴴ {β₁ = β₁} {β₂ = β₂} μ≈₁ μ≈₂ , IsEquivalence.trans isEquivᴿ t≈₁ t≈₂ ⟩
-
--- instance
---   ≈ᴬ-IsEquivalence : ∀ {A} {R : A → A → Set} {{isEquivᴿ : IsEquivalence R}}  → IsEquivalence _≈⟨ R ⟩ᴬ_
---   ≈ᴬ-IsEquivalence {{isEquivᴿ}} = record { refl = refl-≈ᴬ ; sym = sym-≈ᴬ ; trans = trans-≈ᴬ }
-
--- TODO: we probably need to make the bijection explicit in the relation.
--- Define the "Equivalence up to bijection" class.
-
--- TODO: fix the export here ...
--- Move this to Security where they are needed
-
---------------------------------------------------------------------------------
--- Subsumed by Generic.LowEq
--- open ≈ᴴ-Props isEquivⱽ public
--- -- (square-≈ᴴ ; ∣_∣ᴴ ; refl-≈ᴴ ; trans-≈ᴴ ; trans-≈ᴴ-ι ; snoc-≈ᴴ ; writeᴴ-≈ᴴ ; square-≈ᴴ-ι ; sym-≈ᴴ ; newᴴ-≈ᴴ ; newᴸ-≈ᴴ ; ≈-# ; readᴸ-≈ᶜ ; writeᴸ-≈ᴴ ) public
-
--- open ≈ˢ-Props isEquivᴿ public
 
 open ≈ᴾ-Props 𝑹 𝑽 public

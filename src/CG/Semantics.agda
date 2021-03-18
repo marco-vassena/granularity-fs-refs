@@ -176,7 +176,7 @@ mutual
              e₂ ⇓ᴾ⟨ θ ⟩ Labeled ℓ' v₂ →
              (n∈μ : n ↦ v₂' ^ ℓ ∈ᴴ μ) →
              pc ⊑ ℓ →
-             (ℓ'' ≡ pc ⊔ ℓ') →  -- Fix manuscript
+             (ℓ'' ≡ pc ⊔ ℓ') →
              (up : μ' ≔ μ [ n ↦ v₂ ^ ℓ'' ]ᴴ) →
              Step θ ⟨ Σ , μ , pc , e₁ ≔ e₂ ⟩ ⟨ Σ , μ' , pc , （） ⟩
 
@@ -203,86 +203,6 @@ mutual
   c₁ ⇓ᶠ⟨ θ ⟩ c₂ = FStep θ c₁ c₂
 
 --------------------------------------------------------------------------------
--- Syntactic sugar
-
--- Force a thunk
-⌞_⌟ᶠ : ∀ {τ Γ Σ Σ' μ μ' pc pc' v} {t : Thunk Γ (LIO τ)} {θ : Env Γ}
-        → ⟨ Σ , μ , pc , t ⟩ ⇓⟨ θ ⟩ ⟨ Σ' , μ' , pc' , v ⟩
-        → ⟨ Σ , μ , pc , ⌞ t ⌟ᵀ ⟩ ⇓ᶠ⟨ θ ⟩ ⟨ Σ' , μ' , pc' , v ⟩
-⌞_⌟ᶠ = Force SThunk
-
--- Force bind.
-Bindᶠ : ∀ {Γ τ₁ τ₂ Σ Σ' Σ'' μ μ' μ'' pc pc' pc'' v v₁ θ} {e₁ : Expr Γ (LIO τ₁)} {e₂ : Expr _ (LIO τ₂)}
-           → ⟨ Σ , μ , pc , e₁ ⟩ ⇓ᶠ⟨ θ ⟩ ⟨ Σ' , μ' , pc' , v₁ ⟩
-           → ⟨ Σ' , μ' , pc' , e₂ ⟩ ⇓ᶠ⟨ v₁ ∷ θ ⟩ ⟨ Σ'' , μ'' , pc'' , v ⟩
-           → ⟨ Σ , μ , pc , ⌞ bind e₁ e₂ ⌟ᵀ ⟩ ⇓ᶠ⟨ θ ⟩ ⟨ Σ'' , μ'' , pc'' , v ⟩
-Bindᶠ x₁ x₂ = ⌞ Bind x₁ x₂ ⌟ᶠ
-
--- To labeled in forcing semantics
-ToLabeledᶠ  : ∀ {Γ Σ Σ' μ μ' pc pc' τ v θ} {t : Thunk Γ (LIO τ)}
-              → ⟨ Σ , μ , pc , ⌞ t ⌟ᵀ ⟩ ⇓ᶠ⟨ θ ⟩ ⟨ Σ' , μ' , pc' , v ⟩
-              → ⟨ Σ , μ , pc , ⌞ toLabeled ⌞ t ⌟ᵀ ⌟ᵀ ⟩ ⇓ᶠ⟨ θ ⟩ ⟨ Σ' , μ' , pc , Labeled pc' v ⟩
-ToLabeledᶠ x = ⌞ ToLabeled x ⌟ᶠ
-
--- Force Wken
-Wkenᶠ : ∀ {Γ Γ' Σ Σ' μ μ' pc pc' τ v θ} {e : Expr Γ (LIO τ)} (θ' : Env Γ')
-        → ⟨ Σ , μ , pc , e ⟩ ⇓ᶠ⟨ θ ⟩ ⟨ Σ' , μ' , pc' , v ⟩
-        → ⟨ Σ , μ , pc , wken e (drop-⊆₂ Γ Γ')  ⟩ ⇓ᶠ⟨ θ' ++ᴱ θ ⟩ ⟨ Σ' , μ' , pc' , v ⟩
-Wkenᶠ {Γ' = Γ'} θ'' (Force x x₁) = Force (Wken (drop-⊆₂ _ Γ') x) x₁
-
--- Pure execution under weakening
-⇓¹ : ∀ {Γ τ τ₁ v θ} {v₁ : Value τ₁} {e : Expr Γ τ}
-     → e ⇓ᴾ⟨ θ ⟩ v
-     → e ↑¹ ⇓ᴾ⟨ v₁ ∷ θ ⟩ v
-⇓¹ x = Wken (drop refl-⊆) x
-
-
-⇓² : ∀ {Γ τ τ₁ τ₂ v θ} {v₁ : Value τ₁} {v₂ : Value τ₂} {e : Expr Γ τ}
-     → e ⇓ᴾ⟨ θ ⟩ v
-     → e ↑² ⇓ᴾ⟨ v₁ ∷ v₂ ∷ θ ⟩ v
-⇓² x = Wken (drop (drop refl-⊆)) x
-
-If₁ : ∀ {τ Γ θ v} {e₁ : Expr Γ Bool} {e₂ e₃ : Expr Γ τ} →
-        e₁ ⇓ᴾ⟨ θ ⟩ (inl （）) →
-        e₂ ⇓ᴾ⟨ θ ⟩ v →
-        if e₁ then e₂ else e₃ ⇓ᴾ⟨ θ ⟩ v
-If₁ x₁ x₂ = Case₁ x₁ (⇓¹ x₂)
-
-If₂ : ∀ {τ Γ θ v} {e₁ : Expr Γ Bool} {e₂ e₃ : Expr Γ τ} →
-        e₁ ⇓ᴾ⟨ θ ⟩ (inr （）) →
-        e₃ ⇓ᴾ⟨ θ ⟩ v →
-        if e₁ then e₂ else e₃ ⇓ᴾ⟨ θ ⟩ v
-If₂ x₁ x₂ = Case₂ x₁ (⇓¹ x₂)
-
-↑¹-⇓ᶠ  :  ∀ {Γ Σ Σ' μ μ' pc pc' τ τ' v θ} {e : Expr Γ (LIO τ)} {v₁ : Value τ'}
-        → ⟨ Σ , μ , pc , e ⟩ ⇓ᶠ⟨ θ ⟩ ⟨ Σ' , μ' , pc' , v ⟩
-        → ⟨ Σ , μ , pc , e ↑¹ ⟩ ⇓ᶠ⟨ v₁ ∷  θ ⟩ ⟨ Σ' , μ' , pc' , v ⟩
-↑¹-⇓ᶠ {v₁ = v₁}  = Wkenᶠ (v₁ ∷ [])
-
-↑²-⇓ᶠ  :  ∀ {Γ  Σ Σ' μ μ' pc pc' τ τ₁ τ₂ v θ} {e : Expr Γ (LIO τ)} {v₁ : Value τ₁} {v₂ : Value τ₂}
-        → ⟨ Σ , μ , pc , e ⟩ ⇓ᶠ⟨ θ ⟩ ⟨ Σ' , μ' , pc' , v ⟩
-        → ⟨ Σ , μ , pc , e ↑² ⟩ ⇓ᶠ⟨ v₁ ∷ v₂ ∷  θ ⟩ ⟨ Σ' , μ' , pc' , v ⟩
-↑²-⇓ᶠ {v₁ = v₁} {v₂ = v₂} = Wkenᶠ (v₁ ∷ v₂ ∷ [])
-
-⇓ᴾ-with : ∀ {τ Γ v₁ v₂ θ} {e : Expr Γ τ} → e ⇓ᴾ⟨ θ ⟩ v₁ → v₁ ≡ v₂ → e ⇓ᴾ⟨ θ ⟩ v₂
-⇓ᴾ-with x refl = x
-
-⇓ᶠ-with : ∀ {τ Γ Σ Σ' μ μ' pc pc' v₁ v₂ θ} {e : Expr Γ (LIO τ)} →
-            ⟨ Σ , μ , pc , e ⟩ ⇓ᶠ⟨ θ ⟩ ⟨ Σ' , μ' , pc' , v₁ ⟩ →
-            v₁ ≡ v₂ → ⟨ Σ , μ , pc , e ⟩ ⇓ᶠ⟨ θ ⟩ ⟨ Σ' , μ' , pc' , v₂ ⟩
-⇓ᶠ-with x refl = x
-
-⇓-with : ∀ {τ Γ Σ Σ' μ μ' pc pc' v₁ v₂ θ} {t : Thunk Γ (LIO τ)} →
-            ⟨ Σ , μ , pc , t ⟩ ⇓⟨ θ ⟩ ⟨ Σ' , μ' , pc' , v₁ ⟩ →
-            v₁ ≡ v₂ → ⟨ Σ , μ , pc , t ⟩ ⇓⟨ θ ⟩ ⟨ Σ' , μ' , pc' , v₂ ⟩
-⇓-with x refl = x
-
-⇓-with′ : ∀ {τ Γ Σ μ pc c₁ c₂ θ} {t : Thunk Γ (LIO τ)} →
-            ⟨ Σ , μ , pc , t ⟩ ⇓⟨ θ ⟩ c₁ →
-            c₁ ≡ c₂ → ⟨ Σ , μ , pc , t ⟩ ⇓⟨ θ ⟩ c₂
-⇓-with′ x refl = x
-
---------------------------------------------------------------------------------
 -- The semantics only raises the program counter.
 
 open Conf
@@ -292,7 +212,6 @@ mutual
   step-⊑ : ∀ {τ Γ c₂} {θ : Env Γ} {c₁ : TConf Γ (LIO τ)} →
              c₁ ⇓⟨ θ ⟩ c₂ →
              (pc c₁) ⊑ (pc c₂)
-
   step-⊑ (Return x) = refl-⊑
   step-⊑ (Bind x x₁) = trans-⊑ (stepᶠ-⊑ x) (stepᶠ-⊑ x₁)
   step-⊑ (Unlabel x eq) rewrite eq = join-⊑₁ _ _

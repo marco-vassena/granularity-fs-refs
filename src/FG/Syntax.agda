@@ -144,21 +144,9 @@ if_then_else_ : ∀ {Γ τ} → Expr Γ Bool → Expr Γ τ → Expr Γ τ → E
 if_then_else_ c t e = case c (wken t (drop refl-⊆)) (wken e (drop refl-⊆))
 
 --------------------------------------------------------------------------------
--- Implementation of the HasLabel generic interface
-
--- TODO: remove?
--- open import Generic.LValue
-
--- 𝑯 : HasLabel Ty Value
--- 𝑯 = record { F = id ; value = id ; label = lbl }
---   where open import Function
-
---------------------------------------------------------------------------------
 -- Configurations
 
 -- Generic store and flow-sensitive heap
--- open import Generic.Store Ty Raw public
--- open import Generic.Heap Ty Value public -- hiding (_∈_ ; Write ; _⊆_)
 open import Generic.PState Ty Ty Raw Value public
 
 -- Generic configuration container.
@@ -175,14 +163,6 @@ IConf Γ τ = Conf (Expr Γ τ)
 -- Final configuration
 FConf : Ty → Set
 FConf τ = Conf (Value τ)
-
--- Projections
-
-expr : ∀ {Γ τ} → IConf Γ τ → Expr Γ τ
-expr = Conf.term
-
-val : ∀ {τ} → FConf τ → Value τ
-val = Conf.term
 
 --------------------------------------------------------------------------------
 -- Weakening once and twice.

@@ -10,37 +10,22 @@ open import Lattice
 module CG.Security {{𝑳 : Lattice}} (A : Label) where
 
 open import Data.Empty
+open import Relation.Binary.PropositionalEquality
+open import Relation.Nullary
+open import Data.Product renaming (_,_ to _∧_) hiding (,_)
+
+-- CG Definitions
 open import CG.Types hiding (_×_) renaming (_⊆_ to _⊆ᶜ_) hiding (refl-⊆)
 open import CG.Syntax
 open import CG.Semantics
-open import CG.LowEq A public
-open import Relation.Binary.PropositionalEquality
-open import Relation.Nullary
 open import Generic.Bijection
-open import Data.Product renaming (_,_ to _∧_) hiding (,_)
+open import CG.LowEq A public
 
+-- Valid assumptions
 open import CG.Valid
 open import Generic.Valid
 open IsValid isValidᴱ
 open Validᴾ
-
---------------------------------------------------------------------------------
--- Moved to CG.LowEq
--- Lemmas on L-equivalent environments.
-
--- Lookup in L-equivalent envs gives L-equivalent values
--- lookup-≈ⱽ : ∀ {τ Γ θ₁ θ₂} → (τ∈Γ : τ ∈ Γ) → θ₁ ≈ᴱ θ₂ → (θ₁ !! τ∈Γ) ≈ⱽ (θ₂ !! τ∈Γ)
--- lookup-≈ⱽ {θ₁ = v₁ ∷ θ₁} {v₂ ∷ θ₂} here (v₁≈v₂ ∷ θ₁≈θ₂) = v₁≈v₂
--- lookup-≈ⱽ {θ₁ = v₁ ∷ θ₁} {v₂ ∷ θ₂} (there τ∈Γ) (v₁≈v₂ ∷ θ₁≈θ₂) = lookup-≈ⱽ τ∈Γ θ₁≈θ₂
-
--- -- Slicing L-equivalent envs gives gives L-equivalent envs.
--- slice-≈ᴱ : ∀ {Γ₁ Γ₂} {θ₁ θ₂ : Env Γ₂} →
---                  θ₁ ≈ᴱ θ₂ →
---                  (Γ₁⊆Γ₂ : Γ₁ ⊆ Γ₂) →
---                  slice θ₁ Γ₁⊆Γ₂ ≈ᴱ slice θ₂ Γ₁⊆Γ₂
--- slice-≈ᴱ [] base = []
--- slice-≈ᴱ (v₁≈v₂ ∷ θ₁≈θ₂) (cons p) = v₁≈v₂ ∷ slice-≈ᴱ θ₁≈θ₂ p
--- slice-≈ᴱ (v₁≈v₂ ∷ θ₁≈θ₂) (drop p) = slice-≈ᴱ θ₁≈θ₂ p
 
 --------------------------------------------------------------------------------
 mutual

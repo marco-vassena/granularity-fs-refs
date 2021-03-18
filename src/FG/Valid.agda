@@ -13,7 +13,9 @@ open import Generic.Heap.Lemmas Ty Value -- hiding (∥_∥ᴴ)
 
 mutual
 
-  -- "Size" of a value
+  -- Compute the domain of values and environment. This is the minimum
+  -- size that the heap must have for all the heap addresses in these
+  -- terms to be valid.
   ∥_∥ⱽ : ∀ {τ} → Value τ → ℕ
   ∥ r ^ ℓ ∥ⱽ = ∥ r ∥ᴿ
 
@@ -23,7 +25,7 @@ mutual
   ∥ inl x ∥ᴿ = ∥ x ∥ⱽ
   ∥ inr x ∥ᴿ = ∥ x ∥ⱽ
   ∥ ⟨ x , y ⟩ ∥ᴿ = ∥ x ∥ⱽ ⊔ᴺ ∥ y ∥ⱽ
-  ∥ Refᴵ x n ∥ᴿ = 0 -- 0 because we only care about the domain of the refs in the heap (ℕ.suc n)a
+  ∥ Refᴵ x n ∥ᴿ = 0 -- Memory references do not contribute to the minimum size of the heap.
   ∥ Refˢ n ∥ᴿ = suc n
   ∥ ⌞ x ⌟ ∥ᴿ = 0
   ∥ Id x ∥ᴿ = ∥ x ∥ⱽ
@@ -44,14 +46,8 @@ mutual
   Validᴿ n (inl v) = Validⱽ n v
   Validᴿ n (inr v) = Validⱽ n v
   Validᴿ n ⟨ v₁ , v₂ ⟩ = Validⱽ n v₁ × Validⱽ n v₂
-  -- TODO: there could be some (equivalent) alternatives.  E.g.,
-  -- define a special (unlabelde) cell type for flow-insensitive
-  -- references and ask that it has the right type.
-  -- TODO: if we have a separate store do we need validity at all?
-  -- Maybe just for the store?
-  Validᴿ n (Refᴵ {τ = τ} ℓ m) = ⊤ -- This is ok because it is the store Σ
-  -- TODO: should I have any requirement on the label of the cell for flow-sensitve refs?
-  Validᴿ {τ} n (Refˢ m) = m < n -- This does not seem to be needed. Answer: It will be needed when we prove the invariant!
+  Validᴿ n (Refᴵ {τ = τ} ℓ m) = ⊤ -- Memory references need not to be valid.
+  Validᴿ {τ} n (Refˢ m) = m < n -- Heap address m is valid for a heap of size n only if m < n
   Validᴿ n ⌞ ℓ ⌟ = ⊤
   Validᴿ n (Id v) = Validⱽ n v
 
