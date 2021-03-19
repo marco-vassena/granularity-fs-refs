@@ -15,17 +15,15 @@ files=(
   "Store.txt"
   )
 
+security="Security/Security.txt"
+
 for file in $files 
 do
   echo "\n\n--------------------------" $file "--------------------------\n\n"
   xargs cloc --by-file < $EVAL_DIR/$file
 done
 
-#echo "\n\n-------------------------- CG --------------------------\n\n"
-#xargs cloc --by-file < $EVAL_DIR/CG.txt
-#
-#echo "\n\n----------------- Misc (common files) ------------------\n\n"
-#xargs cloc --by-file < $EVAL_DIR/Misc.txt
-#
-#echo "\n\n------------- Bijection (common files) -----------------\n\n"
-#xargs cloc --by-file < $EVAL_DIR/Bijection.txt 
+echo "\n\n-------------------------- Security --------------------------\n\n"
+
+cd $EVAL_DIR
+cloc --by-file --list-file=Security.txt
