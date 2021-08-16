@@ -74,8 +74,7 @@ mutual
   inj-⟦·⟧ᵀ (Return ()) (Taint x₁)
   inj-⟦·⟧ᵀ (Return ()) (New x₁)
   inj-⟦·⟧ᵀ (Return ()) (Read x₁)
-  inj-⟦·⟧ᵀ (Return ()) (Writeᴵ x₁ x₂)
-  inj-⟦·⟧ᵀ (Return ()) (Writeˢ x₁ x₂)
+  inj-⟦·⟧ᵀ (Return ()) (Write x₁ x₂)
   inj-⟦·⟧ᵀ (Return ()) (LabelOfRef x₁)
   inj-⟦·⟧ᵀ (Bind x x₁) (Return (App x₂ (App x₃ ())))
   inj-⟦·⟧ᵀ (Bind {p₁ = p₁} x₁ x₂) (Bind {p₁ = q₁} y₁ y₂) with inj-⟦·⟧ᵗ′ p₁ q₁
@@ -95,11 +94,8 @@ mutual
   inj-⟦·⟧ᵀ (New x) (New y) rewrite inj-⟦·⟧ᴱ x y = refl
   inj-⟦·⟧ᵀ (Read x) (Return ())
   inj-⟦·⟧ᵀ (Read x) (Read y) rewrite inj-⟦·⟧ᴱ x y = refl
-  inj-⟦·⟧ᵀ (Writeᴵ x x₁) (Return ())
-  inj-⟦·⟧ᵀ (Writeᴵ {p = p} x₁ x₂) (Writeᴵ {p = q} y₁ y₂) with inj-⟦·⟧ᵗ′ p q
-  ... | refl rewrite inj-⟦·⟧ᴱ x₁ y₁ | inj-⟦·⟧ᴱ x₂ y₂ = refl
-  inj-⟦·⟧ᵀ (Writeˢ x x₁) (Return ())
-  inj-⟦·⟧ᵀ (Writeˢ {p = p} x₁ x₂) (Writeˢ {p = q} y₁ y₂) with inj-⟦·⟧ᵗ′ p q
+  inj-⟦·⟧ᵀ (Write x x₁) (Return ())
+  inj-⟦·⟧ᵀ (Write {p = p} x₁ x₂) (Write {p = q} y₁ y₂) with inj-⟦·⟧ᵗ′ p q
   ... | refl rewrite inj-⟦·⟧ᴱ x₁ y₁ | inj-⟦·⟧ᴱ x₂ y₂ = refl
   inj-⟦·⟧ᵀ (LabelOfRef x) (Return ())
   inj-⟦·⟧ᵀ (LabelOfRef {p = p} x) (LabelOfRef {p = q} y) with inj-⟦·⟧ᵗ′ p q

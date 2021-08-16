@@ -180,11 +180,14 @@ module §4 where
 
   open import Generic.Calculus
   open import Relation.Binary.PropositionalEquality
+  open import Data.Product renaming (_,_ to _∧_)
+
 
   -- Recovery of λ^FG TINI via ⟪·⟫
-  -- theorem₄ : TINI λ^FG
-  -- theorem₄ {A = A} c₁⇓ c₂⇓ c₁≈c₂ (θ₁≈θ₂ ∧ refl) = R.tini-via-cg c₁⇓ c₂⇓ c₁≈c₂ θ₁≈θ₂
-  --   where open import FG2CG.Recovery A as R
+  theorem₄ : TINI λ^FG
+  theorem₄ {A = A} valid₁ valid₂ c₁⇓ c₂⇓ c₁≈c₂ (θ₁≈θ₂ ∧ refl)
+    = R.tini-via-cg {{valid₁}} {{valid₂}} c₁⇓ c₂⇓ c₁≈c₂ θ₁≈θ₂
+    where open import FG2CG.Recovery A as R
 
 --------------------------------------------------------------------------------
 -- §5. Translation from λ^CG to λ^FG

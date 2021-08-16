@@ -121,16 +121,12 @@ mutual
                Cg2Fgᴱ c (Ref {s = s} p) e e' →
                Cg2Fgᵀ c p (! e) (! e')
 
-      Writeᴵ : ∀ {τ τ' e₁ e₂ e₁' e₂'} {p : MkTy τ τ'} →
-               Cg2Fgᴱ c (Ref {s = I} p) e₁ e₁' →
-               Cg2Fgᴱ c (Labeled p) e₂ e₂' →
-               Cg2Fgᵀ c Unit (e₁ ≔ e₂) (e₁' ≔ snd (unId e₂') )
-
-      Writeˢ : ∀ {τ τ' e₁ e₂ e₁' e₂'} {p : MkTy τ τ'} →
-               Cg2Fgᴱ c (Ref {s = S} p) e₁ e₁' →
+      Write : ∀ {τ τ' s e₁ e₂ e₁' e₂'} {p : MkTy τ τ'} →
+               Cg2Fgᴱ c (Ref {s = s} p) e₁ e₁' →
                Cg2Fgᴱ c (Labeled p) e₂ e₂' →
                Cg2Fgᵀ c Unit (e₁ ≔ e₂)
                              (e₁' ≔ ((Λ (taint (fst (var here)) (snd (var here)))) ∘ unId e₂' ))
+
 
       LabelOfRef : ∀ {τ τ' s e e'} {p : MkTy τ τ'} →
                    Cg2Fgᴱ c (Ref {s = s} p) e e' →
@@ -165,8 +161,7 @@ mutual
     mkCg2Fgᵀ (taint e) = Taint (mkCg2Fgᴱ e)
     mkCg2Fgᵀ (new e) = New (mkCg2Fgᴱ e)
     mkCg2Fgᵀ (! e) = Read (mkCg2Fgᴱ e)
-    mkCg2Fgᵀ (_≔_ {s = I} e e₁) = Writeᴵ (mkCg2Fgᴱ e) (mkCg2Fgᴱ e₁)
-    mkCg2Fgᵀ (_≔_ {s = S} e e₁) = Writeˢ (mkCg2Fgᴱ e) (mkCg2Fgᴱ e₁)
+    mkCg2Fgᵀ (e ≔ e₁) = Write (mkCg2Fgᴱ e) (mkCg2Fgᴱ e₁)
     mkCg2Fgᵀ (labelOfRef e) = LabelOfRef (mkCg2Fgᴱ e)
 
 mutual
@@ -209,9 +204,9 @@ mutual
   ≡-Cg2Fgᵀ (Taint x) rewrite ≡-Cg2Fgᴱ x = refl
   ≡-Cg2Fgᵀ (New x) rewrite ≡-Cg2Fgᴱ x = refl
   ≡-Cg2Fgᵀ (Read x) rewrite ≡-Cg2Fgᴱ x = refl
-  ≡-Cg2Fgᵀ (Writeᴵ {p = p} x x₁) with ≡-MkTy p
-  ... | refl rewrite ≡-Cg2Fgᴱ x | ≡-Cg2Fgᴱ x₁ = refl
-  ≡-Cg2Fgᵀ (Writeˢ {p = p} x x₁) with ≡-MkTy p
+  -- ≡-Cg2Fgᵀ (Writeᴵ {p = p} x x₁) with ≡-MkTy p
+  -- ... | refl rewrite ≡-Cg2Fgᴱ x | ≡-Cg2Fgᴱ x₁ = refl
+  ≡-Cg2Fgᵀ (Write {p = p} x x₁) with ≡-MkTy p
   ... | refl rewrite ≡-Cg2Fgᴱ x | ≡-Cg2Fgᴱ x₁ = refl
   ≡-Cg2Fgᵀ (LabelOfRef {p = p} x) with ≡-MkTy p
   ... | refl rewrite ≡-Cg2Fgᴱ x = refl

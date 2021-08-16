@@ -210,7 +210,25 @@ mutual
   ... | M ∧ M≔' ∧ ≈M = c ∧ ≈c ∧ ⇓c
     where c = ⟨ _ , _ , （） ^ pc ⟩
           ≈c = ⟨ ⟨ update-↓≈ˢ ≈Σ ≈M , ≈μ ⟩ , （） ⟩
-          ⇓c = Write x₁' pc⊑ℓ (Snd (UnId x₂' (sym (ub' ⊑pc))) refl) (join-⊑' pc⊑ℓ (trans-⊑ ℓ'⊑ℓ₁ ℓ₁⊑ℓ)) M≔'
+          pc⊔pc = sym (idem-⊔ pc)
+
+          ⊑₂ : pc ⊔ᴸ ℓ₁ ⊔ᴸ ℓ' ≤ ℓ
+          ⊑₂ = join-⊑' pc⊑ℓ (join-⊑' ℓ₁⊑ℓ (trans-⊑ ℓ'⊑ℓ₁ ℓ₁⊑ℓ) )
+
+          open ≡-Reasoning
+          eq : pc ⊔ ℓ₁ ⊔ ℓ' ≡ ((pc ⊔ ℓ₁) ⊔ pc) ⊔ ℓ'
+          eq = begin
+                  pc ⊔ ℓ₁ ⊔ ℓ' ≡⟨ assoc-⊔ pc ℓ₁ ℓ'  ⟩
+                  (pc ⊔ ℓ₁) ⊔ ℓ' ≡⟨ cong (_⊔ ℓ') (sym-⊔ pc ℓ₁)  ⟩
+                  (ℓ₁ ⊔ pc) ⊔ ℓ'  ≡⟨ cong (_⊔ ℓ') (sym (ub (join-⊑₂ pc ℓ₁)))  ⟩
+                  (pc ⊔ ℓ₁ ⊔ pc) ⊔ ℓ' ≡⟨ cong (_⊔ ℓ') (assoc-⊔ pc ℓ₁ pc) ⟩
+                  ((pc ⊔ ℓ₁) ⊔ pc) ⊔ ℓ' ∎
+
+          ⇓c = Write x₁' pc⊑ℓ
+                 (App Fun (UnId x₂' (sym (ub' ⊑pc))) pc⊔pc
+                   (Taint refl
+                     (Fst (Var here pc⊔pc) refl)
+                     (Snd (Var here refl) eq) refl-⊑)) ⊑₂  M≔'
 
   cg2fg ≈θ ⌞ ≈ᴾ ⌟ᵀ (LabelOfRef {pc = pc} x refl) with cg2fgᴾ _ pc ≈θ x
   ... | Refᴵ .ℓ .n ∧ Refᴵ ℓ n ∧ x' = ⟨ _ , _ , ⌞ ℓ ⌟ ^ (pc ⊔ ℓ) ⟩ ∧ ⟨ ≈ᴾ , ⌞ ℓ ⌟ ⟩ ∧ (LabelOfRef x' (sym-⊔ pc ℓ))

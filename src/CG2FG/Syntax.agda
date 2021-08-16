@@ -64,12 +64,14 @@ mutual
   ⟦ taint e ⟧ᵀ = taint ⟦ e ⟧ᴱ （）
   ⟦ new e ⟧ᵀ = new (Λ (taint ( (fst (var here))) (snd (var here))) ∘ (unId ⟦ e ⟧ᴱ))
   ⟦ ! e ⟧ᵀ = ! ⟦ e ⟧ᴱ
-  -- For FI refs the tainting occurs "automatically" because the label of the reference is fixed
-  ⟦_⟧ᵀ  (_≔_ {s = I} e e₁) =
-    ⟦ e ⟧ᴱ ≔ snd (unId ⟦ e₁ ⟧ᴱ)
 
-  -- For FS refs this is not the case and we need to explicitly taint the raw value (like we did for new).
-  ⟦_⟧ᵀ (_≔_ {s = S} e e₁) =
+  -- For simplicity, the translation taints the value written.
+  -- Technically, for FI references this tainting occurs automatically
+  -- because the label of the reference is fixed (the translation
+  -- could be simply ⟦ e ⟧ᴱ ≔ snd (unId ⟦ e₁ ⟧ᴱ)). This is not the
+  -- case for FS references and we must explicitly taint the new
+  -- value (like we did for new).
+  ⟦_⟧ᵀ (e ≔ e₁) =
     ⟦ e ⟧ᴱ ≔ ((Λ (taint (fst (var here)) (snd (var here)))) ∘ unId ⟦ e₁ ⟧ᴱ )
 
   ⟦ labelOfRef e ⟧ᵀ = labelOfRef ⟦ e ⟧ᴱ
