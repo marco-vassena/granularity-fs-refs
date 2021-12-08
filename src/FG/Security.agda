@@ -554,7 +554,6 @@ mutual
         v≈ = Valueᴴ (trans-⋤ (step-⊑ x₁) pc₁⋤A) (trans-⋤ (step-⊑ x₂) pc₂⋤A) in
         β ∧ B.refl-⊆ ∧ ⟨ ≈ᴾ′ , v≈ ⟩
 
-
   -- TINI: top level theorem
   tini : ∀ {τ Γ θ₁ θ₂ pc β} {c₁ c₂ : IConf Γ τ} {c₁' c₂' : FConf τ} →
              {{valid₁ : Valid-Inputs c₁ θ₁}} {{valid₂ : Valid-Inputs c₂ θ₂}} →

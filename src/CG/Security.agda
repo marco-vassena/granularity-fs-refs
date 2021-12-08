@@ -30,7 +30,7 @@ open Validᴾ
 --------------------------------------------------------------------------------
 mutual
 
-  -- High forcing steps preserve low-equivalence of stores
+  -- High forcing steps preserve low-equivalence of heaps and stores
   stepᶠ-≈ᴾ : ∀ {τ Γ θ} {c : EConf Γ (LIO τ)} {c' : FConf τ} →
                let ⟨ Σ , μ , pc , e ⟩ = c
                    ⟨ Σ' , μ' , _ , _ ⟩ = c' in
@@ -41,7 +41,7 @@ mutual
   stepᶠ-≈ᴾ {{isVᴾ}} {{isVᴱ}} (Force x y) pc⋤A = step-≈ᴾ {{isVᴾ}} {{ isVᴱ′ }} y pc⋤A
     where isVᴱ′ = validⱽ-⇓ᴾ x isVᴱ
 
-  -- High steps preserve low-equivalence of stores
+  -- High steps preserve low-equivalence of heaps and stores
   step-≈ᴾ : ∀ {τ Γ θ} {c : TConf Γ (LIO τ)} {c' : FConf τ} →
                let ⟨ Σ , μ , pc , t ⟩ = c
                    ⟨ Σ' , μ' ,  _ , _ ⟩ = c' in

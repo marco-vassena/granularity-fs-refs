@@ -25,7 +25,6 @@ open import Generic.Bijection renaming (_∘_ to _∘ᴮ_)
 open import Data.Product as P renaming (_,_ to ⟨_,_⟩)
 open import FG.Valid
 
-
 mutual
 
   -- Labeled values

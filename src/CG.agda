@@ -45,6 +45,14 @@ _≈ˢ⟨_,_⟩_ : Store → Label → Bij → Store → Set
 Σ₁ ≈ˢ⟨ A , β ⟩ Σ₂ = Σ₁ ≈⟨ β ⟩ˢ Σ₂
   where open import CG.LowEq A
 
+_≈ᴴ⟨_,_⟩_ : Heap → Label → Bij → Heap → Set
+μ₁ ≈ᴴ⟨ A , β ⟩ μ₂ = μ₁ ≈⟨ β ⟩ᴴ μ₂
+  where open import CG.LowEq A
+
+_≈ᴾ⟨_,_⟩_ : PState → Label → Bij → PState → Set
+p₁ ≈ᴾ⟨ A , β ⟩ p₂ = p₁ ≈⟨ β ⟩ᴾ p₂
+  where open import CG.LowEq A
+
 --------------------------------------------------------------------------------
 -- Calculus record
 
