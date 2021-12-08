@@ -25,7 +25,7 @@ Hub](https://hub.docker.com/r/marcovassena/granularity/).
 - Module `CG`: syntax, semantics, non-interference of the coarse-grained calculus.
 - Module `FG2CG`: fine- to coarse-grained translation, semantics preservation and recovery of non-interference.
 - Module `CG2FG`: coarse- to fine-grained translation, semantics preservation and recovery of non-interference.
-- Module `Generic`: generic reusable interfaces for IFC calculi, contexts and stores.
+- Module `Generic`: generic reusable interfaces for IFC calculi, contexts, stores, and heaps.
 
 We recommend to start to navigate the proof scripts from the top-level module
 `Toc`.
