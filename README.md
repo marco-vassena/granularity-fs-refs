@@ -16,7 +16,7 @@ You can typecheck the proofs with:
   - `--rewriting` flag
 
 A docker containining all the required software is available on [Docker
-Hub](https://hub.docker.com/r/marcovassena/granularity/).
+Hub](https://hub.docker.com/repository/docker/marcovassena/granularity-ftpl).
 
 ## Overview
 - Module `Toc`: Table of Contents with direct pointers to all the definitions and theorems of the paper.
